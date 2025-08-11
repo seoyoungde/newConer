@@ -4,8 +4,7 @@ import "./index.css";
 import App from "./App.jsx";
 import { ThemeProvider } from "styled-components";
 import { GlobalStyle } from "./styles/global.js";
-
-const theme = {};
+import { theme } from "./styles/theme.js";
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>

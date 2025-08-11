@@ -23,6 +23,7 @@ const Layout = () => {
         <NavArea>
           <Navigation />
         </NavArea>
+        <div id="rightbox-modal-root" />
       </RightBox>
     </Container>
   );
@@ -50,6 +51,7 @@ const LeftImage = styled.aside`
 `;
 
 const RightBox = styled.main`
+  position: relative;
   width: 605px;
   display: flex;
   height: 100%;

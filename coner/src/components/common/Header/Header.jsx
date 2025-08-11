@@ -23,6 +23,9 @@ const HeaderBar = styled.header`
   align-items: center;
   height: 72px;
   padding: 0px 34px;
+  @media (max-width: ${({ theme }) => theme.font.breakpoints.mobile}) {
+    padding: 0 15px;
+  }
 `;
 const LogoLink = styled(Link)`
   display: inline-flex;
@@ -38,7 +41,7 @@ const Actions = styled.div`
 `;
 const LoginLink = styled(Link)`
   color: #8f8f8f;
-  font-size: 16px;
+  font-size: ${({ theme }) => theme.font.size.body};
   text-decoration: none;
   cursor: pointer;
   &:hover {
