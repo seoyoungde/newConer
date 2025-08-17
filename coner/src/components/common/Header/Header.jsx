@@ -2,8 +2,13 @@ import React from "react";
 import { Link } from "react-router-dom";
 import Headerlogo from "../../../assets/images/headerlogo.png";
 import styled from "styled-components";
+import { useAuth } from "../../../context/AuthProvider";
 
 const Header = () => {
+  const { currentUser } = useAuth();
+
+  const avatarSrc = currentUser?.photoURL || "/default-profile.jpg";
+
   return (
     <HeaderBar>
       <LogoLink to="/" aria-label="홈으로 이동">
@@ -11,11 +16,20 @@ const Header = () => {
       </LogoLink>
 
       <Actions>
-        <LoginLink to="/login">로그인</LoginLink>
+        {currentUser ? (
+          <ProfileLink to="/mypage" aria-label="마이페이지로 이동">
+            마이페이지
+          </ProfileLink>
+        ) : (
+          <LoginLink to="/login">로그인</LoginLink>
+        )}
       </Actions>
     </HeaderBar>
   );
 };
+
+export default Header;
+
 const HeaderBar = styled.header`
   display: flex;
   width: 100%;
@@ -23,6 +37,7 @@ const HeaderBar = styled.header`
   align-items: center;
   height: 72px;
   padding: 0px 34px;
+  border-bottom: 1px solid #d4d4d4;
   @media (max-width: ${({ theme }) => theme.font.breakpoints.mobile}) {
     padding: 0 15px;
   }
@@ -39,8 +54,9 @@ const Actions = styled.div`
   display: inline-flex;
   align-items: center;
 `;
+
 const LoginLink = styled(Link)`
-  color: #8f8f8f;
+  color: ${({ theme }) => theme.colors.subtext};
   font-size: ${({ theme }) => theme.font.size.body};
   text-decoration: none;
   cursor: pointer;
@@ -52,4 +68,18 @@ const LoginLink = styled(Link)`
     outline-offset: 2px;
   }
 `;
-export default Header;
+
+const ProfileLink = styled(Link)`
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 9999px;
+  overflow: hidden;
+  cursor: pointer;
+
+  &:focus-visible {
+    outline: 2px solid #000;
+    outline-offset: 2px;
+  }
+`;

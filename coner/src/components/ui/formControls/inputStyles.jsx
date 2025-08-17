@@ -1,0 +1,112 @@
+import styled, { css } from "styled-components";
+
+/** 인풋 내부 패딩/폰트 사이즈 */
+export const inputSizes = {
+  sm: css`
+    padding: 10px 12px;
+    font-size: ${({ theme }) => theme.font.size.bodySmall};
+  `,
+  md: css`
+    padding: 14px 14px;
+    font-size: ${({ theme }) => theme.font.size.bodysmall};
+    font-weight: ${({ theme }) => theme.font.weight.bold};
+  `,
+  lg: css`
+    padding: 16px 16px;
+    font-size: ${({ theme }) => theme.font.size.body};
+  `,
+};
+
+/** 컨트롤(테두리 박스) 높이/밀도 */
+export const controlSizes = {
+  sm: css`
+    min-height: 40px;
+  `, // compact
+  md: css`
+    min-height: 44px;
+  `, // 모바일 권장 최소 터치 타겟
+  lg: css`
+    min-height: 52px;
+  `,
+};
+
+/** 라벨 사이즈 */
+export const labelSizes = {
+  sm: css`
+    font-size: ${({ theme }) => theme.font.size.bodySmall};
+    line-height: ${({ theme }) => theme.font.lineHeight.small};
+  `,
+  md: css`
+    font-size: ${({ theme }) => theme.font.size.body};
+    font-weight: ${({ theme }) => theme.font.weight.bold};
+    line-height: ${({ theme }) => theme.font.lineHeight.bodySmall};
+  `,
+  lg: css`
+    font-size: ${({ theme }) => theme.font.size.body};
+    line-height: ${({ theme }) => theme.font.lineHeight.body};
+  `,
+};
+
+/** 헬프/에러 메시지 사이즈 */
+export const messageSizes = labelSizes;
+
+/** 인풋 엘리먼트(input/textarea/select 공용) */
+export const inputElementCss = css`
+  width: 100%;
+  border: 0;
+  outline: none;
+
+  color: ${({ theme }) => theme.colors.text};
+  ${({ $size }) => inputSizes[$size || "md"]}
+
+  &::placeholder {
+    color: ${({ theme }) => theme.colors.subtext};
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+`;
+
+/** 바깥 래퍼(테두리/포커스/에러 처리) */
+export const controlCss = css`
+  display: flex;
+  align-items: center;
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  border-radius: 7px;
+  background: #fff;
+  overflow: hidden;
+
+  &:focus-within {
+    border: none;
+  }
+`;
+
+/** 라벨/메시지 공통 래퍼 */
+export const Field = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+`;
+
+export const Label = styled.label`
+  color: ${({ theme }) => theme.colors.text};
+  font-weight: ${({ theme }) => theme.font.weight.semibold};
+  ${({ $size = "md" }) => labelSizes[$size]}
+`;
+
+export const RequiredMark = styled.span`
+  margin-left: 2px;
+  color: ${({ theme }) => theme.colors.primary};
+`;
+
+export const HelpMsg = styled.p`
+  margin: 0;
+  color: #8f8f8f;
+  ${({ $size = "md" }) => messageSizes[$size]}
+`;
+
+export const ErrorMsg = styled(HelpMsg)`
+  color: #ff6b6b;
+`;

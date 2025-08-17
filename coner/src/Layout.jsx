@@ -1,4 +1,4 @@
-import React, { memo } from "react";
+import React from "react";
 import { Outlet } from "react-router-dom";
 import styled from "styled-components";
 import LeftbannerIcon from "../src/assets/images/leftbanner.jpg";
@@ -20,9 +20,11 @@ const Layout = () => {
             <Outlet />
           </ContentBox>
         </ScrollArea>
+
         <NavArea>
           <Navigation />
         </NavArea>
+
         <div id="rightbox-modal-root" />
       </RightBox>
     </Container>
@@ -71,13 +73,26 @@ const ScrollArea = styled.div`
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
+
+  &::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: transparent;
+  }
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  scrollbar-width: none;
+
+  -ms-overflow-style: none;
 `;
 
 const ContentBox = styled.div`
   max-width: 605px;
-  width: 100%;
   height: 100%;
-  background: yellow;
 `;
 
 const NavArea = styled.nav`

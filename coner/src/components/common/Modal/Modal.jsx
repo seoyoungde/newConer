@@ -1,4 +1,3 @@
-// src/components/common/Modal/Modal.jsx
 import React, { useEffect, useRef } from "react";
 import ReactDOM from "react-dom";
 import styled from "styled-components";
@@ -11,6 +10,8 @@ function Modal({
   width = 320,
   withinParent = false,
   containerId,
+  /** 새로 추가: 하단 액션을 커스터마이즈. 제공되면 기본 닫기 버튼을 대체함 */
+  footer,
 }) {
   const dialogRef = useRef(null);
   const isContained = withinParent || !!containerId;
@@ -25,7 +26,7 @@ function Modal({
 
   // 바디 스크롤 락: 전체 화면 포털일 때만
   useEffect(() => {
-    if (!open || isContained) return; // ✅ RightBox 내부 모달이면 바디 스크롤 락 안 걸기
+    if (!open || isContained) return;
     const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     return () => {
@@ -51,25 +52,26 @@ function Modal({
       >
         {title ? <Title>{title}</Title> : null}
         <Content>{children}</Content>
-        <Actions>
-          <CloseBtn type="button" onClick={onClose}>
-            닫기
-          </CloseBtn>
-        </Actions>
+        {footer !== undefined ? (
+          <Actions>{footer}</Actions>
+        ) : (
+          <Actions>
+            <CloseBtn type="button" onClick={onClose}>
+              닫기
+            </CloseBtn>
+          </Actions>
+        )}
       </Dialog>
     </Overlay>
   );
 
-  //  특정 컨테이너가 있으면 거기로 포털
   if (containerId) {
     const mountNode = document.getElementById(containerId);
     return mountNode ? ReactDOM.createPortal(content, mountNode) : null;
   }
 
-  // withinParent면 부모 안에 그대로 렌더 (absolute 기준)
   if (withinParent) return content;
 
-  // 그 외에는 전체 화면 포털
   const mountNode = document.getElementById("modal-root") || document.body;
   return ReactDOM.createPortal(content, mountNode);
 }
@@ -98,17 +100,18 @@ const Dialog = styled.div`
 const Title = styled.h3`
   margin: 0 0 12px;
   font-weight: 600;
-  font-size: ${({ theme }) => theme.font.size.body};
+  font-size: 16px;
 `;
 
 const Content = styled.div`
-  font-size: ${({ theme }) => theme.font.size.body};
+  font-size: 14px;
   margin-bottom: 16px;
 `;
 
 const Actions = styled.div`
   display: flex;
   justify-content: center;
+  gap: 8px;
 `;
 
 const CloseBtn = styled.button`
@@ -117,7 +120,7 @@ const CloseBtn = styled.button`
   color: #fff;
   font-weight: 600;
   border-radius: 6px;
-  font-size: ${({ theme }) => theme.font.size.small};
+  font-size: 13px;
   &:hover {
     filter: brightness(0.96);
   }

@@ -1,12 +1,11 @@
 export const theme = {
   colors: {
-    text: "#222",
+    text: "#333",
+    subtext: "#8f8f8f",
     bg: "#fff",
     primary: "#004FFF",
     secondary: "#004FFF",
-    border: "#004FFF",
-    muted: "#004FFF",
-    surface: "#ffffff",
+    border: "#e0e0e0",
   },
   font: {
     family:
@@ -36,6 +35,7 @@ export const theme = {
       bold: 700,
     },
     breakpoints: {
+      smobile: "380px",
       mobile: "480px",
       tablet: "768px",
       desktop: "1024px",

@@ -11,6 +11,7 @@ export const GlobalStyle = createGlobalStyle`
     height: 100%;
     margin: 0;
     padding: 0;
+    color:#333;
   }
 
   body {
@@ -32,6 +33,8 @@ export const GlobalStyle = createGlobalStyle`
   a {
     color: inherit;
     text-decoration: none;
+
+  
   }
 
   ul, ol {
@@ -47,11 +50,27 @@ export const GlobalStyle = createGlobalStyle`
     border: none;
     background: none;
     padding: 0;
+     &:focus {
+    outline:none;
+    border: none;
+  }
+  }
+
+  input {
+    border: 1px solid ${({ theme }) => theme.colors.border};
+  border-radius: 7px;
+  background-color: white;
+  color: ${({ theme }) => theme.colors.text};
+  &:focus {
+    outline: none;
+    border: 1px solid ${({ theme }) => theme.colors.border};
+    color: ${({ theme }) => theme.colors.text};
+  }
   }
 
   h1, h2, h3, h4, h5, h6 {
     margin: 0;
-    font-weight: ${({ theme }) => theme.font.weight.semibold};
+    font-weight: ${({ theme }) => theme.font.weight.bold};
   }
 
   h1 { font-size: ${({ theme }) => theme.font.size.h1}; line-height: ${({
@@ -66,9 +85,7 @@ export const GlobalStyle = createGlobalStyle`
 
   p { margin: 0 0 1em; }
 
-  small { font-size: ${({ theme }) => theme.font.size.small}; line-height: ${({
-  theme,
-}) => theme.font.lineHeight.small}; }
+
 
 
 `;

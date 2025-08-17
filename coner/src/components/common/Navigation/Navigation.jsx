@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import styled from "styled-components";
+import { useParams } from "react-router-dom";
 import { FaPhoneAlt, FaSadCry } from "react-icons/fa";
 import { BsChatDotsFill } from "react-icons/bs";
 import { Link } from "react-router-dom";
@@ -12,6 +13,7 @@ const isMobileDevice = () => {
 
 const Navigation = () => {
   const [showPopup, setShowPopup] = useState(false);
+  const { partnerId } = useParams();
 
   const handlePhoneClick = (e) => {
     e.preventDefault();
@@ -37,7 +39,7 @@ const Navigation = () => {
           <BsChatDotsFill size={28} />
           톡톡 상담
         </Actionhref>
-        <PrimaryLink to="/request/address-contact">
+        <PrimaryLink to={`/partner/address-contact/${partnerId}`}>
           온라인으로 서비스 신청하기
         </PrimaryLink>
       </Actions>
