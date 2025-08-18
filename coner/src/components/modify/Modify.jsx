@@ -108,13 +108,13 @@ const Modify = () => {
       await updateDoc(ref, updatedData);
 
       const q = query(
-        collection(db, "testrequest"),
+        collection(db, "Request"),
         where("customer_uid", "==", auth.currentUser.uid)
       );
       const snap = await getDocs(q);
       const batch = writeBatch(db);
       snap.forEach((docSnap) => {
-        batch.update(doc(db, "testrequest", docSnap.id), {
+        batch.update(doc(db, "Request", docSnap.id), {
           phone: newPhone,
         });
       });

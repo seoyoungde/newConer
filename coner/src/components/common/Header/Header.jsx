@@ -38,6 +38,7 @@ const HeaderBar = styled.header`
   height: 72px;
   padding: 0px 34px;
   border-bottom: 1px solid #d4d4d4;
+  background: white;
   @media (max-width: ${({ theme }) => theme.font.breakpoints.mobile}) {
     padding: 0 15px;
   }

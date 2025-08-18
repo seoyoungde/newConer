@@ -50,14 +50,14 @@ const InquiryPage = () => {
       const tasks = [];
 
       if (requestId) {
-        tasks.push(getDoc(doc(db, "testrequest", requestId)));
+        tasks.push(getDoc(doc(db, "Request", requestId)));
       }
 
       if (customer_uid) {
         tasks.push(
           getDocs(
             query(
-              collection(db, "testrequest"),
+              collection(db, "Request"),
               where("customer_uid", "==", customer_uid)
             )
           )
@@ -68,7 +68,7 @@ const InquiryPage = () => {
         tasks.push(
           getDocs(
             query(
-              collection(db, "testrequest"),
+              collection(db, "Request"),
               where("customer_phone", "==", customer_phone)
             )
           )

@@ -5,11 +5,18 @@ export const inputSizes = {
   sm: css`
     padding: 10px 12px;
     font-size: ${({ theme }) => theme.font.size.bodySmall};
+    @media (max-width: ${({ theme }) => theme.font.breakpoints.mobile}) {
+      font-size: ${({ theme }) => theme.font.size.body};
+    }
   `,
   md: css`
     padding: 14px 14px;
-    font-size: ${({ theme }) => theme.font.size.bodysmall};
+    font-size: ${({ theme }) => theme.font.size.bodySmall};
     font-weight: ${({ theme }) => theme.font.weight.bold};
+    @media (max-width: ${({ theme }) => theme.font.breakpoints.mobile}) {
+      font-size: ${({ theme }) => theme.font.size.body};
+      font-weight: ${({ theme }) => theme.font.weight.medium};
+    }
   `,
   lg: css`
     padding: 16px 16px;

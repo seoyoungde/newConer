@@ -125,7 +125,7 @@ const RequestReceived = ({
       detailInfo: formattedDetailInfo,
     };
     try {
-      const docRef = doc(db, "testrequest", request.id);
+      const docRef = doc(db, "Request", request.id);
       await updateDoc(docRef, updatedRequest);
 
       if (isMounted.current) {
@@ -155,7 +155,7 @@ const RequestReceived = ({
     if (!requestData?.id) return;
 
     try {
-      const docRef = doc(db, "testrequest", requestData.id);
+      const docRef = doc(db, "Request", requestData.id);
       const snapshot = await getDoc(docRef);
       if (snapshot.exists()) {
         const updatedData = { id: snapshot.id, ...snapshot.data() };
@@ -202,7 +202,7 @@ const RequestReceived = ({
     if (!cancelRequestId) return;
 
     try {
-      const cancelRef = doc(db, "testrequest", cancelRequestId);
+      const cancelRef = doc(db, "Request", cancelRequestId);
       await updateDoc(cancelRef, { status: 0 });
 
       updateRequestData(cancelRequestId, null);

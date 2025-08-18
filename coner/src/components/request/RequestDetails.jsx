@@ -42,4 +42,7 @@ const Textarea = styled.textarea`
   &::placeholder {
     color: ${({ theme }) => theme.colors.subtext};
   }
+  @media (max-width: ${({ theme }) => theme.font.breakpoints.mobile}) {
+    font-size: ${({ theme }) => theme.font.size.body};
+  }
 `;

@@ -49,6 +49,22 @@ const initialRequestState = {
   customer_type: "",
   selectedTechnician: null,
   partner_flow: false,
+  // confirm: {
+  //   consent: {
+  //     age: false,
+  //     customerTos: false,
+  //     privacy: false,
+  //     tosVersion: "",
+  //     privacyVersion: "",
+  //     at: "", // ISO timestamp
+  //   },
+  //   phone: {
+  //     verified: false,
+  //     method: "", // "sms" | "pass" | "other"
+  //     at: "", // ISO timestamp
+  //     phoneLast4: "",
+  //   },
+  // },
 };
 const DRAFT_KEY = "request_draft_v1";
 export const RequestProvider = ({ children }) => {
@@ -93,6 +109,7 @@ export const RequestProvider = ({ children }) => {
     "sprint",
     "detailInfo",
     "customer_type",
+    // "confirm",
   ];
   const filterAllowedFields = (data) => {
     const filtered = {};
@@ -174,7 +191,7 @@ export const RequestProvider = ({ children }) => {
   const fetchRequestByClient = useCallback(async (customer_phone) => {
     try {
       const q = query(
-        collection(db, "testrequest"),
+        collection(db, "Request"),
         where("customer_phone", "==", customer_phone)
       );
       const querySnapshot = await getDocs(q);
@@ -225,7 +242,7 @@ export const RequestProvider = ({ children }) => {
         const day = `${today.getDate()}`.padStart(2, "0");
         const formattedDate = `${year}년 ${month}월 ${day}일`;
         const isPartnerFlow = !!updatedRequestData.partner_flow;
-        const newDocRef = doc(collection(db, "testrequest"));
+        const newDocRef = doc(collection(db, "Request"));
         const sanitizedData = {
           ...filterAllowedFields(updatedRequestData),
           request_id: newDocRef.id,

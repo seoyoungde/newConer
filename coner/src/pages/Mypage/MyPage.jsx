@@ -39,7 +39,7 @@ const MyPage = () => {
     if (!userInfo?.phone || userInfo?.isDeleted) return;
 
     const q = query(
-      collection(db, "testrequest"),
+      collection(db, "Request"),
       where("customer_uid", "==", userInfo.member_id)
     );
     const unsubscribe = onSnapshot(q, (snapshot) => {

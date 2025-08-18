@@ -10,6 +10,7 @@ import { auth } from "../../lib/firebase";
 import NavHeader from "../../components/common/Header/NavHeader";
 import Button from "../../components/ui/Button";
 import Modal from "../../components/common/Modal/Modal";
+import AgreementModal from "../../components/common/Modal/AgreementModal";
 
 const PartnerAdditionalRequestPage = () => {
   const navigate = useNavigate();
@@ -30,10 +31,38 @@ const PartnerAdditionalRequestPage = () => {
   );
   const [selectedDropdownOption, setSelectedDropdownOption] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isAgreementOpen, setIsAgreementOpen] = useState(false);
+  const [agreements, setAgreements] = useState({
+    all: false,
+    age: false,
+    customer: false,
+    privacy: false,
+    privacy2: false,
+    privacy3: false,
+    privacy4: false,
+  });
+  const [isPhoneVerified, setIsPhoneVerified] = useState(false);
 
   const handleSelectDropdown = useCallback((value) => {
     setSelectedDropdownOption(value);
   }, []);
+
+  const handlePreSubmit = () => {
+    if (!additionalInfo.trim()) {
+      setPopupMessage("요청사항을 입력해주세요");
+      return;
+    }
+
+    const { service_type } = requestData;
+    if (["설치", "이전", "수리", "설치 및 구매"].includes(service_type)) {
+      if (!selectedDropdownOption) {
+        setPopupMessage("요청사항을 선택해주세요");
+        return;
+      }
+    }
+
+    setIsAgreementOpen(true);
+  };
 
   const handleSubmit = async () => {
     if (!additionalInfo.trim()) {
@@ -107,31 +136,61 @@ const PartnerAdditionalRequestPage = () => {
 
       resetRequestData();
 
-      //   https: try {
-      //     await axios.post("https://api.coner.kr/sms/notifyToSelectedCompany", {
-      //       service_date: requestData.service_date,
-      //       service_time: requestData.service_time,
-      //       brand: requestData.brand,
-      //       aircon_type: requestData.aircon_type,
-      //       service_type: requestData.service_type,
-      //       customer_address: requestData.customer_address,
-      //       customer_phone: requestData.customer_phone,
-      //       partner_id: partnerId,
-      //     });
-      //     console.log("✅ 알림 전송 성공");
-      //   } catch (err) {
-      //     console.error("❌ 알림 전송 실패:", err.response?.data || err.message);
-      //     console.log("❓ 실제 요청 보낸 데이터:", {
-      //       service_date: requestData.service_date,
-      //       service_time: requestData.service_time,
-      //       brand: requestData.brand,
-      //       aircon_type: requestData.aircon_type,
-      //       service_type: requestData.service_type,
-      //       customer_address: requestData.customer_address,
-      //       customer_phone: requestData.customer_phone,
-      //       partner_id: partnerId,
-      //     });
-      //   }
+      try {
+        const validPartnerId =
+          partnerId && partnerId !== "undefined" && partnerId !== "null"
+            ? partnerId
+            : null;
+
+        const hasPartnerInfo =
+          !!validPartnerId ||
+          !!requestData?.partner_uid ||
+          !!requestData?.partner_name ||
+          !!requestData?.partner_flow ||
+          !!requestData?.selectedTechnician;
+
+        if (hasPartnerInfo) {
+          await axios.post("https://api.coner.kr/sms/notifyToSelectedCompany", {
+            service_date: requestData.service_date,
+            service_time: requestData.service_time,
+            brand: requestData.brand,
+            aircon_type: requestData.aircon_type,
+            service_type: requestData.service_type,
+            customer_address: requestData.customer_address,
+            customer_phone: requestData.customer_phone,
+            partner_id: validPartnerId || requestData?.partner_uid || "",
+          });
+        } else {
+          await axios.post("https://api.coner.kr/sms/notify", {
+            service_date: requestData.service_date,
+            service_time: requestData.service_time,
+            brand: requestData.brand,
+            aircon_type: requestData.aircon_type,
+            service_type: requestData.service_type,
+            customer_address: requestData.customer_address,
+            customer_phone: requestData.customer_phone,
+          });
+        }
+        console.log("✅ 알림 전송 성공");
+      } catch (err) {
+        console.error("❌ 알림 전송 실패:", err?.response?.data || err.message);
+        console.log("❓ 실제 요청 보낸 데이터:", {
+          service_date: requestData.service_date,
+          service_time: requestData.service_time,
+          brand: requestData.brand,
+          aircon_type: requestData.aircon_type,
+          service_type: requestData.service_type,
+          customer_address: requestData.customer_address,
+          customer_phone: requestData.customer_phone,
+          partner_id:
+            (partnerId &&
+              partnerId !== "undefined" &&
+              partnerId !== "null" &&
+              partnerId) ||
+            requestData?.partner_uid ||
+            "",
+        });
+      }
 
       navigate("/search/inquiry", {
         state: { customer_phone: requestData.customer_phone, requestId },
@@ -211,16 +270,48 @@ const PartnerAdditionalRequestPage = () => {
             </CostRow>
           </CostTable>
         </ServiceCostContainer>
-        <Button
-          type="submint"
-          size="lg"
-          style={{ marginTop: 20, marginBottom: 24 }}
-          onClick={handleSubmit}
-          disabled={isSubmitting}
-        >
-          {isSubmitting ? "제출 중..." : "제출하기"}
-        </Button>
       </FormLayout>
+      <Button
+        type="button"
+        size="lg"
+        fullWidth="true"
+        style={{ marginTop: 20, marginBottom: 24 }}
+        onClick={handlePreSubmit}
+        disabled={isSubmitting}
+      >
+        {isSubmitting ? "제출 중..." : "제출하기"}
+      </Button>
+
+      <AgreementModal
+        open={isAgreementOpen}
+        onClose={() => setIsAgreementOpen(false)}
+        agreements={agreements}
+        setAgreements={setAgreements}
+        isPhoneVerified={isPhoneVerified}
+        setIsPhoneVerified={setIsPhoneVerified}
+        onConfirm={() => {
+          // updateRequestData("confirm", {
+          //   ...(requestData.confirm || {}),
+          //   consent: {
+          //     age: agreements.age,
+          //     customerTos: agreements.customer,
+          //     privacy: agreements.privacy,
+          //     at: new Date().toISOString(),
+
+          //     tosVersion: "v1.0",
+          //     privacyVersion: "v1.0",
+          //   },
+          //   phone: {
+          //     verified: isPhoneVerified,
+          //     method: "sms",
+          //     at: isPhoneVerified ? new Date().toISOString() : "",
+          //     phoneLast4: requestData.customer_phone?.slice(-4) || "",
+          //   },
+          // });
+          handleSubmit();
+          setIsAgreementOpen(false);
+        }}
+      />
       <Modal
         open={!!popupMessage}
         onClose={() => setPopupMessage("")}
