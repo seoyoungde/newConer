@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+
 import { useNavigate, useLocation, useParams } from "react-router-dom";
 import styled from "styled-components";
 import { useRequest } from "../../context/context";
@@ -7,6 +8,7 @@ import { useAuth } from "../../context/AuthProvider";
 import TextField from "../ui/formControls/TextField";
 import Button from "../ui/Button";
 import Modal from "../common/Modal/Modal";
+import AddressModal, { SERVICE_AREAS } from "../common/Modal/AddressModal";
 import { db } from "../../lib/firebase";
 import { doc, getDoc } from "firebase/firestore";
 
@@ -15,19 +17,13 @@ const PartnerAddressContactForm = ({ title, description }) => {
   const location = useLocation();
   const { partnerId } = useParams();
   const [popupMessage, setPopupMessage] = useState("");
-  const { setPartner, requestData, updateRequestData } = useRequest();
+  const { setPartner, requestData, updateRequestData, updateRequestDataMany } =
+    useRequest();
   const { currentUser, userInfo } = useAuth();
 
   const isLoggedIn = !!currentUser;
   const isReadOnly = isLoggedIn && !!userInfo;
-  const [job, setJob] = useState(userInfo?.job || "");
-
-  const [formData, setFormData] = useState({
-    customer_address: "",
-    customer_address_detail: "",
-    customer_phone: "",
-    clientName: "",
-  });
+  const [isAddressOpen, setIsAddressOpen] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -35,10 +31,8 @@ const PartnerAddressContactForm = ({ title, description }) => {
       if (!partnerId) return;
       const snap = await getDoc(doc(db, "Partner", partnerId));
       if (!snap.exists()) return;
-
       const p = snap.data();
       if (cancelled) return;
-
       setPartner({
         partner_uid: partnerId,
         partner_name: p.name || "",
@@ -51,79 +45,67 @@ const PartnerAddressContactForm = ({ title, description }) => {
     };
   }, [partnerId, setPartner]);
 
+  // 주소가 state로 넘어온 경우 반영
   useEffect(() => {
     if (location.state?.selectedAddress) {
-      setFormData((prev) => ({
-        ...prev,
-        customer_address: location.state.selectedAddress,
-      }));
+      updateRequestData("customer_address", location.state.selectedAddress);
     }
-  }, [location.state]);
+  }, [location.state, updateRequestData]);
 
+  // userInfo로 "비어있는 필드만" 1회 채우기
   useEffect(() => {
-    if (userInfo) {
-      setFormData({
-        customer_address: userInfo.address || "",
-        customer_address_detail: userInfo.address_detail || "",
-        customer_phone: userInfo.phone || "",
-        clientName: userInfo.name || "",
-      });
-    }
-  }, [userInfo]);
+    if (!userInfo) return;
+    const patch = {};
+    if (!requestData.clientName) patch.clientName = userInfo.name || "";
+    if (!requestData.customer_phone)
+      patch.customer_phone = userInfo.phone || "";
+    if (!requestData.customer_address)
+      patch.customer_address = userInfo.address || "";
+    if (!requestData.customer_address_detail)
+      patch.customer_address_detail = userInfo.address_detail || "";
+    if (!requestData.customer_type && userInfo.job)
+      patch.customer_type = userInfo.job;
+    if (Object.keys(patch).length) updateRequestDataMany(patch);
+  }, [userInfo, requestData, updateRequestDataMany]);
+
+  const formatPhone = (raw) => {
+    const only = raw.replace(/\D/g, "").slice(0, 11);
+    if (only.length < 4) return only;
+    if (only.length < 8) return `${only.slice(0, 3)}-${only.slice(3)}`;
+    return `${only.slice(0, 3)}-${only.slice(3, 7)}-${only.slice(7)}`;
+  };
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
     if (isReadOnly) return;
-
+    const { name, value } = e.target;
     if (name === "customer_phone") {
-      const onlyNumbers = value.replace(/\D/g, "").slice(0, 11);
-      let formatted = onlyNumbers;
-      if (onlyNumbers.length >= 4 && onlyNumbers.length < 8) {
-        formatted = onlyNumbers.slice(0, 3) + "-" + onlyNumbers.slice(3);
-      } else if (onlyNumbers.length >= 8) {
-        formatted =
-          onlyNumbers.slice(0, 3) +
-          "-" +
-          onlyNumbers.slice(3, 7) +
-          "-" +
-          onlyNumbers.slice(7);
-      }
-      setFormData((prev) => ({ ...prev, [name]: formatted }));
+      updateRequestData("customer_phone", formatPhone(value));
     } else {
-      setFormData((prev) => ({ ...prev, [name]: value }));
+      updateRequestData(name, value);
     }
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!formData.customer_address)
+    if (!requestData.customer_address)
       return setPopupMessage("주소를 선택해주세요.");
-    if (!formData.customer_address_detail)
+    if (!requestData.customer_address_detail)
       return setPopupMessage("상세주소를 입력해주세요.");
-    if (!formData.customer_phone)
+    if (!requestData.customer_phone)
       return setPopupMessage("전화번호를 입력해주세요.");
-    if (!formData.clientName) return setPopupMessage("성함을 입력해주세요.");
+    if (!requestData.clientName) return setPopupMessage("성함을 입력해주세요.");
 
-    const formattedPhone = formData.customer_phone.replace(/\D/g, "");
-
-    updateRequestData("customer_address", formData.customer_address);
-    updateRequestData(
-      "customer_address_detail",
-      formData.customer_address_detail
-    );
-    updateRequestData("customer_phone", formattedPhone);
-    updateRequestData("customer_type", job);
-    updateRequestData("clientName", formData.clientName);
+    // 저장 시 숫자만 유지
+    const digitsPhone = requestData.customer_phone.replace(/\D/g, "");
+    if (digitsPhone !== requestData.customer_phone) {
+      updateRequestData("customer_phone", digitsPhone);
+    }
 
     navigate(`/partner/schedule/${partnerId}`);
   };
 
   const goToAddressSearch = () => {
-    if (!isReadOnly) {
-      navigate("/request/addressmodal", {
-        state: { prevPath: location.pathname },
-      });
-    }
+    if (!isReadOnly) setIsAddressOpen(true);
   };
 
   const goToModifyInfo = () => {
@@ -148,9 +130,7 @@ const PartnerAddressContactForm = ({ title, description }) => {
         <Field>
           <Label>주소</Label>
           <HelperTextBox>
-            <HelperIcon>
-              <HiOutlineExclamationCircle color="#a5a5a5" size="18" />
-            </HelperIcon>
+            <HelperIcon color="#a5a5a5" size={18} />
             <HelperText>
               현재 서비스 제공 지역은 서울 강북권 일부로 제한되어 있습니다.
               <br />
@@ -170,9 +150,8 @@ const PartnerAddressContactForm = ({ title, description }) => {
             name="customer_address"
             size="md"
             placeholder="클릭하여 주소 검색"
-            value={formData.customer_address}
-            readOnly={isReadOnly}
-            onChange={isReadOnly ? undefined : handleChange}
+            value={requestData.customer_address || ""}
+            readOnly // 모달 사용을 위해 항상 읽기전용 권장
             onClick={!isReadOnly ? goToAddressSearch : undefined}
           />
           <div style={{ height: 6 }} />
@@ -181,7 +160,7 @@ const PartnerAddressContactForm = ({ title, description }) => {
             name="customer_address_detail"
             size="md"
             placeholder="상세주소입력"
-            value={formData.customer_address_detail}
+            value={requestData.customer_address_detail || ""}
             onChange={handleChange}
             readOnly={isReadOnly}
           />
@@ -194,7 +173,7 @@ const PartnerAddressContactForm = ({ title, description }) => {
             placeholder="전화번호"
             inputMode="numeric"
             name="customer_phone"
-            value={formData.customer_phone}
+            value={requestData.customer_phone || ""}
             onChange={handleChange}
             readOnly={isReadOnly}
           />
@@ -207,7 +186,7 @@ const PartnerAddressContactForm = ({ title, description }) => {
             placeholder="성함을 입력해주세요"
             type="text"
             name="clientName"
-            value={formData.clientName}
+            value={requestData.clientName || ""}
             onChange={handleChange}
             readOnly={isReadOnly}
           />
@@ -216,14 +195,18 @@ const PartnerAddressContactForm = ({ title, description }) => {
         <Field>
           <Label>고객유형</Label>
           {isReadOnly ? (
-            <TextField size="md" value={job} readOnly />
+            <TextField
+              size="md"
+              value={requestData.customer_type || ""}
+              readOnly
+            />
           ) : (
             <JobButtonBox>
               {["사업장(기업/매장)", "개인(가정)"].map((item) => (
                 <JobButton
                   key={item}
-                  $isSelected={job === item}
-                  onClick={() => setJob(item)}
+                  $isSelected={requestData.customer_type === item}
+                  onClick={() => updateRequestData("customer_type", item)}
                   type="button"
                 >
                   {item}
@@ -243,6 +226,28 @@ const PartnerAddressContactForm = ({ title, description }) => {
         </Button>
       </Form>
 
+      {/* 주소 검색 모달 */}
+      {isAddressOpen && (
+        <Modal
+          open={isAddressOpen}
+          onClose={() => setIsAddressOpen(false)}
+          title="주소 검색"
+          width={420}
+          containerId="rightbox-modal-root"
+        >
+          <div style={{ width: "100%", height: "70vh" }}>
+            <AddressModal
+              onSelect={(addr) => {
+                updateRequestData("customer_address", addr);
+                setIsAddressOpen(false);
+              }}
+              onClose={() => setIsAddressOpen(false)}
+              serviceAreas={SERVICE_AREAS}
+            />
+          </div>
+        </Modal>
+      )}
+
       <Modal
         open={!!popupMessage}
         onClose={() => setPopupMessage("")}
@@ -257,7 +262,7 @@ const PartnerAddressContactForm = ({ title, description }) => {
 
 export default PartnerAddressContactForm;
 
-/* styles 동일 */
+/* styles 동일 (아이콘 표기만 정리) */
 const Container = styled.div``;
 const TitleSection = styled.div`
   margin-bottom: 35px;
@@ -294,10 +299,14 @@ const HelperText = styled.p`
 `;
 const HelperTextBox = styled.div`
   display: flex;
+  align-items: flex-start;
+  gap: 6px;
   padding-left: 5px;
 `;
 const HelperIcon = styled(HiOutlineExclamationCircle)`
-  font-size: 1.5rem;
+  font-size: 18px;
+  flex-shrink: 0;
+  margin-top: 2px;
 `;
 const ModifyLink = styled.a`
   font-size: ${({ theme }) => theme.font.size.bodySmall};

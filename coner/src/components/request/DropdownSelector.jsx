@@ -105,7 +105,7 @@ const Option = styled.div`
   font-weight: ${({ theme }) => theme.font.weight.bold};
   text-align: center;
   border: 1px solid #d6d6d6;
-  background: ${({ $isSelected }) => ($isSelected ? "#0080FF" : "white")};
+  background: ${({ $isSelected }) => ($isSelected ? "#004FFF" : "white")};
   color: ${({ $isSelected }) => ($isSelected ? "white" : "#333")};
   cursor: pointer;
   white-space: nowrap;

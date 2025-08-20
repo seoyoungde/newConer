@@ -23,23 +23,18 @@ const AgreementModal = ({
   containerId = "rightbox-modal-root",
 
   policyLinks = {
-    customer:
-      "https://www.notion.so/harvies/v-20250806-2475c6005f1280128afbca706f57af23",
-    privacy: "https://www.notion.so/harvies/2485c6005f12806d95fde8d3995f2641",
-    privacy2:
-      "https://www.notion.so/harvies/3-2485c6005f1280b1b6e8dcea158bf1a7",
-    privacy3: "https://www.notion.so/harvies/2485c6005f12807ab685d35fdf878f0a",
-    privacy4: "https://www.notion.so/harvies/2485c6005f12804d85e7caedea9694b7",
+    customer: "https://www.notion.so/harvies/2475c6005f128035b4d7e9f362c1f81c",
+
+    privacy: "https://www.notion.so/harvies/2475c6005f128035b4d7e9f362c1f81c",
+    privacy2: "https://www.notion.so/harvies/2475c6005f128035b4d7e9f362c1f81c",
   },
 }) => {
   const [agreements, setAgreements] = useState({
     all: false,
     age: false, // 필수
     customer: false, // 필수 (고객 이용약관)
-    privacy: false, // 필수 (개인정보 수집·이용 안내)
-    privacy2: false, // 필수 (개인정보 제3자 제공 안내)
-    privacy3: false, // 필수 (개인정보의 수집 및 이용)
-    privacy4: false, // 선택 (개인정보의 수집 및 이용안내)
+    privacy: false, // 필수 (개인정보 제3자 제공 안내)
+    privacy2: false, // 필수 (개인정보의 수집 및 이용)
   });
 
   const [phone, setPhone] = useState("");
@@ -125,8 +120,6 @@ const AgreementModal = ({
           customer: v,
           privacy: v,
           privacy2: v,
-          privacy3: v,
-          privacy4: v,
         });
       } else {
         setAgreements((prev) => {
@@ -136,9 +129,8 @@ const AgreementModal = ({
             updated.age &&
             updated.customer &&
             updated.privacy &&
-            updated.privacy2 &&
-            updated.privacy3 &&
-            updated.privacy4;
+            updated.privacy2;
+
           return updated;
         });
       }
@@ -192,13 +184,11 @@ const AgreementModal = ({
     }
   };
 
-  // ===== 최종 확인 =====
   const isRequiredChecked =
     agreements.age &&
     agreements.customer &&
     agreements.privacy &&
-    agreements.privacy2 &&
-    agreements.privacy3; // ✅ privacy4는 선택
+    agreements.privacy2;
 
   const handleConfirm = () => {
     if (!isRequiredChecked) {
@@ -273,7 +263,6 @@ const AgreementModal = ({
               </PolicyLink>
               에 동의합니다. (필수)
             </label>
-
             <label>
               <input
                 type="checkbox"
@@ -285,11 +274,10 @@ const AgreementModal = ({
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                개인정보 수집·이용 안내
+                개인정보의 수집 및 이용
               </PolicyLink>
               에 동의합니다. (필수)
             </label>
-
             <label>
               <input
                 type="checkbox"
@@ -305,41 +293,8 @@ const AgreementModal = ({
               </PolicyLink>
               에 동의합니다. (필수)
             </label>
-
-            <label>
-              <input
-                type="checkbox"
-                checked={agreements.privacy3}
-                onChange={() => handleCheck("privacy3")}
-              />
-              <PolicyLink
-                href={policyLinks.privacy3}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                개인정보의 수집 및 이용
-              </PolicyLink>
-              에 동의합니다. (필수)
-            </label>
-
-            <label>
-              <input
-                type="checkbox"
-                checked={agreements.privacy4}
-                onChange={() => handleCheck("privacy4")}
-              />
-              <PolicyLink
-                href={policyLinks.privacy4}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                개인정보의 수집 및 이용안내
-              </PolicyLink>
-              에 동의합니다. (선택)
-            </label>
           </CheckboxGroup>
 
-          {/* 휴대폰 인증 */}
           <PhoneBox>
             <input
               type="text"

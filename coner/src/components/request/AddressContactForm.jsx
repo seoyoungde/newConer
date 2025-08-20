@@ -7,121 +7,104 @@ import { useAuth } from "../../context/AuthProvider";
 import TextField from "../ui/formControls/TextField";
 import Button from "../ui/Button";
 import Modal from "../common/Modal/Modal";
+import AddressModal, { SERVICE_AREAS } from "../common/Modal/AddressModal";
 
-const AddressContactForm = ({ title, description, buttonText }) => {
+const AddressContactForm = ({ title, description }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams] = useSearchParams();
   const [popupMessage, setPopupMessage] = useState("");
-  const { updateRequestData } = useRequest();
+  const { requestData, updateRequestData, updateRequestDataMany } =
+    useRequest();
   const { currentUser, userInfo } = useAuth();
 
   const isLoggedIn = !!currentUser;
   const isReadOnly = isLoggedIn && !!userInfo;
-  const [job, setJob] = useState(userInfo?.job || "");
-
-  const [formData, setFormData] = useState({
-    customer_address: "",
-    customer_address_detail: "",
-    customer_phone: "",
-    clientName: "",
-  });
+  const [isAddressOpen, setIsAddressOpen] = useState(false);
 
   useEffect(() => {
     const restoredService =
       location.state?.selectedService || searchParams.get("service_type");
-    if (restoredService) {
+    if (restoredService && requestData.service_type !== restoredService) {
       updateRequestData("service_type", restoredService);
     }
-  }, [location.state, searchParams]);
+  }, [
+    location.state,
+    searchParams,
+    requestData.service_type,
+    updateRequestData,
+  ]);
 
+  // 예전 페이지에서 state로 주소 넘어온 경우 (보조)
   useEffect(() => {
     if (location.state?.selectedAddress) {
-      setFormData((prev) => ({
-        ...prev,
-        customer_address: location.state.selectedAddress,
-      }));
+      updateRequestData("customer_address", location.state.selectedAddress);
     }
-  }, [location.state]);
+  }, [location.state, updateRequestData]);
 
+  // 유저 기본정보로 "비어있는 필드만" 1회 채우기
   useEffect(() => {
-    if (userInfo) {
-      setFormData({
-        customer_address: userInfo.address || "",
-        customer_address_detail: userInfo.address_detail || "",
-        customer_phone: userInfo.phone || "",
-        clientName: userInfo.name || "",
-      });
-    }
-  }, [userInfo]);
+    if (!userInfo) return;
+    const patch = {};
+    if (!requestData.clientName) patch.clientName = userInfo.name || "";
+    if (!requestData.customer_phone)
+      patch.customer_phone = userInfo.phone || "";
+    if (!requestData.customer_address)
+      patch.customer_address = userInfo.address || "";
+    if (!requestData.customer_address_detail)
+      patch.customer_address_detail = userInfo.address_detail || "";
+    if (!requestData.customer_type && userInfo.job)
+      patch.customer_type = userInfo.job;
+    if (Object.keys(patch).length) updateRequestDataMany(patch);
+  }, [userInfo, requestData, updateRequestDataMany]);
+
+  const formatPhone = (raw) => {
+    const only = raw.replace(/\D/g, "").slice(0, 11);
+    if (only.length < 4) return only;
+    if (only.length < 8) return `${only.slice(0, 3)}-${only.slice(3)}`;
+    return `${only.slice(0, 3)}-${only.slice(3, 7)}-${only.slice(7)}`;
+  };
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
     if (isReadOnly) return;
-
+    const { name, value } = e.target;
     if (name === "customer_phone") {
-      const onlyNumbers = value.replace(/\D/g, "").slice(0, 11);
-
-      let formatted = onlyNumbers;
-      if (onlyNumbers.length >= 4 && onlyNumbers.length < 8) {
-        formatted = onlyNumbers.slice(0, 3) + "-" + onlyNumbers.slice(3);
-      } else if (onlyNumbers.length >= 8) {
-        formatted =
-          onlyNumbers.slice(0, 3) +
-          "-" +
-          onlyNumbers.slice(3, 7) +
-          "-" +
-          onlyNumbers.slice(7);
-      }
-
-      setFormData((prev) => ({ ...prev, [name]: formatted }));
+      updateRequestData("customer_phone", formatPhone(value));
     } else {
-      setFormData((prev) => ({ ...prev, [name]: value }));
+      updateRequestData(name, value);
     }
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!formData.customer_address)
+    if (!requestData.customer_address)
       return setPopupMessage("주소를 선택해주세요.");
-    if (!formData.customer_address_detail)
+    if (!requestData.customer_address_detail)
       return setPopupMessage("상세주소를 입력해주세요.");
-    if (!formData.customer_phone)
+    if (!requestData.customer_phone)
       return setPopupMessage("전화번호를 입력해주세요.");
-    if (!formData.clientName) return setPopupMessage("성함을 입력해주세요.");
+    if (!requestData.clientName) return setPopupMessage("성함을 입력해주세요.");
 
-    const formattedPhone = formData.customer_phone.replace(/\D/g, "");
-
-    updateRequestData("customer_address", formData.customer_address);
-    +updateRequestData(
-      "customer_address_detail",
-      formData.customer_address_detail
-    );
-    updateRequestData("customer_phone", formattedPhone);
-    updateRequestData("customer_type", job);
-    updateRequestData("clientName", formData.clientName);
+    const digitsPhone = requestData.customer_phone.replace(/\D/g, "");
+    if (digitsPhone !== requestData.customer_phone) {
+      updateRequestData("customer_phone", digitsPhone);
+    }
 
     const st = searchParams.get("service_type") || "";
     navigate(`/request/schedule?service_type=${encodeURIComponent(st)}`);
   };
 
   const goToAddressSearch = () => {
-    if (!isReadOnly) {
-      navigate("/request/addressmodal", {
-        state: {
-          prevPath: location.pathname,
-          selectedService: searchParams.get("service_type"),
-        },
-      });
-    }
+    if (!isReadOnly) setIsAddressOpen(true);
   };
 
   const goToModifyInfo = () => {
-    navigate("/request/modify", {
-      state: {
-        from: "addressform",
-      },
-    });
+    navigate("/request/modify", { state: { from: "addressform" } });
+  };
+
+  const selectCustomerType = (val) => {
+    if (isReadOnly) return;
+    updateRequestData("customer_type", val);
   };
 
   return (
@@ -129,7 +112,7 @@ const AddressContactForm = ({ title, description, buttonText }) => {
       <Form onSubmit={handleSubmit}>
         <TitleSection>
           <Title>
-            {title || `${searchParams.get("service_type")} 서비스 신청`}
+            {title || `${searchParams.get("service_type") || ""} 서비스 신청`}
           </Title>
           <Description>{description}</Description>
         </TitleSection>
@@ -137,9 +120,7 @@ const AddressContactForm = ({ title, description, buttonText }) => {
         <Field>
           <Label>주소</Label>
           <HelperTextBox>
-            <HelperIcon>
-              <HiOutlineExclamationCircle color=" #a5a5a5" size="18" />
-            </HelperIcon>
+            <InfoIcon />
             <HelperText>
               현재 서비스 제공 지역은 서울 강북권 일부로 제한되어 있습니다.
               <br />
@@ -147,6 +128,7 @@ const AddressContactForm = ({ title, description, buttonText }) => {
               종로구
             </HelperText>
           </HelperTextBox>
+
           {isReadOnly && (
             <ModifyLink onClick={goToModifyInfo}>
               내 정보 (주소 / 고객유형) 수정하러가기
@@ -158,18 +140,17 @@ const AddressContactForm = ({ title, description, buttonText }) => {
             name="customer_address"
             size="md"
             placeholder="클릭하여 주소 검색"
-            value={formData.customer_address}
-            readOnly={isReadOnly}
-            onChange={isReadOnly ? undefined : handleChange}
+            value={requestData.customer_address || ""}
+            readOnly
             onClick={!isReadOnly ? goToAddressSearch : undefined}
           />
-          <div style={{ height: "6px" }}></div>
+          <div style={{ height: "6px" }} />
           <TextField
             type="text"
             name="customer_address_detail"
             size="md"
             placeholder="상세주소입력"
-            value={formData.customer_address_detail}
+            value={requestData.customer_address_detail || ""}
             onChange={handleChange}
             readOnly={isReadOnly}
           />
@@ -182,11 +163,12 @@ const AddressContactForm = ({ title, description, buttonText }) => {
             placeholder="전화번호"
             inputMode="numeric"
             name="customer_phone"
-            value={formData.customer_phone}
+            value={requestData.customer_phone || ""}
             onChange={handleChange}
             readOnly={isReadOnly}
           />
         </Field>
+
         <Field>
           <TextField
             label="이름"
@@ -194,22 +176,27 @@ const AddressContactForm = ({ title, description, buttonText }) => {
             placeholder="성함을 입력해주세요"
             type="text"
             name="clientName"
-            value={formData.clientName}
+            value={requestData.clientName || ""}
             onChange={handleChange}
             readOnly={isReadOnly}
           />
         </Field>
+
         <Field>
           <Label>고객유형</Label>
           {isReadOnly ? (
-            <TextField size="md" value={job} readOnly />
+            <TextField
+              size="md"
+              value={requestData.customer_type || ""}
+              readOnly
+            />
           ) : (
             <JobButtonBox>
               {["사업장(기업/매장)", "개인(가정)"].map((item) => (
                 <JobButton
                   key={item}
-                  $isSelected={job === item}
-                  onClick={() => setJob(item)}
+                  $isSelected={requestData.customer_type === item}
+                  onClick={() => selectCustomerType(item)}
                   type="button"
                 >
                   {item}
@@ -218,6 +205,7 @@ const AddressContactForm = ({ title, description, buttonText }) => {
             </JobButtonBox>
           )}
         </Field>
+
         <Button
           type="submit"
           fullWidth
@@ -227,6 +215,29 @@ const AddressContactForm = ({ title, description, buttonText }) => {
           의뢰 시작하기
         </Button>
       </Form>
+
+      {/* 주소 검색 모달 */}
+      {isAddressOpen && (
+        <Modal
+          open={isAddressOpen}
+          onClose={() => setIsAddressOpen(false)}
+          title="주소 검색"
+          width={420}
+          containerId="rightbox-modal-root"
+        >
+          <div style={{ width: "100%", height: "70vh" }}>
+            <AddressModal
+              onSelect={(addr) => {
+                updateRequestData("customer_address", addr);
+                setIsAddressOpen(false);
+              }}
+              onClose={() => setIsAddressOpen(false)}
+              serviceAreas={SERVICE_AREAS}
+            />
+          </div>
+        </Modal>
+      )}
+
       <Modal
         open={!!popupMessage}
         onClose={() => setPopupMessage("")}
@@ -275,17 +286,24 @@ const HelperText = styled.p`
   color: ${({ theme }) => theme.colors.subtext};
   font-weight: ${({ theme }) => theme.font.weight.regular};
   font-size: ${({ theme }) => theme.font.size.bodySmall};
-  padding: 0px 0px 15px 5px;
+  padding: 0 0 15px 5px;
   @media (max-width: ${({ theme }) => theme.font.breakpoints.mobile}) {
     font-size: ${({ theme }) => theme.font.size.small};
   }
 `;
+
 const HelperTextBox = styled.div`
   display: flex;
+  align-items: flex-start;
+  gap: 6px;
   padding-left: 5px;
 `;
-const HelperIcon = styled(HiOutlineExclamationCircle)`
-  font-size: 1.5rem;
+
+const InfoIcon = styled(HiOutlineExclamationCircle)`
+  color: #a5a5a5;
+  font-size: 18px;
+  flex-shrink: 0;
+  margin-top: 2px;
 `;
 
 const ModifyLink = styled.a`
@@ -296,6 +314,7 @@ const ModifyLink = styled.a`
   padding: 10px;
   cursor: pointer;
 `;
+
 const JobButtonBox = styled.div`
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -304,7 +323,7 @@ const JobButtonBox = styled.div`
 
 const JobButton = styled.button`
   border: 1px solid
-    ${({ $isSelected }) => ($isSelected ? "#80BFFF" : "#f9f9f9")};
+    ${({ $isSelected }) => ($isSelected ? "#80BFFF" : "#f0f0f0")};
   border-radius: 6px;
   padding: 10px 0;
   background: ${({ $isSelected }) => ($isSelected ? "#80BFFF" : "#f2f2f2")};
@@ -313,7 +332,8 @@ const JobButton = styled.button`
   cursor: pointer;
 
   &:hover {
-    background: ${({ isSelected }) => (isSelected ? "#80BFFF" : "#80BFFF")};
+    background: #80bfff;
   }
 `;
+
 export default AddressContactForm;

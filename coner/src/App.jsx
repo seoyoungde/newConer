@@ -30,6 +30,7 @@ import ModifyPage from "./pages/Mypage/ModifyPage.jsx";
 import WithdrawPage from "./pages/Mypage/WIthdrawPage.jsx";
 import RequestModifyPage from "./pages/Request/RequestModifyPage.jsx";
 import PartnerModifyPage from "./pages/partner/PartnerModifyPage.jsx";
+import RequestDraftResetter from "./components/guards/RequestDraftResetter.jsx";
 
 export default function App() {
   return (
@@ -107,6 +108,7 @@ export default function App() {
 
         <Route element={<NavHeaderLayout />}></Route>
       </Routes>
+      <RequestDraftResetter />
     </BrowserRouter>
   );
 }

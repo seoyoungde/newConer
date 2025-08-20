@@ -18,7 +18,7 @@ const Footer = () => {
 
       <Divider />
 
-      <TimeText>8:30~22:00 ·연중무휴</TimeText>
+      <TimeText>8:30~22:00 ·연중 무휴</TimeText>
 
       <Desc>
         코너는 서비스 중개 플랫폼이에요.

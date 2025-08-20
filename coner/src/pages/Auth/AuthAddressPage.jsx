@@ -1,4 +1,4 @@
-import AddressModal from "../../components/common/Modal/AuthAddressModal";
+import AddressModal from "../../components/common/Modal/AddressModal";
 import NavHeader from "../../components/common/Header/NavHeader";
 
 const AddressPage = () => {

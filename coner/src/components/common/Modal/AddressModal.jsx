@@ -14,7 +14,7 @@ export const SERVICE_AREAS = [
   "서울 중랑구",
 ];
 
-const ModifyAddressModal = ({
+const AddressModal = ({
   onSelect,
   onClose,
   serviceAreas = SERVICE_AREAS,
@@ -61,7 +61,7 @@ const ModifyAddressModal = ({
   );
 };
 
-export default ModifyAddressModal;
+export default AddressModal;
 
 const PostcodeWrapper = styled.div`
   width: 100%;

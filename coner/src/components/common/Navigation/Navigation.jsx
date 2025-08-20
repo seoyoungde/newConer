@@ -27,18 +27,20 @@ const Navigation = () => {
     <NavBar>
       <PromoBar>수수료 없이 가장 빠른 에어컨 서비스 받기</PromoBar>
       <Actions>
-        <Actionhref href="tel:010-5543-0636" onClick={handlePhoneClick}>
-          <FaPhoneAlt size={28} />
-          전화 상담
-        </Actionhref>
-        <Actionhref
-          href="https://talk.naver.com/ct/w7a8bh2#nafullscreen"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <BsChatDotsFill size={28} />
-          톡톡 상담
-        </Actionhref>
+        <Hrefs>
+          <Actionhref href="tel:010-5543-0636" onClick={handlePhoneClick}>
+            <FaPhoneAlt size={25} />
+            전화 상담
+          </Actionhref>
+          <Actionhref
+            href="https://talk.naver.com/ct/w7a8bh2#nafullscreen"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <BsChatDotsFill size={25} />
+            톡톡 상담
+          </Actionhref>
+        </Hrefs>
         <PrimaryLink to={`/partner/address-contact/${partnerId}`}>
           온라인으로 서비스 신청하기
         </PrimaryLink>
@@ -60,7 +62,7 @@ const Navigation = () => {
 export default Navigation;
 const NavBar = styled.nav`
   width: 100%;
-  height: 146px;
+  height: 126px;
   text-align: center;
   background: ${({ theme }) => theme.colors.bg};
 `;
@@ -74,15 +76,19 @@ const PromoBar = styled.div`
 `;
 const Actions = styled.div`
   display: flex;
-  height: 109px;
-  padding: 0px 34px;
+  height: 89px;
+  padding: 0px 14px;
   @media (max-width: ${({ theme }) => theme.font.breakpoints.mobile}) {
-    padding: 0 15px;
+    padding: 0 7px;
   }
 `;
-
+const Hrefs = styled.div`
+  display: flex;
+  flex: 1.5;
+  justify-content: space-around;
+  margin-right: 15px;
+`;
 const Actionhref = styled.a`
-  flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -97,13 +103,13 @@ const Actionhref = styled.a`
 `;
 
 const PrimaryLink = styled(Link)`
-  flex: 4;
+  flex: 3;
   margin: auto;
   background: #004fff;
   color: white;
-  height: 82px;
+  height: 62px;
   font-size: ${({ theme }) => theme.font.size.h3};
-  line-height: 82px;
+  line-height: 62px;
   border-radius: 15px;
   font-weight: ${({ theme }) => theme.font.weight.bold};
   &:hover {

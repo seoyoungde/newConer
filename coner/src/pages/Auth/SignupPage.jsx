@@ -17,9 +17,9 @@ import {
   query,
   where,
 } from "firebase/firestore";
-import AuthAddressModal, {
+import AddressModal, {
   SERVICE_AREAS,
-} from "../../components/common/Modal/AuthAddressModal";
+} from "../../components/common/Modal/AddressModal";
 import Modal from "../../components/common/Modal/Modal";
 
 const SignupPage = () => {
@@ -41,6 +41,34 @@ const SignupPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isAddressOpen, setIsAddressOpen] = useState(false);
 
+  const policyLinks = {
+    customer: "https://www.notion.so/harvies/2475c6005f128035b4d7e9f362c1f81c",
+
+    privacy: "https://www.notion.so/harvies/2475c6005f128035b4d7e9f362c1f81c",
+  };
+  const [agreements, setAgreements] = useState({
+    all: false,
+    age: false,
+    customer: false,
+    privacy: false,
+  });
+
+  const handleCheck = (key) => {
+    if (key === "all") {
+      const next = !agreements.all;
+      setAgreements({
+        all: next,
+        age: next,
+        customer: next,
+        privacy: next,
+      });
+    } else {
+      const next = { ...agreements, [key]: !agreements[key] };
+      next.all = next.age && next.customer && next.privacy;
+      setAgreements(next);
+    }
+  };
+
   useEffect(() => {
     const state = location.state;
     if (state?.selectedAddress) {
@@ -48,7 +76,7 @@ const SignupPage = () => {
 
       if (state.name) setName(state.name);
       if (state.email) setEmail(state.email);
-      if (state.customerType) setJob(state.customerType);
+      if (state.customerType) setCustomerType(state.customerType);
       if (state.birth_date) setBirth_date(state.birth_date);
       if (state.detailAddress) setAddress_detail(state.address_detail);
       if (state.phone) setPhone(state.phone);
@@ -99,6 +127,13 @@ const SignupPage = () => {
   const handleCreataccount = async () => {
     try {
       setIsSubmitting(true);
+
+      if (!(agreements.age && agreements.customer && agreements.privacy)) {
+        return alert(
+          "필수 약관(만 14세 이상, 고객 이용약관, 개인정보 수집 및 이용)에 모두 동의해야 가입할 수 있습니다."
+        );
+      }
+
       if (
         !name ||
         !customerType ||
@@ -162,6 +197,13 @@ const SignupPage = () => {
         phone: formattedPhone,
         state: 1,
         isDeleted: false,
+
+        // agreements: {
+        //   age: true,
+        //   customer: true,
+        //   privacy: true,
+        //   all: true,
+        // },
       };
 
       await setDoc(doc(db, "Customer", uid), newUser);
@@ -176,25 +218,25 @@ const SignupPage = () => {
       setIsSubmitting(false);
     }
   };
+
   const handleBirthChange = (e) => {
     let value = e.target.value.replace(/\D/g, "");
-
     if (value.length >= 4) value = value.slice(0, 4) + "년 " + value.slice(4);
     if (value.length >= 8) value = value.slice(0, 8) + "월 " + value.slice(8);
     if (value.length >= 12) value = value.slice(0, 12) + "일";
     if (value.length > 13) value = value.slice(0, 13);
-
     setBirth_date(value);
   };
 
   const handlePhoneChange = (e) => {
     let value = e.target.value.replace(/\D/g, "").slice(0, 11);
-
     if (value.length >= 4) value = value.slice(0, 3) + "-" + value.slice(3);
     if (value.length >= 9) value = value.slice(0, 8) + "-" + value.slice(8);
-
     setPhone(value);
   };
+
+  const allRequiredAgreed =
+    agreements.age && agreements.customer && agreements.privacy;
 
   return (
     <Container>
@@ -203,65 +245,12 @@ const SignupPage = () => {
       <FormBox>
         <FormGroup>
           <TextField
-            label="이메일"
-            size="sm"
-            placeholder="이메일입력은 선택사항입니다"
-            type="email"
-            autoComplete="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
-        </FormGroup>
-
-        <FormGroup>
-          <TextField
             label="이름"
             size="sm"
             placeholder="이름을 입력하세요."
             autoComplete="name"
             value={name}
             onChange={(e) => setName(e.target.value)}
-          />
-        </FormGroup>
-        <FormGroup>
-          <Label>고객유형</Label>
-          <SegmentedToggle
-            value={customerType}
-            onChange={setCustomerType}
-            options={[
-              { label: "사업장(기업/매장)", value: "사업장(기업/매장)" },
-              { label: "개인(가정)", value: "개인(가정)" },
-            ]}
-          />
-        </FormGroup>
-        <FormGroup>
-          <TextField
-            label="생년월일 8자리"
-            size="sm"
-            placeholder="예) 19991231"
-            inputMode="numeric"
-            maxLength={12}
-            value={birth_date}
-            onChange={handleBirthChange}
-          />
-        </FormGroup>
-        <FormGroup>
-          <TextField
-            label="거주지"
-            size="sm"
-            name="clientAddress"
-            placeholder="클릭하여 주소 검색"
-            readOnly
-            value={address}
-            onClick={() => setIsAddressOpen(true)}
-          />
-          <div style={{ height: "5px" }}></div>
-          <TextField
-            name="clientDetailAddress"
-            size="sm"
-            placeholder="상세주소입력"
-            value={address_detail}
-            onChange={(e) => setAddress_detail(e.target.value)}
           />
         </FormGroup>
         <FormGroup>
@@ -301,16 +290,123 @@ const SignupPage = () => {
             </p>
           )}
         </FormGroup>
+        <FormGroup>
+          <TextField
+            label="거주지"
+            size="sm"
+            name="clientAddress"
+            placeholder="클릭하여 주소 검색"
+            readOnly
+            value={address}
+            onClick={() => setIsAddressOpen(true)}
+          />
+          <div style={{ height: "5px" }}></div>
+          <TextField
+            name="clientDetailAddress"
+            size="sm"
+            placeholder="상세주소입력"
+            value={address_detail}
+            onChange={(e) => setAddress_detail(e.target.value)}
+          />
+        </FormGroup>
+        <FormGroup>
+          <TextField
+            label="생년월일 8자리"
+            size="sm"
+            placeholder="예) 19991231"
+            inputMode="numeric"
+            maxLength={12}
+            value={birth_date}
+            onChange={handleBirthChange}
+          />
+        </FormGroup>
+        <FormGroup>
+          <Label>고객유형</Label>
+          <SegmentedToggle
+            value={customerType}
+            onChange={setCustomerType}
+            options={[
+              { label: "사업장(기업/매장)", value: "사업장(기업/매장)" },
+              { label: "개인(가정)", value: "개인(가정)" },
+            ]}
+          />
+        </FormGroup>
+
+        <FormGroup>
+          <TextField
+            label="이메일 (선택)"
+            size="sm"
+            placeholder="이메일입력은 선택사항입니다"
+            type="email"
+            autoComplete="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+        </FormGroup>
+
+        <CheckboxGroup>
+          <label>
+            <input
+              type="checkbox"
+              checked={agreements.all}
+              onChange={() => handleCheck("all")}
+            />
+            이용약관 전체 동의
+          </label>
+
+          <label>
+            <input
+              type="checkbox"
+              checked={agreements.age}
+              onChange={() => handleCheck("age")}
+            />
+            만 14세 이상입니다. <span style={{ color: "#0080FF" }}>(필수)</span>
+          </label>
+
+          <label>
+            <input
+              type="checkbox"
+              checked={agreements.customer}
+              onChange={() => handleCheck("customer")}
+            />
+            <PolicyLink
+              href={policyLinks.customer}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              고객 이용약관
+            </PolicyLink>
+            에 동의합니다. <span style={{ color: "#0080FF" }}>(필수)</span>
+          </label>
+
+          <label>
+            <input
+              type="checkbox"
+              checked={agreements.privacy}
+              onChange={() => handleCheck("privacy")}
+            />
+            <PolicyLink
+              href={policyLinks.privacy}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              개인정보의 수집 및 이용
+            </PolicyLink>
+            에 동의합니다. <span style={{ color: "#0080FF" }}>(필수)</span>
+          </label>
+        </CheckboxGroup>
       </FormBox>
+
       {isAddressOpen && (
         <Modal
           open={isAddressOpen}
           onClose={() => setIsAddressOpen(false)}
           title="주소 검색"
           width={420}
+          containerId="rightbox-modal-root"
         >
           <div style={{ width: "100%", height: "70vh" }}>
-            <AuthAddressModal
+            <AddressModal
               onSelect={(addr) => setAddress(addr)}
               onClose={() => setIsAddressOpen(false)}
               serviceAreas={SERVICE_AREAS}
@@ -318,12 +414,13 @@ const SignupPage = () => {
           </div>
         </Modal>
       )}
+
       <Button
         fullWidth
         size="md"
         style={{ marginTop: 20, marginBottom: 24 }}
         onClick={handleCreataccount}
-        disabled={isSubmitting}
+        disabled={isSubmitting || !allRequiredAgreed}
       >
         {isSubmitting ? "가입 중..." : "가입하기"}
       </Button>
@@ -348,11 +445,40 @@ const FormGroup = styled.div`
 
 const Label = styled.p`
   margin-bottom: 6px;
-  font-size: ${({ theme }) => theme.font.size.body};
+  font-size: ${({ theme }) => theme.font.size.bodySmall};
+  font-weight: ${({ theme }) => theme.font.weight.bold};
 `;
 
 const LabelRow = styled.div`
   display: flex;
   justify-content: space-between;
   margin-bottom: 6px;
+  span {
+    font-size: ${({ theme }) => theme.font.size.bodySmall};
+    font-weight: ${({ theme }) => theme.font.weight.bold};
+  }
+`;
+
+const CheckboxGroup = styled.div`
+  margin-top: 38px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: ${({ theme }) => theme.font.size.bodySmall};
+  }
+
+  input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+  }
+`;
+
+const PolicyLink = styled.a`
+  text-decoration: underline;
+  color: ${({ theme }) => theme.colors.primary};
 `;

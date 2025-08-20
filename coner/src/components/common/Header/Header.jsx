@@ -35,7 +35,7 @@ const HeaderBar = styled.header`
   width: 100%;
   justify-content: space-between;
   align-items: center;
-  height: 72px;
+  height: 55px;
   padding: 0px 34px;
   border-bottom: 1px solid #d4d4d4;
   background: white;

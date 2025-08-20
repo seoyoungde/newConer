@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+
 import styled from "styled-components";
 import { useNavigate, useLocation, useParams } from "react-router-dom";
 import {
@@ -14,15 +15,17 @@ import {
 import { auth, db } from "../../lib/firebase";
 import { useAuth } from "../../context/AuthProvider";
 import { Link } from "react-router-dom";
-import ModifyAddressModal from "../../components/common/Modal/ModifyAddressModal";
 import TextField from "../ui/formControls/TextField";
 import Button from "../ui/Button";
+import Modal from "../common/Modal/Modal";
+import AddressModal, { SERVICE_AREAS } from "../common/Modal/AddressModal";
 const Modify = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { partnerId } = useParams();
   const { setUserInfo, userInfo } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [address, setAddress] = useState("");
 
   const [formData, setFormData] = useState({
     email: "",
@@ -207,10 +210,21 @@ const Modify = () => {
           />
 
           {isAddressModalOpen && (
-            <ModifyAddressModal
+            <Modal
+              open={isAddressModalOpen}
               onClose={() => setIsAddressModalOpen(false)}
-              onSelect={handleAddressSelect}
-            />
+              title="주소 검색"
+              width={420}
+              containerId="rightbox-modal-root"
+            >
+              <div style={{ width: "100%", height: "70vh" }}>
+                <AddressModal
+                  onSelect={handleAddressSelect}
+                  onClose={() => setIsAddressModalOpen(false)}
+                  serviceAreas={SERVICE_AREAS}
+                />
+              </div>
+            </Modal>
           )}
           <div style={{ height: "5px" }}></div>
           <TextField
