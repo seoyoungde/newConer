@@ -8,6 +8,7 @@ import TextField from "../ui/formControls/TextField";
 import Button from "../ui/Button";
 import Modal from "../common/Modal/Modal";
 import AddressModal, { SERVICE_AREAS } from "../common/Modal/AddressModal";
+import { useFunnelStep } from "../../analytics/useFunnelStep";
 
 const AddressContactForm = ({ title, description }) => {
   const navigate = useNavigate();
@@ -21,6 +22,9 @@ const AddressContactForm = ({ title, description }) => {
   const isLoggedIn = !!currentUser;
   const isReadOnly = isLoggedIn && !!userInfo;
   const [isAddressOpen, setIsAddressOpen] = useState(false);
+
+  //페이지이탈률
+  const { onAdvance } = useFunnelStep({ step: 1 });
 
   useEffect(() => {
     const restoredService =
@@ -91,6 +95,8 @@ const AddressContactForm = ({ title, description }) => {
     }
 
     const st = searchParams.get("service_type") || "";
+    //페이지이탈률
+    onAdvance(2);
     navigate(`/request/schedule?service_type=${encodeURIComponent(st)}`);
   };
 

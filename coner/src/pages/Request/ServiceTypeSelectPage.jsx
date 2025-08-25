@@ -18,6 +18,7 @@ import demolish from "../../assets/price/demolish_price.png";
 import gas from "../../assets/price/gas_price.png";
 import NavHeader from "../../components/common/Header/NavHeader";
 import Modal from "../../components/common/Modal/Modal";
+import { useFunnelStep } from "../../analytics/useFunnelStep";
 
 const imageMap = {
   청소: cleanInspection,
@@ -37,6 +38,8 @@ const ServiceTypeSelectPage = () => {
   const [searchParams] = useSearchParams();
   const [isTypeOpen, setIsTypeOpen] = useState(true);
   const [isBrandOpen, setIsBrandOpen] = useState(true);
+  //페이지이탈률
+  const { onAdvance } = useFunnelStep({ step: 3 });
 
   useEffect(() => {
     const restoredService =
@@ -53,6 +56,8 @@ const ServiceTypeSelectPage = () => {
       setPopupMessage("모든정보를 선택해주세요");
       return;
     }
+    //페이지이탈률
+    onAdvance(4);
     navigate("/request/additional", {
       state: { service_type, aircon_type, brand },
     });

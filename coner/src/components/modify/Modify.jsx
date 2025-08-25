@@ -149,18 +149,6 @@ const Modify = () => {
       <FormBox>
         <FormGroup>
           <TextField
-            label="이메일"
-            name="이메일"
-            size="sm"
-            placeholder="이메일입력은 선택사항입니다"
-            type="email"
-            value={formData.email}
-            onFocus={() => handleFocusClear("email")}
-            onChange={handleChange}
-          />
-        </FormGroup>
-        <FormGroup>
-          <TextField
             label="이름"
             name="이름"
             size="sm"
@@ -171,31 +159,13 @@ const Modify = () => {
           />
         </FormGroup>
         <FormGroup>
-          <Label>고객유형</Label>
-
-          <JobButtonBox>
-            {["사업장(기업/매장)", "개인(가정)"].map((job) => (
-              <JobButton
-                key={job}
-                $isSelected={formData.job === job}
-                onClick={() => setFormData((prev) => ({ ...prev, job: job }))}
-              >
-                {job}
-              </JobButton>
-            ))}
-          </JobButtonBox>
-        </FormGroup>
-        <FormGroup>
           <TextField
-            label="생년월일 8자리"
+            label="전화번호는 수정이 불가능합니다"
             size="sm"
-            placeholder="예) 19991231"
-            inputMode="numeric"
-            maxLength={12}
-            name="birth_date"
-            value={formData.birth_date}
-            onFocus={() => handleFocusClear("birth_date")}
-            onChange={formatBirthInput}
+            name="phone"
+            value={formData.phone}
+            readOnly
+            onChange={formatPhoneInput}
           />
         </FormGroup>
         <FormGroup>
@@ -238,14 +208,45 @@ const Modify = () => {
         </FormGroup>
         <FormGroup>
           <TextField
-            label="전화번호는 수정이 불가능합니다"
+            label="생년월일 8자리"
             size="sm"
-            name="phone"
-            value={formData.phone}
-            readOnly
-            onChange={formatPhoneInput}
+            placeholder="예) 19991231"
+            inputMode="numeric"
+            maxLength={12}
+            name="birth_date"
+            value={formData.birth_date}
+            onFocus={() => handleFocusClear("birth_date")}
+            onChange={formatBirthInput}
           />
         </FormGroup>
+        <FormGroup>
+          <Label>고객유형</Label>
+
+          <JobButtonBox>
+            {["사업장(기업/매장)", "개인(가정)"].map((job) => (
+              <JobButton
+                key={job}
+                $isSelected={formData.job === job}
+                onClick={() => setFormData((prev) => ({ ...prev, job: job }))}
+              >
+                {job}
+              </JobButton>
+            ))}
+          </JobButtonBox>
+        </FormGroup>
+        <FormGroup>
+          <TextField
+            label="이메일"
+            name="이메일"
+            size="sm"
+            placeholder="이메일입력은 선택사항입니다"
+            type="email"
+            value={formData.email}
+            onFocus={() => handleFocusClear("email")}
+            onChange={handleChange}
+          />
+        </FormGroup>
+
         <WidthdrawLink to="/mypage/withdraw">회원탈퇴하기</WidthdrawLink>
       </FormBox>
 

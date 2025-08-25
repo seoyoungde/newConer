@@ -11,6 +11,7 @@ import Modal from "../common/Modal/Modal";
 import AddressModal, { SERVICE_AREAS } from "../common/Modal/AddressModal";
 import { db } from "../../lib/firebase";
 import { doc, getDoc } from "firebase/firestore";
+import { useFunnelStep } from "../../analytics/useFunnelStep";
 
 const PartnerAddressContactForm = ({ title, description }) => {
   const navigate = useNavigate();
@@ -24,6 +25,8 @@ const PartnerAddressContactForm = ({ title, description }) => {
   const isLoggedIn = !!currentUser;
   const isReadOnly = isLoggedIn && !!userInfo;
   const [isAddressOpen, setIsAddressOpen] = useState(false);
+
+  const { onAdvance } = useFunnelStep({ step: 1 });
 
   useEffect(() => {
     let cancelled = false;
@@ -100,7 +103,7 @@ const PartnerAddressContactForm = ({ title, description }) => {
     if (digitsPhone !== requestData.customer_phone) {
       updateRequestData("customer_phone", digitsPhone);
     }
-
+    onAdvance(2);
     navigate(`/partner/schedule/${partnerId}`);
   };
 

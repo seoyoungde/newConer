@@ -36,13 +36,6 @@ const SignupAgreementModal = ({
     privacy2: false, // 필수 (개인정보의 수집 및 이용)
   });
 
-  const [phone, setPhone] = useState("");
-  const [code, setCode] = useState("");
-  const [sentCode, setSentCode] = useState("");
-  const [timer, setTimer] = useState(0);
-  const timerRef = useRef(null);
-  const [isPhoneVerified, setIsPhoneVerified] = useState(false);
-
   const dialogRef = useRef(null);
   const previouslyFocusedRef = useRef(null);
 
@@ -137,52 +130,6 @@ const SignupAgreementModal = ({
     [agreements.all]
   );
 
-  // ===== 인증번호 발송/확인 =====
-  const generateRandomCode = () =>
-    Math.floor(100000 + Math.random() * 900000).toString();
-
-  const handlePhoneVerify = async () => {
-    if (!phone) return alert("전화번호를 입력해주세요.");
-
-    const newCode = generateRandomCode();
-    setSentCode(newCode);
-    setTimer(180);
-
-    if (timerRef.current) clearInterval(timerRef.current);
-    timerRef.current = window.setInterval(() => {
-      setTimer((prev) => {
-        if (prev <= 1) {
-          if (timerRef.current) clearInterval(timerRef.current);
-          setSentCode("");
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-
-    try {
-      await axios.post("https://api.coner.kr/sms/send", {
-        to: phone.replace(/-/g, ""),
-        text: `인증번호는 ${newCode}입니다.`,
-      });
-      alert("인증번호가 전송되었습니다.");
-    } catch (error) {
-      console.error(error);
-      alert("인증번호 전송 실패: " + (error?.message || "알 수 없는 오류"));
-    }
-  };
-
-  const handleCodeConfirm = () => {
-    if (code === sentCode && sentCode !== "") {
-      setIsPhoneVerified(true);
-      if (timerRef.current) clearInterval(timerRef.current);
-      setTimer(0);
-      alert("휴대폰 인증이 완료되었습니다.");
-    } else {
-      alert("인증번호가 올바르지 않습니다.");
-    }
-  };
-
   const isRequiredChecked =
     agreements.age &&
     agreements.customer &&
@@ -194,11 +141,8 @@ const SignupAgreementModal = ({
       alert("필수 항목에 모두 동의해주세요.");
       return;
     }
-    if (!isPhoneVerified) {
-      alert("휴대폰 인증을 완료해주세요.");
-      return;
-    }
-    onConfirm && onConfirm({ agreements, isPhoneVerified });
+
+    onConfirm && onConfirm({ agreements });
     onClose && onClose();
   };
 
@@ -279,46 +223,11 @@ const SignupAgreementModal = ({
             </label>
           </CheckboxGroup>
 
-          <PhoneBox>
-            <input
-              type="text"
-              placeholder="전화번호 입력 (예: 010-1234-5678)"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              disabled={isPhoneVerified}
-              style={{ fontSize: "16px" }}
-            />
-            <Button
-              size="sm"
-              onClick={handlePhoneVerify}
-              disabled={isPhoneVerified}
-            >
-              인증번호 전송
-            </Button>
-          </PhoneBox>
-
-          {sentCode && !isPhoneVerified && (
-            <VerifyBox>
-              <input
-                type="text"
-                placeholder="인증번호 입력"
-                value={code}
-                onChange={(e) => setCode(e.target.value)}
-              />
-              <Button size="sm" onClick={handleCodeConfirm}>
-                확인
-              </Button>
-              <Timer>
-                {Math.floor(timer / 60)}:{("0" + (timer % 60)).slice(-2)}
-              </Timer>
-            </VerifyBox>
-          )}
-
           <ButtonRow>
             <Button
               size="sm"
               onClick={handleConfirm}
-              disabled={!isRequiredChecked || !isPhoneVerified}
+              disabled={!isRequiredChecked}
             >
               확인
             </Button>
@@ -408,38 +317,6 @@ const PolicyLink = styled.a`
   &:hover {
     opacity: 0.8;
   }
-`;
-
-const PhoneBox = styled.div`
-  margin-top: 16px;
-  display: flex;
-  gap: 8px;
-  input {
-    flex: 1;
-    padding: 8px;
-    border: 1px solid #ccc;
-    border-radius: 6px;
-  }
-`;
-
-const VerifyBox = styled.div`
-  margin-top: 12px;
-  display: flex;
-  gap: 8px;
-  align-items: center;
-  input {
-    flex: 1;
-    padding: 8px;
-    border: 1px solid #ccc;
-    border-radius: 6px;
-  }
-`;
-
-const Timer = styled.span`
-  min-width: 40px;
-  font-size: 14px;
-  font-weight: bold;
-  color: red;
 `;
 
 const ButtonRow = styled.div`

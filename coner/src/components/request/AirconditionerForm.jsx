@@ -58,7 +58,7 @@ const AirconditionerForm = ({
             <DropdownLabelBox>
               <MdOutlineComment size={23} />
               <DropdownLabel>
-                {selectedOption || "에어컨 보유 여부 선택하기"}
+                {selectedOption || "에어컨 옵션 선택하기"}
               </DropdownLabel>
             </DropdownLabelBox>
             {isDropdownOpen ? (

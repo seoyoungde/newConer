@@ -31,10 +31,17 @@ import WithdrawPage from "./pages/Mypage/WIthdrawPage.jsx";
 import RequestModifyPage from "./pages/Request/RequestModifyPage.jsx";
 import PartnerModifyPage from "./pages/partner/PartnerModifyPage.jsx";
 import RequestDraftResetter from "./components/guards/RequestDraftResetter.jsx";
+import { usePageView } from "./analytics/usePageView.jsx";
+
+function PageViewTracker() {
+  usePageView();
+  return null;
+}
 
 export default function App() {
   return (
     <BrowserRouter>
+      <PageViewTracker />
       <Routes>
         <Route element={<Layout />}>
           <Route index path="/" element={<Home />} />

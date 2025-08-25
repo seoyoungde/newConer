@@ -10,6 +10,7 @@ import { useRequest } from "../../context/context";
 import StepProgressBar from "../../components/request/StepProgressBar";
 import NavHeader from "../../components/common/Header/NavHeader";
 import Modal from "../../components/common/Modal/Modal";
+import { useFunnelStep } from "../../analytics/useFunnelStep";
 
 const ScheduleSelectPage = () => {
   const navigate = useNavigate();
@@ -30,6 +31,9 @@ const ScheduleSelectPage = () => {
     Boolean(requestData.service_date)
   );
 
+  //페이지이탈률
+  const { onAdvance } = useFunnelStep({ step: 2 });
+
   const handleNext = () => {
     if (!isDateTouched && !requestData.service_date) {
       setPopupMessage("서비스 날짜를 선택해주세요.");
@@ -45,6 +49,8 @@ const ScheduleSelectPage = () => {
     updateRequestData("service_time", selectedTime);
 
     const st = encodeURIComponent(requestData.service_type || "");
+    //페이지이탈률
+    onAdvance(3);
     navigate(`/request/service-type?service_type=${st}`, {
       state: {
         selectedDate,

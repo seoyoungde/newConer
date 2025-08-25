@@ -11,6 +11,8 @@ import NavHeader from "../../components/common/Header/NavHeader";
 import Button from "../../components/ui/Button";
 import Modal from "../../components/common/Modal/Modal";
 import AgreementModal from "../../components/common/Modal/AgreementModal";
+import SignupAgreementModal from "../../components/common/Modal/SignupAgreementModal";
+import { useFunnelStep } from "../../analytics/useFunnelStep";
 
 const PartnerAdditionalRequestPage = () => {
   const navigate = useNavigate();
@@ -32,6 +34,7 @@ const PartnerAdditionalRequestPage = () => {
   const [selectedDropdownOption, setSelectedDropdownOption] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isAgreementOpen, setIsAgreementOpen] = useState(false);
+  const [isSignupAgreementOpen, setIsSignupAgreementOpen] = useState(false);
   const [agreements, setAgreements] = useState({
     all: false,
     age: false,
@@ -42,7 +45,8 @@ const PartnerAdditionalRequestPage = () => {
     privacy4: false,
   });
   const [isPhoneVerified, setIsPhoneVerified] = useState(false);
-
+  //페이지이탈률
+  const { onComplete } = useFunnelStep({ step: 4 });
   const handleSelectDropdown = useCallback((value) => {
     setSelectedDropdownOption(value);
   }, []);
@@ -61,7 +65,14 @@ const PartnerAdditionalRequestPage = () => {
       }
     }
 
-    setIsAgreementOpen(true);
+    const user = auth.currentUser;
+    if (user) {
+      // 로그인 회원: 휴대폰 인증 없이 '동의만' 받는 모달
+      setIsSignupAgreementOpen(true);
+    } else {
+      // 비회원: 기존 AgreementModal (동의 + 휴대폰 인증)
+      setIsAgreementOpen(true);
+    }
   };
 
   const handleSubmit = async () => {
@@ -191,7 +202,7 @@ const PartnerAdditionalRequestPage = () => {
             "",
         });
       }
-
+      onComplete();
       navigate("/search/inquiry", {
         state: { customer_phone: requestData.customer_phone, requestId },
       });
@@ -312,6 +323,24 @@ const PartnerAdditionalRequestPage = () => {
           setIsAgreementOpen(false);
         }}
       />
+      <SignupAgreementModal
+        open={isSignupAgreementOpen}
+        onClose={() => setIsSignupAgreementOpen(false)}
+        onConfirm={({ agreements: agreedState }) => {
+          handleSubmit();
+          setIsSignupAgreementOpen(false);
+        }}
+        containerId="rightbox-modal-root"
+        policyLinks={{
+          customer:
+            "https://www.notion.so/harvies/2475c6005f128035b4d7e9f362c1f81c",
+          privacy:
+            "https://www.notion.so/harvies/2475c6005f128035b4d7e9f362c1f81c",
+          privacy2:
+            "https://www.notion.so/harvies/2475c6005f128035b4d7e9f362c1f81c",
+        }}
+      />
+
       <Modal
         open={!!popupMessage}
         onClose={() => setPopupMessage("")}
