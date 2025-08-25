@@ -12,7 +12,7 @@ const RequestSearch = () => {
   const { fetchRequestByClient } = useRequest();
   const [formData, setFormData] = useState({
     customer_phone: "",
-    clientName: "",
+    // clientName: "",
   });
   const [errorMessage, setErrorMessage] = useState("");
   const [loading, setLoading] = useState(false);
@@ -34,20 +34,23 @@ const RequestSearch = () => {
       return;
     }
 
-    if (name === "clientName") {
-      setFormData((prev) => ({ ...prev, clientName: value }));
-      return;
-    }
+    // if (name === "clientName") {
+    //   setFormData((prev) => ({ ...prev, clientName: value }));
+    //   return;
+    // }
   };
 
   const handleSearch = async () => {
     if (loading) return;
 
-    const nameTrimmed = (formData.clientName || "").trim();
+    // const nameTrimmed = (formData.clientName || "").trim();
     const phoneDigits = (formData.customer_phone || "").replace(/\D/g, "");
 
-    if (!nameTrimmed || !phoneDigits) {
-      setErrorMessage("이름과 전화번호를 모두 입력해주세요.");
+    if (
+      // !nameTrimmed ||
+      !phoneDigits
+    ) {
+      setErrorMessage("전화번호를 입력해주세요.");
       return;
     }
 
@@ -55,19 +58,22 @@ const RequestSearch = () => {
     setLoading(true);
 
     try {
-      // 기존 컨텍스트 함수가 전화번호로만 가져오므로, 이름 일치 필터를 추가로 수행
       const requests = await fetchRequestByClient(phoneDigits);
-      const matched = (requests || []).filter(
-        (r) => (r.clientName || "").trim() === nameTrimmed
-      );
+      // const matched = (requests || []).filter(
+      //   (r) => (r.clientName || "").trim() === nameTrimmed
+      // );
 
-      if (matched.length > 0) {
-        navigate("/search/inquiry", {
-          state: { customer_phone: phoneDigits, clientName: nameTrimmed },
-        });
-      } else {
-        setErrorMessage("일치하는 의뢰서를 찾을 수 없습니다.");
-      }
+      // if (matched.length > 0) {
+
+      navigate("/search/inquiry", {
+        state: {
+          customer_phone: phoneDigits,
+          // , clientName: nameTrimmed
+        },
+      });
+      // } else {
+      //   setErrorMessage("일치하는 의뢰서를 찾을 수 없습니다.");
+      // }
     } finally {
       setLoading(false);
     }
@@ -76,7 +82,6 @@ const RequestSearch = () => {
   useEffect(() => {
     const unsubscribe = firebaseAuth.onAuthStateChanged(auth, (currentUser) => {
       if (currentUser) {
-        // 로그인 사용자는 기존처럼 고객 UID로 바로 조회 페이지로 이동
         navigate("/search/inquiry", {
           state: { customer_uid: currentUser.uid },
         });
@@ -89,7 +94,7 @@ const RequestSearch = () => {
     <Container>
       <Title>
         <h1>의뢰서 조회</h1>
-        <p>의뢰서에 작성했던 이름과 전화번호를 입력해주세요</p>
+        <p>의뢰서에 작성했던 전화번호를 입력해주세요</p>
       </Title>
       <form
         onSubmit={(e) => {
@@ -98,7 +103,7 @@ const RequestSearch = () => {
         }}
       >
         <InputWrapper>
-          <TextField
+          {/* <TextField
             label="이름"
             size="md"
             id="clientName"
@@ -107,7 +112,7 @@ const RequestSearch = () => {
             value={formData.clientName}
             onChange={handleChange}
           />
-          <div style={{ marginBottom: "15px" }}></div>
+          <div style={{ marginBottom: "15px" }}></div> */}
           <TextField
             label="전화번호"
             size="md"

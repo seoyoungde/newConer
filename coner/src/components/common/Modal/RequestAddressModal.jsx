@@ -3,16 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import styled from "styled-components";
 import DaumPostcode from "react-daum-postcode";
 
-const SERVICE_AREAS = [
-  "서울 강북구",
-  "서울 광진구",
-  "서울 노원구",
-  "서울 도봉구",
-  "서울 동대문구",
-  "서울 성북구",
-  "서울 종로구",
-  "서울 중랑구",
-];
+const SERVICE_AREAS = ["서울"];
 
 const RequestAddressModal = () => {
   const navigate = useNavigate();

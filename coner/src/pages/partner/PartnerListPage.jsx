@@ -9,14 +9,30 @@ import NavHeader from "../../components/common/Header/NavHeader";
 
 const AREAS = [
   "강북구",
-  "광진구",
-  "노원구",
   "도봉구",
+  "노원구",
+  "중랑구",
   "동대문구",
   "성북구",
   "은평구",
   "종로구",
-  "중랑구",
+  "중구",
+  "서대문구",
+  "마포구",
+  "용산구",
+  "성동구",
+  "광진구",
+  "강서구",
+  "양천구",
+  "구로구",
+  "영등포구",
+  "동작구",
+  "금천구",
+  "관악구",
+  "서초구",
+  "강남구",
+  "송파구",
+  "강동구",
 ];
 
 const PartnerListPage = () => {
@@ -26,6 +42,7 @@ const PartnerListPage = () => {
   const [expandedId, setExpandedId] = useState(null);
   const navigate = useNavigate();
   const { updateRequestData } = useRequest();
+  const [open, setOpen] = useState(false);
 
   useEffect(() => {
     const fetchTechnicians = async () => {
@@ -105,27 +122,28 @@ const PartnerListPage = () => {
         <FilterSection>
           <FilterTitle>서비스 가능한 지역별 찾기</FilterTitle>
           <FilterBox>
-            <FilterButton
-              $active={selectedArea === "전체"}
-              onClick={() => {
-                setSelectedArea("전체");
-                setExpandedId(null);
-              }}
-            >
-              전체
-            </FilterButton>
-            {AREAS.map((area) => (
-              <FilterButton
-                key={area}
-                $active={selectedArea === area}
-                onClick={() => {
-                  setSelectedArea(area);
-                  setExpandedId(null); // 영역 전환 시 펼침 초기화(선택)
-                }}
-              >
-                {area}
-              </FilterButton>
-            ))}
+            <Wrapper>
+              <SelectButton onClick={() => setOpen(!open)}>
+                {selectedArea || "지역 선택"}
+                <Arrow $open={open}>▼</Arrow>
+              </SelectButton>
+              {open && (
+                <Dropdown>
+                  {["전체", ...AREAS].map((area) => (
+                    <Option
+                      key={area}
+                      onClick={() => {
+                        setSelectedArea(area);
+                        setExpandedId(null);
+                        setOpen(false);
+                      }}
+                    >
+                      {area}
+                    </Option>
+                  ))}
+                </Dropdown>
+              )}
+            </Wrapper>
           </FilterBox>
         </FilterSection>
 
@@ -160,21 +178,23 @@ const PartnerListPage = () => {
                 <TextBox>
                   <InfoContent>
                     <CareerBox>
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="16"
-                        height="16"
-                        viewBox="0 0 16 16"
-                        fill="none"
-                      >
-                        <path
-                          fillRule="evenodd"
-                          clipRule="evenodd"
-                          d="M8 14C8.78793 14 9.56815 13.8448 10.2961 13.5433C11.0241 13.2417 11.6855 12.7998 12.2426 12.2426C12.7998 11.6855 13.2417 11.0241 13.5433 10.2961C13.8448 9.56815 14 8.78793 14 8C14 7.21207 13.8448 6.43185 13.5433 5.7039C13.2417 4.97595 12.7998 4.31451 12.2426 3.75736C11.6855 3.20021 11.0241 2.75825 10.2961 2.45672C9.56815 2.15519 8.78793 2 8 2C6.4087 2 4.88258 2.63214 3.75736 3.75736C2.63214 4.88258 2 6.4087 2 8C2 9.5913 2.63214 11.1174 3.75736 12.2426C4.88258 13.3679 6.4087 14 8 14ZM7.84533 10.4267L11.1787 6.42667L10.1547 5.57333L7.288 9.01267L5.80467 7.52867L4.862 8.47133L6.862 10.4713L7.378 10.9873L7.84533 10.4267Z"
-                          fill="#004FFF"
-                        />
-                      </svg>
-                      <Tag>{tech.career}년 이상 </Tag>
+                      <TagBox>
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="16"
+                          height="16"
+                          viewBox="0 0 16 16"
+                          fill="none"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            clipRule="evenodd"
+                            d="M8 14C8.78793 14 9.56815 13.8448 10.2961 13.5433C11.0241 13.2417 11.6855 12.7998 12.2426 12.2426C12.7998 11.6855 13.2417 11.0241 13.5433 10.2961C13.8448 9.56815 14 8.78793 14 8C14 7.21207 13.8448 6.43185 13.5433 5.7039C13.2417 4.97595 12.7998 4.31451 12.2426 3.75736C11.6855 3.20021 11.0241 2.75825 10.2961 2.45672C9.56815 2.15519 8.78793 2 8 2C6.4087 2 4.88258 2.63214 3.75736 3.75736C2.63214 4.88258 2 6.4087 2 8C2 9.5913 2.63214 11.1174 3.75736 12.2426C4.88258 13.3679 6.4087 14 8 14ZM7.84533 10.4267L11.1787 6.42667L10.1547 5.57333L7.288 9.01267L5.80467 7.52867L4.862 8.47133L6.862 10.4713L7.378 10.9873L7.84533 10.4267Z"
+                            fill="#004FFF"
+                          />
+                        </svg>
+                        <Tag>{tech.career}년 이상 </Tag>
+                      </TagBox>
                       <Tag2>완료한 건수 : {tech.count}</Tag2>
                     </CareerBox>
                     <Name>{tech.name}</Name>
@@ -244,52 +264,81 @@ const FilterSection = styled.div`
 `;
 
 const FilterTitle = styled.div`
-  font-size: ${({ theme }) => theme.font.size.bodySmall};
+  font-size: ${({ theme }) => theme.font.size.body};
   font-weight: ${({ theme }) => theme.font.weight.semibold};
   margin-bottom: 8px;
   text-align: left;
 `;
 
 const FilterBox = styled.div`
-  display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  gap: 8px;
-
+  width: 100%;
+  max-width: 200px;
   @media (max-width: ${({ theme }) => theme.font.breakpoints.mobile}) {
-    display: flex;
-    overflow-x: scroll;
-    gap: 8px;
-    padding-bottom: 6px;
-    width: 340px;
-
-    /* 스크롤바 디자인 최소화 */
-    -webkit-overflow-scrolling: touch;
-    &::-webkit-scrollbar {
-      height: 6px;
-    }
-    &::-webkit-scrollbar-thumb {
-      background: #ccc;
-      border-radius: 3px;
-    }
-    &::-webkit-scrollbar-track {
-      background: transparent;
-    }
+    max-width: 100%;
   }
 `;
 
-const FilterButton = styled.button`
-  flex: 0 0 auto;
-  padding: 6px 12px;
-  border-radius: 20px;
-  border: 1px solid ${({ $active }) => ($active ? "#004FFF" : "#ccc")};
-  background: ${({ $active }) => ($active ? "#004FFF" : "#fff")};
-  color: ${({ $active }) => ($active ? "#fff" : "#333")};
-  font-size: ${({ theme }) => theme.font.size.bodySmall};
+const Wrapper = styled.div`
+  position: relative;
+  width: 100%;
+  max-width: 200px;
+  @media (max-width: ${({ theme }) => theme.font.breakpoints.mobile}) {
+    max-width: 100%;
+  }
+`;
+
+const SelectButton = styled.button`
+  width: 100%;
+  padding: 10px 16px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background: #fff;
+  color: black;
+  font-size: ${({ theme }) => theme.font.size.body};
+  text-align: left;
   cursor: pointer;
-  transition: all 0.2s ease;
+
+  @media (max-width: ${({ theme }) => theme.font.breakpoints.mobile}) {
+    font-size: ${({ theme }) => theme.font.size.body};
+    padding: 8px 18px;
+  }
+  &:focus {
+    outline: none;
+    border: 1px solid #ccc;
+  }
+`;
+
+const Arrow = styled.span`
+  float: right;
+  color: gray;
+  font-size: 14px;
+  line-height: 18px;
+`;
+
+const Dropdown = styled.ul`
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
+  max-height: 300px;
+  overflow-y: auto;
+  margin: 4px 0 0 0;
+  padding: 0;
+  list-style: none;
+  border: 1.5px solid #ccc;
+  border-radius: 8px;
+  background: #fff;
+  z-index: 1000;
+`;
+
+const Option = styled.li`
+  padding: 14px 16px;
+  font-size: ${({ theme }) => theme.font.size.body};
+  cursor: pointer;
 
   &:hover {
-    background: ${({ $active }) => ($active ? "#0033CC" : "#f5f5f5")};
+    background: #f1f4ff;
+    color: #004fff;
   }
 `;
 
@@ -354,6 +403,9 @@ const CareerBox = styled.div`
   margin-top: 8px;
   gap: 6px;
   align-items: center;
+  @media (max-width: ${({ theme }) => theme.font.breakpoints.smobile}) {
+    flex-direction: column;
+  }
 `;
 
 const Name = styled.h3`
@@ -362,7 +414,9 @@ const Name = styled.h3`
     font-size: ${({ theme }) => theme.font.size.body};
   }
 `;
-
+const TagBox = styled.div`
+  display: flex;
+`;
 const Tag = styled.div`
   color: ${({ theme }) => theme.colors.primary};
   font-weight: ${({ theme }) => theme.font.weight.bold};
@@ -435,7 +489,7 @@ const ToggleButton = styled.button`
   cursor: pointer;
   padding: 2px 20px;
   @media (max-width: ${({ theme }) => theme.font.breakpoints.smobile}) {
-    padding: 5px 15px;
+    padding: 0px 4px;
   }
 `;
 
@@ -450,7 +504,7 @@ const TechCard = styled.div`
   cursor: pointer;
   align-items: flex-start;
   margin-top: 10px;
-  margin-bottom: 30px;
+  margin-bottom: 80px;
 `;
 
 const TechInfo = styled.div`

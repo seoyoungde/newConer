@@ -25,9 +25,9 @@ const InquiryPage = () => {
   const [customer_uid, setCustomerUid] = useState(
     location.state?.customer_uid || null
   );
-  const [clientName, setClientName] = useState(
-    location.state?.clientName || null
-  );
+  // const [clientName, setClientName] = useState(
+  //   location.state?.clientName || null
+  // );
   const customer_phone = location.state?.customer_phone;
   const statusFilter = location.state?.status || null;
   const { currentUser } = useAuth();
@@ -70,13 +70,16 @@ const InquiryPage = () => {
       }
 
       // 전화번호 + 이름이 모두 있을 때만 “둘 다 일치” 검색
-      if (customer_phone && clientName) {
+      if (
+        customer_phone
+        // && clientName
+      ) {
         tasks.push(
           getDocs(
             query(
               collection(db, "Request"),
-              where("customer_phone", "==", customer_phone),
-              where("clientName", "==", clientName)
+              where("customer_phone", "==", customer_phone)
+              // where("clientName", "==", clientName)
             )
           )
         );
@@ -104,7 +107,12 @@ const InquiryPage = () => {
       setRequestDataList(Array.from(requests.values()));
       setLoading(false);
     }
-  }, [customer_phone, customer_uid, clientName, requestId]);
+  }, [
+    customer_phone,
+    customer_uid,
+    // clientName,
+    requestId,
+  ]);
 
   useEffect(() => {
     fetchRequestByClient();
@@ -136,8 +144,8 @@ const InquiryPage = () => {
   }, [requestDataList]);
 
   // 전화번호만 전달되고 이름이 없으면 결과가 비어 있게 됨 (요구사항 충족)
-  const noResultByPhoneAndName =
-    !loading && customer_phone && !clientName && requestDataList.length === 0;
+  // const noResultByPhoneAndName =
+  //   !loading && customer_phone && !clientName && requestDataList.length === 0;
 
   return (
     <Container>
@@ -163,10 +171,6 @@ const InquiryPage = () => {
       <TabContent>
         {loading ? (
           <CenteredContent>로딩 중...</CenteredContent>
-        ) : noResultByPhoneAndName ? (
-          <CenteredContent>
-            이름과 전화번호가 일치하는 의뢰서를 찾을 수 없습니다.
-          </CenteredContent>
         ) : activeTab === "progress" ? (
           inProgressRequests.length > 0 ? (
             inProgressRequests.map((req) => (

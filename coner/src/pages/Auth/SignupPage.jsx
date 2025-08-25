@@ -360,7 +360,7 @@ const SignupPage = () => {
               checked={agreements.age}
               onChange={() => handleCheck("age")}
             />
-            만 14세 이상입니다. <span style={{ color: "#0080FF" }}>(필수)</span>
+            만 19세 이상입니다. <span style={{ color: "#0080FF" }}>(필수)</span>
           </label>
 
           <label>
@@ -470,6 +470,15 @@ const CheckboxGroup = styled.div`
     align-items: center;
     gap: 8px;
     font-size: ${({ theme }) => theme.font.size.bodySmall};
+  }
+
+  label:first-child {
+    padding-left: 0;
+    font-weight: ${({ theme }) => theme.font.weight.bold};
+  }
+
+  label:not(:first-child) {
+    padding-left: 10px;
   }
 
   input[type="checkbox"] {

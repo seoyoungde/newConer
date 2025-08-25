@@ -604,9 +604,8 @@ const RequestReceived = ({
                 )}
               </>
             ) : (
-              <div>
+              <div style={{ marginBottom: "30px" }}>
                 <Label>추가요청사항</Label>
-
                 <Value style={{ whiteSpace: "pre-line" }}>
                   {additionalInfo || "없음"}
                 </Value>

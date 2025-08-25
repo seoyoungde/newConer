@@ -219,26 +219,6 @@ const AdditionalRequestPage = () => {
           additionalInfo={additionalInfo}
           setAdditionalInfo={setAdditionalInfo}
         />
-        <ServiceCostContainer>
-          <CostTitle>서비스 기본 비용</CostTitle>
-          <CostDescription>
-            견적을 위해 기사님이 방문한 후, 서비스를 취소하시면 아래 비용이
-            발생할 수 있어요.
-          </CostDescription>
-          <CostTable>
-            <CostRow>
-              <CostLabel>출장비</CostLabel>
-              <CostValue>
-                2만원 ~ 5만원
-                <SmallText>(근무 외 시간 : 1.5배, 주말 : 2배)</SmallText>
-              </CostValue>
-            </CostRow>
-            <CostRow>
-              <CostLabel>제품 분해·조립비</CostLabel>
-              <CostValue>7만원</CostValue>
-            </CostRow>
-          </CostTable>
-        </ServiceCostContainer>
       </FormLayout>
       <Button
         type="button"
@@ -315,55 +295,4 @@ export default AdditionalRequestPage;
 
 const Container = styled.div`
   width: 100%;
-`;
-
-const ServiceCostContainer = styled.div`
-  border-radius: 10px;
-`;
-
-const CostTitle = styled.p`
-  font-size: ${({ theme }) => theme.font.size.body};
-  font-weight: ${({ theme }) => theme.font.weight.bold};
-  margin-bottom: 5px;
-  text-align: left;
-`;
-
-const CostDescription = styled.p`
-  font-size: ${({ theme }) => theme.font.size.bodySmall};
-  color: ${({ theme }) => theme.colors.subtext};
-  margin-bottom: 10px;
-  font-weight: ${({ theme }) => theme.font.weight.bold};
-  text-align: left;
-`;
-
-const CostTable = styled.div`
-  background: #f9f9f9;
-  padding: 15px;
-  border-radius: 10px;
-  font-size: ${({ theme }) => theme.font.size.bodySmall};
-  font-weight: ${({ theme }) => theme.font.weight.medium};
-`;
-
-const CostRow = styled.div`
-  display: flex;
-  justify-content: space-between;
-  padding: 10px 0;
-`;
-
-const CostLabel = styled.p`
-  font-size: ${({ theme }) => theme.font.size.bodySmall};
-  font-weight: ${({ theme }) => theme.font.weight.bold};
-`;
-
-const CostValue = styled.p`
-  font-weight: ${({ theme }) => theme.font.weight.bold};
-  font-size: ${({ theme }) => theme.font.size.bodySmall};
-  text-align: right;
-`;
-
-const SmallText = styled.span`
-  font-size: ${({ theme }) => theme.font.size.bodySmall};
-  font-weight: ${({ theme }) => theme.font.weight.bold};
-  display: block;
-  margin-top: 3px;
 `;

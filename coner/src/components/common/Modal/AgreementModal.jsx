@@ -245,7 +245,7 @@ const AgreementModal = ({
                 checked={agreements.age}
                 onChange={() => handleCheck("age")}
               />
-              만 14세 이상입니다. (필수)
+              만 19세 이상입니다. (필수)
             </label>
 
             <label>

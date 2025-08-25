@@ -48,14 +48,12 @@ const PartnerAddressContactForm = ({ title, description }) => {
     };
   }, [partnerId, setPartner]);
 
-  // 주소가 state로 넘어온 경우 반영
   useEffect(() => {
     if (location.state?.selectedAddress) {
       updateRequestData("customer_address", location.state.selectedAddress);
     }
   }, [location.state, updateRequestData]);
 
-  // userInfo로 "비어있는 필드만" 1회 채우기
   useEffect(() => {
     if (!userInfo) return;
     const patch = {};
@@ -96,9 +94,8 @@ const PartnerAddressContactForm = ({ title, description }) => {
       return setPopupMessage("상세주소를 입력해주세요.");
     if (!requestData.customer_phone)
       return setPopupMessage("전화번호를 입력해주세요.");
-    if (!requestData.clientName) return setPopupMessage("성함을 입력해주세요.");
+    // if (!requestData.clientName) return setPopupMessage("성함을 입력해주세요.");
 
-    // 저장 시 숫자만 유지
     const digitsPhone = requestData.customer_phone.replace(/\D/g, "");
     if (digitsPhone !== requestData.customer_phone) {
       updateRequestData("customer_phone", digitsPhone);
@@ -134,12 +131,7 @@ const PartnerAddressContactForm = ({ title, description }) => {
           <Label>주소</Label>
           <HelperTextBox>
             <HelperIcon color="#a5a5a5" size={18} />
-            <HelperText>
-              현재 서비스 제공 지역은 서울 강북권 일부로 제한되어 있습니다.
-              <br />
-              강북구, 광진구, 노원구, 동대문구, 성북구, 도봉구, 은평구, 중랑구,
-              종로구
-            </HelperText>
+            <HelperText>서울 지역으로만 제한되어 있습니다.</HelperText>
           </HelperTextBox>
 
           {isReadOnly && (
@@ -154,7 +146,7 @@ const PartnerAddressContactForm = ({ title, description }) => {
             size="md"
             placeholder="클릭하여 주소 검색"
             value={requestData.customer_address || ""}
-            readOnly // 모달 사용을 위해 항상 읽기전용 권장
+            readOnly
             onClick={!isReadOnly ? goToAddressSearch : undefined}
           />
           <div style={{ height: 6 }} />
@@ -182,7 +174,7 @@ const PartnerAddressContactForm = ({ title, description }) => {
           />
         </Field>
 
-        <Field>
+        {/* <Field>
           <TextField
             label="이름"
             size="md"
@@ -193,7 +185,7 @@ const PartnerAddressContactForm = ({ title, description }) => {
             onChange={handleChange}
             readOnly={isReadOnly}
           />
-        </Field>
+        </Field> */}
 
         <Field>
           <Label>고객유형</Label>
@@ -265,7 +257,6 @@ const PartnerAddressContactForm = ({ title, description }) => {
 
 export default PartnerAddressContactForm;
 
-/* styles 동일 (아이콘 표기만 정리) */
 const Container = styled.div``;
 const TitleSection = styled.div`
   margin-bottom: 35px;
@@ -295,10 +286,7 @@ const HelperText = styled.p`
   color: ${({ theme }) => theme.colors.subtext};
   font-weight: ${({ theme }) => theme.font.weight.regular};
   font-size: ${({ theme }) => theme.font.size.bodySmall};
-  padding: 0 0 15px 5px;
-  @media (max-width: ${({ theme }) => theme.font.breakpoints.mobile}) {
-    font-size: ${({ theme }) => theme.font.size.small};
-  }
+  padding: 0 0 5px 0px;
 `;
 const HelperTextBox = styled.div`
   display: flex;

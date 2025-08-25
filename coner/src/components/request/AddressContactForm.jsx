@@ -87,7 +87,7 @@ const AddressContactForm = ({ title, description }) => {
       return setPopupMessage("상세주소를 입력해주세요.");
     if (!requestData.customer_phone)
       return setPopupMessage("전화번호를 입력해주세요.");
-    if (!requestData.clientName) return setPopupMessage("성함을 입력해주세요.");
+    // if (!requestData.clientName) return setPopupMessage("성함을 입력해주세요.");
 
     const digitsPhone = requestData.customer_phone.replace(/\D/g, "");
     if (digitsPhone !== requestData.customer_phone) {
@@ -127,12 +127,7 @@ const AddressContactForm = ({ title, description }) => {
           <Label>주소</Label>
           <HelperTextBox>
             <InfoIcon />
-            <HelperText>
-              현재 서비스 제공 지역은 서울 강북권 일부로 제한되어 있습니다.
-              <br />
-              강북구, 광진구, 노원구, 동대문구, 성북구, 도봉구, 은평구, 중랑구,
-              종로구
-            </HelperText>
+            <HelperText>서울 지역으로만 제한되어 있습니다.</HelperText>
           </HelperTextBox>
 
           {isReadOnly && (
@@ -175,7 +170,7 @@ const AddressContactForm = ({ title, description }) => {
           />
         </Field>
 
-        <Field>
+        {/* <Field>
           <TextField
             label="이름"
             size="md"
@@ -186,7 +181,7 @@ const AddressContactForm = ({ title, description }) => {
             onChange={handleChange}
             readOnly={isReadOnly}
           />
-        </Field>
+        </Field> */}
 
         <Field>
           <Label>고객유형</Label>
@@ -292,10 +287,7 @@ const HelperText = styled.p`
   color: ${({ theme }) => theme.colors.subtext};
   font-weight: ${({ theme }) => theme.font.weight.regular};
   font-size: ${({ theme }) => theme.font.size.bodySmall};
-  padding: 0 0 15px 5px;
-  @media (max-width: ${({ theme }) => theme.font.breakpoints.mobile}) {
-    font-size: ${({ theme }) => theme.font.size.small};
-  }
+  padding: 0 0 15px 0px;
 `;
 
 const HelperTextBox = styled.div`
