@@ -25,7 +25,7 @@ const imageMap = {
   냉매충전: gas,
 };
 
-const PartnerServiceTypeSelectPage = () => {
+const PartnerStep3Page = () => {
   const navigate = useNavigate();
   const { requestData, updateRequestData } = useRequest();
   const [popupMessage, setPopupMessage] = useState("");
@@ -52,7 +52,7 @@ const PartnerServiceTypeSelectPage = () => {
 
   return (
     <Container>
-      <NavHeader to={`/partner/schedule/${partnerId}`} />
+      <NavHeader to={`/partner/step2/${partnerId}`} />
       <StepProgressBar currentStep={3} totalSteps={4} />
       <FormLayout
         title={"의뢰서 기본 정보"}
@@ -143,7 +143,7 @@ const PartnerServiceTypeSelectPage = () => {
   );
 };
 
-export default PartnerServiceTypeSelectPage;
+export default PartnerStep3Page;
 
 const Container = styled.section`
   width: 100%;

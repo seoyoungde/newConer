@@ -81,7 +81,6 @@ const PartnerListPage = () => {
           })
           .filter((p) => p.partner_id !== OUR_STAFF_PARTNER_ID);
 
-        // ✅ 전체 파트너를 그대로 저장 (랜덤 6개 slice 제거)
         setTechnicians(partners);
       } catch (err) {
         console.error("업체 데이터를 불러오는 데 실패했습니다:", err);
@@ -91,15 +90,13 @@ const PartnerListPage = () => {
     fetchTechnicians();
   }, []);
 
+  // ✅ 랜덤 매칭 시 기사님 뽑지 않고 undefined로 처리
   const handleRandomMatch = () => {
-    if (technicians.length === 0) return;
-    const randomTech =
-      technicians[Math.floor(Math.random() * technicians.length)];
-    updateRequestData("selectedTechnician", randomTech);
-    navigate(`/partner/address-contact/${randomTech.id}`, {
+    updateRequestData("selectedTechnician", undefined);
+    navigate(`/partner/step1/undefined`, {
       state: {
         flowType: "randomTechnician",
-        selectedTechnician: randomTech,
+        selectedTechnician: undefined,
       },
     });
   };
@@ -125,7 +122,7 @@ const PartnerListPage = () => {
             <Wrapper>
               <SelectButton onClick={() => setOpen(!open)}>
                 {selectedArea || "지역 선택"}
-                <Arrow $open={open}>▼</Arrow>
+                <Arrow>▼</Arrow>
               </SelectButton>
               {open && (
                 <Dropdown>
@@ -162,7 +159,7 @@ const PartnerListPage = () => {
               onClick={(e) => {
                 e.stopPropagation();
                 setSelectedId(tech.id);
-                navigate(`/partner/address-contact/${tech.id}`, {
+                navigate(`/partner/step1/${tech.id}`, {
                   state: {
                     flowType: "fromTechnician",
                     selectedTechnician: tech,

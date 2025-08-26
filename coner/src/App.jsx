@@ -1,9 +1,9 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Layout from "./Layout.jsx";
 import Home from "./pages/Home/Home.jsx";
-import AddressContactPage from "./pages/Request/AddressContactPage.jsx";
-import ScheduleSelectPage from "./pages/Request/ScheduleSelectPage.jsx";
-import ServiceTypeSelectPage from "./pages/Request/ServiceTypeSelectPage.jsx";
+import Step1Page from "./pages/Request/Step1Page.jsx";
+import Step2Page from "./pages/Request/Step2Page.jsx";
+import Step3Page from "./pages/Request/Step3Page.jsx";
 import AdditionalRequestPage from "./pages/Request/AdditionalRequestPage.jsx";
 import LoginPage from "./pages/Auth/LoginPage.jsx";
 import SignupPage from "./pages/Auth/SignupPage.jsx";
@@ -18,9 +18,9 @@ import RequestSearchPage from "./pages/Search/RequestSearchPage.jsx";
 import NavHeaderLayout from "./NavHeaderLayout.jsx";
 import InquiryPage from "./pages/Search/InquiryPage.jsx";
 import PartnerListPage from "./pages/partner/PartnerListPage.jsx";
-import PartnerAddressContactPage from "./pages/partner/partenrAddressContactPage.jsx";
-import PartnerScheduleSelectPage from "./pages/partner/PartenrScheduleSelectPage.jsx";
-import PartnerServiceTypeSelectPage from "./pages/partner/PartnerServiceTypeSelectPage.jsx";
+import PartnerStep1Page from "./pages/partner/PartnerStep1Page.jsx";
+import PartnerStep2Page from "./pages/partner/PartnerStep2Page.jsx";
+import PartnerStep3Page from "./pages/partner/PartnerStep3Page.jsx";
 import PartnerAdditionalRequestPage from "./pages/partner/PartnerAdditionalRequestPage.jsx";
 import PartnerPricePage from "./pages/Price/PartnerPricePage.jsx";
 import MyPage from "./pages/Mypage/MyPage.jsx";
@@ -57,10 +57,7 @@ export default function App() {
             path="/request/install-purchase"
             element={<InstallpurchasePage />}
           />
-          <Route
-            path="/request/address-contact"
-            element={<AddressContactPage />}
-          />
+          <Route path="/request/step1" element={<Step1Page />} />
           <Route
             path="/request/addressmodal"
             element={<RequestAddressModalPage />}
@@ -68,11 +65,8 @@ export default function App() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/auth/addressmodal" element={<AuthAddressPage />} />
 
-          <Route path="/request/schedule" element={<ScheduleSelectPage />} />
-          <Route
-            path="/request/service-type"
-            element={<ServiceTypeSelectPage />}
-          />
+          <Route path="/request/step2" element={<Step2Page />} />
+          <Route path="/request/step3" element={<Step3Page />} />
           <Route
             path="/request/additional"
             element={<AdditionalRequestPage />}
@@ -82,16 +76,16 @@ export default function App() {
           <Route path="/search/inquiry" element={<InquiryPage />} />
           <Route path="/partner/list" element={<PartnerListPage />} />
           <Route
-            path="/partner/address-contact/:partnerId"
-            element={<PartnerAddressContactPage />}
+            path="/partner/step1/:partnerId"
+            element={<PartnerStep1Page />}
           />
           <Route
-            path="/partner/schedule/:partnerId"
-            element={<PartnerScheduleSelectPage />}
+            path="/partner/step2/:partnerId"
+            element={<PartnerStep2Page />}
           />
           <Route
-            path="/partner/service-type/:partnerId"
-            element={<PartnerServiceTypeSelectPage />}
+            path="/partner/step3/:partnerId"
+            element={<PartnerStep3Page />}
           />
           <Route
             path="/partner/additional/:partnerId"

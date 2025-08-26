@@ -9,6 +9,7 @@ import Button from "../ui/Button";
 import Modal from "../common/Modal/Modal";
 import AddressModal, { SERVICE_AREAS } from "../common/Modal/AddressModal";
 import { useFunnelStep } from "../../analytics/useFunnelStep";
+import AgreementForm from "../request/AgreementForm";
 
 const AddressContactForm = ({ title, description }) => {
   const navigate = useNavigate();
@@ -22,6 +23,9 @@ const AddressContactForm = ({ title, description }) => {
   const isLoggedIn = !!currentUser;
   const isReadOnly = isLoggedIn && !!userInfo;
   const [isAddressOpen, setIsAddressOpen] = useState(false);
+
+  // 추가: 약관 동의 상태
+  const [agreementsOK, setAgreementsOK] = useState(false);
 
   //페이지이탈률
   const { onAdvance } = useFunnelStep({ step: 1 });
@@ -81,6 +85,12 @@ const AddressContactForm = ({ title, description }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+
+    // 추가: 약관 동의 체크
+    if (!agreementsOK) {
+      return setPopupMessage("약관(필수)에 모두 동의해주세요.");
+    }
+
     if (!requestData.customer_address)
       return setPopupMessage("주소를 선택해주세요.");
     if (!requestData.customer_address_detail)
@@ -97,7 +107,7 @@ const AddressContactForm = ({ title, description }) => {
     const st = searchParams.get("service_type") || "";
     //페이지이탈률
     onAdvance(2);
-    navigate(`/request/schedule?service_type=${encodeURIComponent(st)}`);
+    navigate(`/request/step2?service_type=${encodeURIComponent(st)}`);
   };
 
   const goToAddressSearch = () => {
@@ -205,6 +215,8 @@ const AddressContactForm = ({ title, description }) => {
               ))}
             </JobButtonBox>
           )}
+
+          <AgreementForm onRequiredChange={setAgreementsOK} />
         </Field>
 
         <Button
@@ -212,8 +224,9 @@ const AddressContactForm = ({ title, description }) => {
           fullWidth
           size="lg"
           style={{ marginTop: 20, marginBottom: 24 }}
+          disabled={!agreementsOK}
         >
-          의뢰 시작하기
+          제출하기
         </Button>
       </Form>
 
@@ -287,7 +300,7 @@ const HelperText = styled.p`
   color: ${({ theme }) => theme.colors.subtext};
   font-weight: ${({ theme }) => theme.font.weight.regular};
   font-size: ${({ theme }) => theme.font.size.bodySmall};
-  padding: 0 0 15px 0px;
+  padding: 0 0 5px 0px;
 `;
 
 const HelperTextBox = styled.div`

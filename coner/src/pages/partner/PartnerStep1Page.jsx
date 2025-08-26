@@ -4,7 +4,7 @@ import PartnerAddressContactForm from "../../components/request/PartnerAddressCo
 import NavHeader from "../../components/common/Header/NavHeader";
 import StepProgressBar from "../../components/request/StepProgressBar";
 
-const PartnerAddressContactPage = () => {
+const PartnerStep1Page = () => {
   return (
     <Container>
       <NavHeader to="/" />
@@ -19,4 +19,4 @@ const PartnerAddressContactPage = () => {
 };
 
 const Container = styled.div``;
-export default PartnerAddressContactPage;
+export default PartnerStep1Page;

@@ -69,7 +69,7 @@ const PartnerSelect = () => {
             selected={tech.id === selectedId}
             onClick={() => {
               setSelectedId(tech.id);
-              navigate(`/partner/address-contact/${tech.id}`, {
+              navigate(`/partner/step1/${tech.id}`, {
                 state: { flowType: "fromTechnician", selectedTechnician: tech },
               });
             }}

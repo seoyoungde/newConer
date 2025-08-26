@@ -12,7 +12,7 @@ import NavHeader from "../../components/common/Header/NavHeader";
 import Modal from "../../components/common/Modal/Modal";
 import { useFunnelStep } from "../../analytics/useFunnelStep";
 
-const ScheduleSelectPage = () => {
+const Step2Page = () => {
   const navigate = useNavigate();
   const { requestData, updateRequestData } = useRequest();
 
@@ -51,7 +51,7 @@ const ScheduleSelectPage = () => {
     const st = encodeURIComponent(requestData.service_type || "");
     //페이지이탈률
     onAdvance(3);
-    navigate(`/request/service-type?service_type=${st}`, {
+    navigate(`/request/step3?service_type=${st}`, {
       state: {
         selectedDate,
         selectedTime,
@@ -69,7 +69,7 @@ const ScheduleSelectPage = () => {
 
   return (
     <Container>
-      <NavHeader to="/request/address-contact" />
+      <NavHeader to="/request/step1" />
 
       <StepProgressBar currentStep={2} totalSteps={4} />
 
@@ -134,7 +134,7 @@ const ScheduleSelectPage = () => {
     </Container>
   );
 };
-export default ScheduleSelectPage;
+export default Step2Page;
 
 const Container = styled.section`
   width: 100%;

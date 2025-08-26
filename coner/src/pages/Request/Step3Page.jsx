@@ -30,7 +30,7 @@ const imageMap = {
   냉매충전: gas,
 };
 
-const ServiceTypeSelectPage = () => {
+const Step3Page = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { requestData, updateRequestData } = useRequest();
@@ -67,7 +67,7 @@ const ServiceTypeSelectPage = () => {
 
   return (
     <Container>
-      <NavHeader to="/request/schedule" />
+      <NavHeader to="/request/step2" />
       <StepProgressBar currentStep={3} totalSteps={4} />
       <FormLayout
         title={`"의뢰서 기본 정보"- ${
@@ -151,7 +151,7 @@ const ServiceTypeSelectPage = () => {
   );
 };
 
-export default ServiceTypeSelectPage;
+export default Step3Page;
 
 const Container = styled.section`
   width: 100%;

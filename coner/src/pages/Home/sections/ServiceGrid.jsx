@@ -106,7 +106,7 @@ const ServiceGrid = () => {
     ) {
       navigate(`${service.path}${qs}`);
     } else {
-      navigate(`/request/address-contact${qs}`, {
+      navigate(`/request/step1${qs}`, {
         state: { selectedService: service.title },
       });
     }

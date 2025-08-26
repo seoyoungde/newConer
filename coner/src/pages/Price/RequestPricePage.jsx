@@ -12,7 +12,7 @@ const RequestPricePage = () => {
 
   return (
     <Container>
-      <NavHeader to="/request/service-type" title="서비스 가격" />
+      <NavHeader to="/request/step2" title="서비스 가격" />
 
       <ImageWrapper>
         <img src={pricingchartIcon} alt="서비스 비용 도표" />

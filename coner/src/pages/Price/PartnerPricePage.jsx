@@ -13,10 +13,7 @@ const PartnerPricePage = () => {
 
   return (
     <Container>
-      <NavHeader
-        to={`/partner/service-type/${partnerId}`}
-        title="서비스 가격"
-      />
+      <NavHeader to={`/partner/step2/${partnerId}`} title="서비스 가격" />
 
       <ImageWrapper>
         <img src={pricingchartIcon} alt="서비스 비용 도표" />

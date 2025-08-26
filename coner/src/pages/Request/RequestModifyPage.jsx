@@ -9,7 +9,7 @@ const RequestModifyPage = () => {
 
   return (
     <Container>
-      <NavHeader to="/request/address-contact" title="내 정보 수정" />
+      <NavHeader to="/request/step3" title="내 정보 수정" />
       <Modify />
     </Container>
   );

@@ -5,7 +5,7 @@ import AddressContactForm from "../../components/request/AddressContactForm";
 import NavHeader from "../../components/common/Header/NavHeader";
 import StepProgressBar from "../../components/request/StepProgressBar";
 
-const AddressContactPage = () => {
+const Step1Page = () => {
   const [searchParams] = useSearchParams();
   const service = searchParams.get("service_type");
 
@@ -14,9 +14,9 @@ const AddressContactPage = () => {
       <NavHeader to="/" />
       <StepProgressBar currentStep={1} totalSteps={4} />
       <AddressContactForm
-        title={`서비스 신청`}
+        title={`연락받으실 정보 입력`}
         description="기사님께 제공할 주소와 연락처를 입력해주세요."
-        buttonText="의뢰 시작하기"
+        buttonText="제출하기"
         service={service}
       />
     </Container>
@@ -24,4 +24,4 @@ const AddressContactPage = () => {
 };
 
 const Container = styled.div``;
-export default AddressContactPage;
+export default Step1Page;

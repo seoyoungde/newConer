@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-
 import { useNavigate, useLocation, useParams } from "react-router-dom";
 import styled from "styled-components";
 import { useRequest } from "../../context/context";
@@ -13,6 +12,9 @@ import { db } from "../../lib/firebase";
 import { doc, getDoc } from "firebase/firestore";
 import { useFunnelStep } from "../../analytics/useFunnelStep";
 
+// ⬇️ 추가: AgreementForm 임포트
+import AgreementForm from "../request/AgreementForm";
+
 const PartnerAddressContactForm = ({ title, description }) => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -25,6 +27,9 @@ const PartnerAddressContactForm = ({ title, description }) => {
   const isLoggedIn = !!currentUser;
   const isReadOnly = isLoggedIn && !!userInfo;
   const [isAddressOpen, setIsAddressOpen] = useState(false);
+
+  // ⬇️ 추가: 약관 동의 완료 여부
+  const [agreementsOK, setAgreementsOK] = useState(false);
 
   const { onAdvance } = useFunnelStep({ step: 1 });
 
@@ -88,6 +93,12 @@ const PartnerAddressContactForm = ({ title, description }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+
+    // ⬇️ 추가: 약관 동의 체크
+    if (!agreementsOK) {
+      return setPopupMessage("약관(필수)에 모두 동의해주세요.");
+    }
+
     if (!requestData.customer_address)
       return setPopupMessage("주소를 선택해주세요.");
     if (!requestData.customer_address_detail)
@@ -101,7 +112,7 @@ const PartnerAddressContactForm = ({ title, description }) => {
       updateRequestData("customer_phone", digitsPhone);
     }
     onAdvance(2);
-    navigate(`/partner/schedule/${partnerId}`);
+    navigate(`/partner/step2/${partnerId}`);
   };
 
   const goToAddressSearch = () => {
@@ -211,13 +222,18 @@ const PartnerAddressContactForm = ({ title, description }) => {
           )}
         </Field>
 
+        <Field>
+          <AgreementForm onRequiredChange={setAgreementsOK} />
+        </Field>
+
         <Button
           type="submit"
           fullWidth
           size="lg"
           style={{ marginTop: 20, marginBottom: 24 }}
+          disabled={!agreementsOK}
         >
-          의뢰 시작하기
+          제출하기
         </Button>
       </Form>
 

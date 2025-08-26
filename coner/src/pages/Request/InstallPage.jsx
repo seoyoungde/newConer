@@ -9,7 +9,7 @@ const InstallPage = () => {
   const navigate = useNavigate();
 
   const handleFormSubmit = (selectedOption) => {
-    navigate("/request/address-contact");
+    navigate("/request/step1");
   };
 
   return (

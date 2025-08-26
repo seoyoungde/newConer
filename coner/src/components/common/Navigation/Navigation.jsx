@@ -41,7 +41,7 @@ const Navigation = () => {
             톡톡 상담
           </Actionhref>
         </Hrefs>
-        <PrimaryLink to={`/partner/address-contact/${partnerId}`}>
+        <PrimaryLink to={`/partner/step1/${partnerId}`}>
           온라인으로 서비스 신청하기
         </PrimaryLink>
       </Actions>

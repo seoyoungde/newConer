@@ -12,7 +12,7 @@ import NavHeader from "../../components/common/Header/NavHeader";
 import Modal from "../../components/common/Modal/Modal";
 import { useFunnelStep } from "../../analytics/useFunnelStep";
 
-const PartnerScheduleSelectPage = () => {
+const PartnerStep2Page = () => {
   const navigate = useNavigate();
   const { requestData, updateRequestData } = useRequest();
   const { partnerId } = useParams();
@@ -45,7 +45,7 @@ const PartnerScheduleSelectPage = () => {
     updateRequestData("service_time", selectedTime);
     //페이지이탈률
     onAdvance(3);
-    navigate(`/partner/service-type/${partnerId}`);
+    navigate(`/partner/step3/${partnerId}`);
   };
 
   const formatDate = (date) => {
@@ -57,7 +57,7 @@ const PartnerScheduleSelectPage = () => {
 
   return (
     <Container>
-      <NavHeader to={`/partner/address-contact/${partnerId}`} />
+      <NavHeader to={`/partner/step1/${partnerId}`} />
 
       <StepProgressBar currentStep={2} totalSteps={4} />
 
@@ -122,7 +122,7 @@ const PartnerScheduleSelectPage = () => {
     </Container>
   );
 };
-export default PartnerScheduleSelectPage;
+export default PartnerStep2Page;
 
 const Container = styled.section`
   width: 100%;

@@ -37,7 +37,7 @@ const AirconditionerForm = ({
         ? requestData?.service_type || ""
         : requestData?.service_type || ""
     );
-    navigate(`/request/address-contact?service_type=${st}`);
+    navigate(`/request/step1?service_type=${st}`);
   };
 
   return (
