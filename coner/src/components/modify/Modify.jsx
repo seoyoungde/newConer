@@ -130,9 +130,9 @@ const Modify = () => {
 
       alert("정보가 수정되었습니다");
       if (location.state?.from === "addressform") {
-        navigate("/request/address-contact", { replace: true });
+        navigate("/request/step3", { replace: true });
       } else if (location.state?.from === "partnermodify") {
-        navigate(`/partner/address-contact/${partnerId}`);
+        navigate(`/partner/step3/${partnerId}`);
       } else {
         navigate("/mypage", { replace: true });
       }

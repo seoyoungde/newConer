@@ -155,7 +155,6 @@ const Layout = () => {
 
 export default Layout;
 
-/* ================= styled ================= */
 const Container = styled.div`
   display: flex;
   width: 100%;

@@ -1,128 +1,266 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import CalendarPicker from "../../components/request/CalendarPicker";
-import TimeSlotPicker from "../../components/request/TimeSlotPicker";
-import styled from "styled-components";
+import React, { useState, useEffect, useCallback } from "react";
+import {
+  useNavigate,
+  useLocation,
+  Link,
+  useSearchParams,
+} from "react-router-dom";
 import FormLayout from "../../components/request/FormLayout";
-import { GrFormCalendar } from "react-icons/gr";
-import { AiOutlineClockCircle } from "react-icons/ai";
+import DropdownSelector from "../../components/request/DropdownSelector";
+import styled from "styled-components";
+import { GrApps, GrUserSettings, GrBookmark } from "react-icons/gr";
 import { useRequest } from "../../context/context";
 import StepProgressBar from "../../components/request/StepProgressBar";
+import cleanInspection from "../../assets/price/clean_inspection_price.png";
+import installMove from "../../assets/price/install_move_price.png";
+import repairImg from "../../assets/price/repair_price.png";
+import demolish from "../../assets/price/demolish_price.png";
+import gas from "../../assets/price/gas_price.png";
 import NavHeader from "../../components/common/Header/NavHeader";
 import Modal from "../../components/common/Modal/Modal";
 import { useFunnelStep } from "../../analytics/useFunnelStep";
 
+import AdditionalDropSelected from "../../components/request/AdditionalDropSelected";
+import RequestDetails from "../../components/request/RequestDetails";
+
+const imageMap = {
+  청소: cleanInspection,
+  설치: installMove,
+  이전: installMove,
+  수리: repairImg,
+  점검: cleanInspection,
+  철거: demolish,
+  냉매충전: gas,
+};
+
 const Step2Page = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { requestData, updateRequestData } = useRequest();
-
-  const [selectedDate, setSelectedDate] = useState(() => {
-    const s = requestData.service_date;
-    const m = s?.match?.(/(\d{4})년\s*(\d{2})월\s*(\d{2})일/);
-    return m ? new Date(+m[1], +m[2] - 1, +m[3]) : new Date();
-  });
-  const [selectedTime, setSelectedTime] = useState(
-    requestData.service_time || ""
-  );
-
   const [popupMessage, setPopupMessage] = useState("");
+  const [searchParams] = useSearchParams();
 
-  const [isDateTouched, setIsDateTouched] = useState(
-    Boolean(requestData.service_date)
+  const [isTypeOpen, setIsTypeOpen] = useState(true);
+  const [isBrandOpen, setIsBrandOpen] = useState(true);
+
+  const [selectedDropdownOption, setSelectedDropdownOption] = useState(
+    requestData?.selectedDropdownOption ?? ""
+  );
+  const [additionalInfo, setAdditionalInfo] = useState(
+    requestData?.additionalInfo ?? ""
   );
 
-  //페이지이탈률
+  // 퍼널: 2단계
   const { onAdvance } = useFunnelStep({ step: 2 });
 
+  useEffect(() => {
+    const restoredService =
+      location.state?.selectedService || searchParams.get("service_type");
+    if (restoredService && !requestData.service_type) {
+      updateRequestData("service_type", restoredService);
+    }
+  }, [location.state, searchParams]); // eslint-disable-line
+
+  const needsInstallMove = ["설치", "이전", "설치 및 구매"].includes(
+    requestData.service_type
+  );
+  const needsRepair = requestData.service_type === "수리";
+
+  // 선택값 변경 (로컬 상태만 변경 — 저장은 '다음'에서 한 번만)
+  const handleSelectDropdown = useCallback((value) => {
+    setSelectedDropdownOption(value);
+  }, []);
+
+  // detailInfo를 항상 "현재 입력값"으로만 조합 (이전 저장본 절대 재사용 X)
+  const buildDetailInfo = () => {
+    const normalizePick = (v) =>
+      Array.isArray(v) ? Array.from(new Set(v)).join(", ") : v || "";
+
+    const pick = normalizePick(selectedDropdownOption);
+    const memo = (additionalInfo || "").trim();
+
+    const svc = requestData.service_type;
+
+    if (["청소", "철거", "점검", "냉매충전"].includes(svc)) {
+      return memo;
+    }
+    if (svc === "설치" || svc === "설치 및 구매") {
+      // 예: [옵션] + 메모
+      return [pick, memo].filter(Boolean).join("\n");
+    }
+    if (svc === "이전" || svc === "수리") {
+      // 예: [이상사항] + 메모
+      return [pick, memo].filter(Boolean).join("\n");
+    }
+    return memo;
+  };
+
   const handleNext = () => {
-    if (!isDateTouched && !requestData.service_date) {
-      setPopupMessage("서비스 날짜를 선택해주세요.");
+    const { service_type, aircon_type, brand } = requestData;
+    if (!service_type || !aircon_type || !brand) {
+      setPopupMessage("서비스·종류·브랜드를 모두 선택해주세요.");
       return;
     }
-    if (!selectedTime && !requestData.service_time) {
-      setPopupMessage("방문 시간을 선택해주세요.");
+
+    // 추가 항목 검증
+    if (needsInstallMove || needsRepair) {
+      const sel = selectedDropdownOption;
+      const emptyMulti = Array.isArray(sel) && sel.length === 0;
+      const emptySingle = !Array.isArray(sel) && !sel;
+      if (emptyMulti || emptySingle) {
+        setPopupMessage("추가 선택 항목을 선택해주세요.");
+        return;
+      }
+    }
+
+    if (!additionalInfo.trim()) {
+      setPopupMessage("추가 요청사항을 입력해주세요.");
       return;
     }
-    const formattedDate = formatDate(selectedDate);
 
-    updateRequestData("service_date", formattedDate);
-    updateRequestData("service_time", selectedTime);
+    // 저장은 항상 '덮어쓰기' (append 금지) + 다중선택은 중복 제거
+    const normalizedSelected = Array.isArray(selectedDropdownOption)
+      ? Array.from(new Set(selectedDropdownOption))
+      : selectedDropdownOption || "";
 
-    const st = encodeURIComponent(requestData.service_type || "");
-    //페이지이탈률
+    updateRequestData("selectedDropdownOption", normalizedSelected);
+    updateRequestData("additionalInfo", additionalInfo.trim());
+    updateRequestData("detailInfo", buildDetailInfo());
+
     onAdvance(3);
-    navigate(`/request/step3?service_type=${st}`, {
-      state: {
-        selectedDate,
-        selectedTime,
-        selectedService: requestData.service_type,
-      },
-    });
+    navigate("/request/step3");
   };
 
-  const formatDate = (date) => {
-    const year = date.getFullYear();
-    const month = `${date.getMonth() + 1}`.padStart(2, "0");
-    const day = `${date.getDate()}`.padStart(2, "0");
-    return `${year}년 ${month}월 ${day}일`;
-  };
+  const priceKey = `${requestData.service_type}-${requestData.aircon_type}-${requestData.brand}`;
 
   return (
     <Container>
       <NavHeader to="/request/step1" />
 
-      <StepProgressBar currentStep={2} totalSteps={4} />
+      <StepProgressBar currentStep={2} totalSteps={2} />
 
       <FormLayout
-        title="서비스 희망 날짜 선택"
-        subtitle="원하시는 서비스 날짜를 선택해주세요."
+        title={`"의뢰서 기본 정보" - ${
+          requestData.service_type || "서비스 미선택"
+        }`}
+        subtitle="희망 서비스와 에어컨 정보를 선택하고 추가 요청을 입력해주세요."
         onNext={handleNext}
       >
-        <InfoText>오늘 날짜로부터 2일 이후에 예약이 가능합니다.</InfoText>
+        <DropdownSelector
+          title={requestData.service_type || "서비스 선택"}
+          icon={<GrUserSettings />}
+          options={["청소", "설치", "이전", "수리", "철거", "냉매충전", "점검"]}
+          selected={requestData.service_type}
+          setSelected={(v) => updateRequestData("service_type", v)}
+          isOpen={false}
+          setIsOpen={() => {}}
+          optionWidths={["70px", "70px", "70px", "70px", "70px"]}
+          disabled
+        />
 
-        <DateBox>
-          <SelectedContainer>
-            <CalendarIcon>
-              <GrFormCalendar />
-            </CalendarIcon>
-            <SelectedText>{formatDate(selectedDate)}</SelectedText>
-          </SelectedContainer>
-          <CalendarPicker
-            selectedDate={selectedDate}
-            setSelectedDate={(date) => {
-              setSelectedDate(date);
-              setIsDateTouched(true);
-              updateRequestData("service_date", formatDate(date));
-            }}
-          />
-        </DateBox>
+        {/* 에어컨 종류 */}
+        <DropdownSelector
+          title="에어컨 종류 선택하기"
+          icon={<GrApps />}
+          options={["벽걸이형", "스탠드형", "천장형", "창문형", "항온항습기"]}
+          selected={requestData.aircon_type}
+          setSelected={(v) => updateRequestData("aircon_type", v)}
+          isOpen={isTypeOpen}
+          setIsOpen={setIsTypeOpen}
+          optionWidths={["90px", "90px", "90px", "90px", "110px"]}
+        />
 
-        <InfoText2>
-          <strong />
-          안내드립니다 <br />
-          현재 LGU+ 프로젝트 진행으로 인해 일부 일정에 변동이 생길 수 있습니다.
-          <br />
-          최상의 서비스 제공을 위해 조율이 필요한 점 너른 양해 부탁드립니다.
-          <br />더 나은 일정으로 찾아뵐 수 있도록 최선을 다하겠습니다
-          감사합니다.
-        </InfoText2>
-        <TimeBox>
-          <SelectedContainer>
-            <TimeIcon>
-              <AiOutlineClockCircle />
-            </TimeIcon>
-            <SelectedText>{selectedTime || "시간을 선택해주세요"}</SelectedText>
-          </SelectedContainer>
-          <InfoText>선택하신 시간대에 기사님이 방문해요</InfoText>
-          <TimeSlotPicker
-            selectedTime={selectedTime}
-            setSelectedTime={(time) => {
-              setSelectedTime(time);
-              updateRequestData("service_time", time);
-            }}
+        {/* 브랜드 선택 */}
+        <DropdownSelector
+          title="브랜드 선택하기"
+          icon={<GrBookmark />}
+          options={[
+            "삼성전자",
+            "LG전자",
+            "캐리어",
+            "센추리",
+            "귀뚜라미",
+            "SK매직",
+            "기타(추천 또는 모름)",
+          ]}
+          selected={requestData.brand}
+          setSelected={(v) => updateRequestData("brand", v)}
+          isOpen={isBrandOpen}
+          setIsOpen={setIsBrandOpen}
+          optionWidths={[
+            "100px",
+            "90px",
+            "90px",
+            "90px",
+            "100px",
+            "100px",
+            "150px",
+          ]}
+        />
+
+        {/* 추가선택 & 추가요청 — 브랜드 다음, 가격표 이전 */}
+        {needsInstallMove && (
+          <AdditionalDropSelected
+            options={["앵글 설치가 필요해요.", "앵글 설치는 필요 없어요."]}
+            placeholderText="앵글 설치 여부 선택하기"
+            boxPerRow={2}
+            onSelect={handleSelectDropdown}
+            defaultValue={
+              typeof requestData.selectedDropdownOption === "string"
+                ? requestData.selectedDropdownOption
+                : Array.isArray(requestData.selectedDropdownOption)
+                ? ""
+                : selectedDropdownOption || ""
+            }
           />
-        </TimeBox>
+        )}
+        {needsRepair && (
+          <AdditionalDropSelected
+            options={[
+              "에어컨이 작동하지 않아요.",
+              "에어컨에서 이상한 소리가 나요.",
+              "에어컨 전원이 켜지지 않아요.",
+              "에어컨에서 이상한 냄새가 나요.",
+              "에어컨에서 물이 흘러나와요.",
+              "에어컨이 부분적으로만 작동돼요.",
+              "에어컨이 자동으로 꺼지거나 켜져요.",
+              "에어컨 온도 조절이 잘 안돼요.",
+              "기타",
+            ]}
+            placeholderText="에어컨 이상사항을 선택해주세요"
+            boxPerRow={2}
+            isMultiSelect
+            onSelect={handleSelectDropdown}
+            defaultValue={
+              Array.isArray(requestData.selectedDropdownOption)
+                ? Array.from(new Set(requestData.selectedDropdownOption))
+                : Array.isArray(selectedDropdownOption)
+                ? selectedDropdownOption
+                : []
+            }
+          />
+        )}
+
+        <RequestDetails
+          additionalInfo={additionalInfo}
+          setAdditionalInfo={setAdditionalInfo} // 로컬만 변경; 저장은 onNext에서 한 번
+        />
+
+        {/* 가격표 이미지 */}
+        {requestData.service_type && imageMap[requestData.service_type] && (
+          <ImageBox>
+            <img
+              src={imageMap[requestData.service_type]}
+              alt={`${requestData.service_type} 이미지`}
+            />
+          </ImageBox>
+        )}
+
+        <StyledLink to="/request/price" state={{ from: "request-basic-info" }}>
+          서비스비용이 궁금하신가요?
+        </StyledLink>
       </FormLayout>
+
       <Modal
         open={!!popupMessage}
         onClose={() => setPopupMessage("")}
@@ -134,58 +272,21 @@ const Step2Page = () => {
     </Container>
   );
 };
+
 export default Step2Page;
 
 const Container = styled.section`
   width: 100%;
 `;
-
-const InfoText = styled.p`
-  font-size: ${({ theme }) => theme.font.size.bodySmall};
-  color: ${({ theme }) => theme.colors.subtext};
+const ImageBox = styled.div`
+  margin-top: 10px;
+  img {
+    width: 100%;
+    height: auto;
+  }
 `;
-const InfoText2 = styled.p`
-  text-align: left;
-  padding: 25px 10px;
-  font-size: ${({ theme }) => theme.font.size.bodySmall};
-  color: ${({ theme }) => theme.colors.subtext};
-`;
-
-const DateBox = styled.div`
-  background: ${({ theme }) => theme.colors.bg};
-  width: 100%;
-  padding: 20px;
-  border-radius: 10px;
-  border: 1px solid #d6d6d6;
-  display: flex;
-  flex-direction: column;
-`;
-
-const TimeBox = styled.div`
-  background: ${({ theme }) => theme.colors.bg};
-  width: 100%;
-  width: 100%;
-  padding: 20px;
-  border-radius: 10px;
-  border: 1px solid #d6d6d6;
-  display: flex;
-  flex-direction: column;
-`;
-const TimeIcon = styled(AiOutlineClockCircle)`
-  font-size: 1.3rem;
-`;
-const CalendarIcon = styled(GrFormCalendar)`
-  font-size: 1.8rem;
-`;
-const SelectedContainer = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 10px;
-`;
-
-const SelectedText = styled.div`
-  font-size: ${({ theme }) => theme.font.size.body};
-  font-weight: ${({ theme }) => theme.font.weight.bold};
-  color: ${({ theme }) => theme.colors.text};
+const StyledLink = styled(Link)`
+  color: #a0a0a0;
+  font-size: 14px;
+  padding: 30px;
 `;

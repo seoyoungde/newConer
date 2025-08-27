@@ -37,7 +37,7 @@ function Modal({
   if (!open) return null;
 
   const content = (
-    <Overlay onClick={onClose} aria-hidden $contained={isContained}>
+    <Overlay onClick={onClose} $contained={isContained}>
       <Dialog
         role="dialog"
         aria-modal="true"

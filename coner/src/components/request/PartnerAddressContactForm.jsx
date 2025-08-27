@@ -8,31 +8,39 @@ import TextField from "../ui/formControls/TextField";
 import Button from "../ui/Button";
 import Modal from "../common/Modal/Modal";
 import AddressModal, { SERVICE_AREAS } from "../common/Modal/AddressModal";
-import { db } from "../../lib/firebase";
+import { db, auth } from "../../lib/firebase";
 import { doc, getDoc } from "firebase/firestore";
 import { useFunnelStep } from "../../analytics/useFunnelStep";
-
-// ⬇️ 추가: AgreementForm 임포트
 import AgreementForm from "../request/AgreementForm";
+import axios from "axios";
 
 const PartnerAddressContactForm = ({ title, description }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const { partnerId } = useParams();
-  const [popupMessage, setPopupMessage] = useState("");
-  const { setPartner, requestData, updateRequestData, updateRequestDataMany } =
-    useRequest();
-  const { currentUser, userInfo } = useAuth();
 
+  const {
+    setPartner,
+    requestData,
+    updateRequestData,
+    updateRequestDataMany,
+    submitRequest,
+    resetRequestData,
+  } = useRequest();
+
+  const { currentUser, userInfo } = useAuth();
   const isLoggedIn = !!currentUser;
   const isReadOnly = isLoggedIn && !!userInfo;
+
+  const [popupMessage, setPopupMessage] = useState("");
   const [isAddressOpen, setIsAddressOpen] = useState(false);
-
-  // ⬇️ 추가: 약관 동의 완료 여부
   const [agreementsOK, setAgreementsOK] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const { onAdvance } = useFunnelStep({ step: 1 });
+  // 페이지이탈률: 최종 완료 단계
+  const { onComplete } = useFunnelStep({ step: 3 });
 
+  // 파트너 정보 로드
   useEffect(() => {
     let cancelled = false;
     (async () => {
@@ -53,29 +61,28 @@ const PartnerAddressContactForm = ({ title, description }) => {
     };
   }, [partnerId, setPartner]);
 
+  // 주소 선택 복원
   useEffect(() => {
     if (location.state?.selectedAddress) {
       updateRequestData("customer_address", location.state.selectedAddress);
     }
   }, [location.state, updateRequestData]);
 
+  // 🔧 readOnly일 때 userInfo가 바뀌면 항상 폼 동기화 (수정 후 복귀 문제 해결)
   useEffect(() => {
-    if (!userInfo) return;
-    const patch = {};
-    if (!requestData.clientName) patch.clientName = userInfo.name || "";
-    if (!requestData.customer_phone)
-      patch.customer_phone = userInfo.phone || "";
-    if (!requestData.customer_address)
-      patch.customer_address = userInfo.address || "";
-    if (!requestData.customer_address_detail)
-      patch.customer_address_detail = userInfo.address_detail || "";
-    if (!requestData.customer_type && userInfo.job)
-      patch.customer_type = userInfo.job;
-    if (Object.keys(patch).length) updateRequestDataMany(patch);
-  }, [userInfo, requestData, updateRequestDataMany]);
+    if (!userInfo || !isReadOnly) return;
+    updateRequestDataMany({
+      clientName: userInfo.name || "",
+      customer_phone: formatPhone(userInfo.phone || ""),
+      customer_address: userInfo.address || "",
+      customer_address_detail: userInfo.address_detail || "",
+      customer_type: userInfo.job || "",
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userInfo, isReadOnly]);
 
   const formatPhone = (raw) => {
-    const only = raw.replace(/\D/g, "").slice(0, 11);
+    const only = (raw || "").replace(/\D/g, "").slice(0, 11);
     if (only.length < 4) return only;
     if (only.length < 8) return `${only.slice(0, 3)}-${only.slice(3)}`;
     return `${only.slice(0, 3)}-${only.slice(3, 7)}-${only.slice(7)}`;
@@ -91,30 +98,6 @@ const PartnerAddressContactForm = ({ title, description }) => {
     }
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-
-    // ⬇️ 추가: 약관 동의 체크
-    if (!agreementsOK) {
-      return setPopupMessage("약관(필수)에 모두 동의해주세요.");
-    }
-
-    if (!requestData.customer_address)
-      return setPopupMessage("주소를 선택해주세요.");
-    if (!requestData.customer_address_detail)
-      return setPopupMessage("상세주소를 입력해주세요.");
-    if (!requestData.customer_phone)
-      return setPopupMessage("전화번호를 입력해주세요.");
-    // if (!requestData.clientName) return setPopupMessage("성함을 입력해주세요.");
-
-    const digitsPhone = requestData.customer_phone.replace(/\D/g, "");
-    if (digitsPhone !== requestData.customer_phone) {
-      updateRequestData("customer_phone", digitsPhone);
-    }
-    onAdvance(2);
-    navigate(`/partner/step2/${partnerId}`);
-  };
-
   const goToAddressSearch = () => {
     if (!isReadOnly) setIsAddressOpen(true);
   };
@@ -123,6 +106,127 @@ const PartnerAddressContactForm = ({ title, description }) => {
     navigate(`/partner/modify/${partnerId}`, {
       state: { from: "partnermodify" },
     });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    // 약관 동의
+    if (!agreementsOK) {
+      setPopupMessage("약관(필수)에 모두 동의해주세요.");
+      return;
+    }
+
+    // 기본정보 검증
+    if (!requestData.customer_address)
+      return setPopupMessage("주소를 선택해주세요.");
+    if (!requestData.customer_address_detail)
+      return setPopupMessage("상세주소를 입력해주세요.");
+    if (!requestData.customer_phone)
+      return setPopupMessage("전화번호를 입력해주세요.");
+
+    // 이전 단계 값 검증(안전망)
+    const requiredBefore = [
+      ["service_date", "서비스 날짜를 선택해주세요."],
+      ["service_time", "방문 시간을 선택해주세요."],
+      ["service_type", "서비스를 선택해주세요."],
+      ["aircon_type", "에어컨 종류를 선택해주세요."],
+      ["brand", "브랜드를 선택해주세요."],
+      ["detailInfo", "추가 요청사항을 입력해주세요."],
+    ];
+    for (const [k, msg] of requiredBefore) {
+      if (!requestData[k]) return setPopupMessage(msg);
+    }
+
+    // 전화번호 숫자만 저장
+    const digitsPhone = (requestData.customer_phone || "").replace(/\D/g, "");
+    if (digitsPhone !== requestData.customer_phone) {
+      updateRequestData("customer_phone", digitsPhone);
+    }
+
+    try {
+      setIsSubmitting(true);
+
+      // 로그인 uid
+      const clientId = auth.currentUser?.uid || "";
+
+      // 광고/키워드 트래킹
+      const n_keyword = sessionStorage.getItem("n_keyword") || "";
+      const n_ad = sessionStorage.getItem("n_ad") || "";
+      const n_rank = sessionStorage.getItem("n_rank") || "";
+      const trackingInfo = [
+        `n_keyword=${n_keyword}`,
+        `n_ad=${n_ad}`,
+        `n_rank=${n_rank}`,
+      ];
+      const updatedSprint = [
+        ...(requestData.sprint || []),
+        JSON.stringify(trackingInfo),
+      ];
+
+      // payload 구성
+      const payload = {
+        ...requestData,
+        customer_uid: clientId,
+        sprint: updatedSprint,
+        customer_phone: digitsPhone,
+      };
+
+      // 저장
+      const requestId = await submitRequest(payload);
+
+      // 파트너 선택되어 있으면 해당 업체 알림, 아니면 일반 알림
+      // try {
+      //   const validPartnerId =
+      //     partnerId && partnerId !== "undefined" && partnerId !== "null"
+      //       ? partnerId
+      //       : null;
+
+      //   const hasPartnerInfo =
+      //     !!validPartnerId ||
+      //     !!requestData?.partner_uid ||
+      //     !!requestData?.partner_name ||
+      //     !!requestData?.partner_flow ||
+      //     !!requestData?.selectedTechnician;
+
+      //   if (hasPartnerInfo) {
+      //     await axios.post("https://api.coner.kr/sms/notifyToSelectedCompany", {
+      //       service_date: requestData.service_date,
+      //       service_time: requestData.service_time,
+      //       brand: requestData.brand,
+      //       aircon_type: requestData.aircon_type,
+      //       service_type: requestData.service_type,
+      //       customer_address: requestData.customer_address,
+      //       customer_phone: digitsPhone,
+      //       partner_id: validPartnerId || requestData?.partner_uid || "",
+      //     });
+      //   } else {
+      //     await axios.post("https://api.coner.kr/sms/notify", {
+      //       service_date: requestData.service_date,
+      //       service_time: requestData.service_time,
+      //       brand: requestData.brand,
+      //       aircon_type: requestData.aircon_type,
+      //       service_type: requestData.service_type,
+      //       customer_address: requestData.customer_address,
+      //       customer_phone: digitsPhone,
+      //     });
+      //   }
+      // } catch (err) {
+      //   console.error("❌ 알림 전송 실패:", err?.response?.data || err.message);
+      // }
+
+      // 완료 처리
+      onComplete();
+      resetRequestData();
+      navigate("/search/inquiry", {
+        state: { customer_phone: digitsPhone, requestId },
+      });
+    } catch (error) {
+      console.error(error);
+      setPopupMessage("제출 중 오류가 발생했습니다. 다시 시도해주세요.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -185,19 +289,6 @@ const PartnerAddressContactForm = ({ title, description }) => {
           />
         </Field>
 
-        {/* <Field>
-          <TextField
-            label="이름"
-            size="md"
-            placeholder="성함을 입력해주세요"
-            type="text"
-            name="clientName"
-            value={requestData.clientName || ""}
-            onChange={handleChange}
-            readOnly={isReadOnly}
-          />
-        </Field> */}
-
         <Field>
           <Label>고객유형</Label>
           {isReadOnly ? (
@@ -231,9 +322,9 @@ const PartnerAddressContactForm = ({ title, description }) => {
           fullWidth
           size="lg"
           style={{ marginTop: 20, marginBottom: 24 }}
-          disabled={!agreementsOK}
+          disabled={!agreementsOK || isSubmitting}
         >
-          제출하기
+          {isSubmitting ? "제출 중..." : "제출하기"}
         </Button>
       </Form>
 
@@ -273,6 +364,7 @@ const PartnerAddressContactForm = ({ title, description }) => {
 
 export default PartnerAddressContactForm;
 
+/* styled */
 const Container = styled.div``;
 const TitleSection = styled.div`
   margin-bottom: 35px;

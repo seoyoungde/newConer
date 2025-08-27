@@ -9,26 +9,34 @@ import Button from "../ui/Button";
 import Modal from "../common/Modal/Modal";
 import AddressModal, { SERVICE_AREAS } from "../common/Modal/AddressModal";
 import { useFunnelStep } from "../../analytics/useFunnelStep";
-import AgreementForm from "../request/AgreementForm";
+import AgreementForm from "./AgreementForm";
+
+import axios from "axios";
+import { auth } from "../../lib/firebase";
 
 const AddressContactForm = ({ title, description }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams] = useSearchParams();
   const [popupMessage, setPopupMessage] = useState("");
-  const { requestData, updateRequestData, updateRequestDataMany } =
-    useRequest();
-  const { currentUser, userInfo } = useAuth();
 
+  const {
+    requestData,
+    updateRequestData,
+    updateRequestDataMany,
+    submitRequest,
+    resetRequestData,
+  } = useRequest();
+
+  const { currentUser, userInfo } = useAuth();
   const isLoggedIn = !!currentUser;
   const isReadOnly = isLoggedIn && !!userInfo;
   const [isAddressOpen, setIsAddressOpen] = useState(false);
 
-  // 추가: 약관 동의 상태
   const [agreementsOK, setAgreementsOK] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  //페이지이탈률
-  const { onAdvance } = useFunnelStep({ step: 1 });
+  const { onComplete } = useFunnelStep({ step: 3 });
 
   useEffect(() => {
     const restoredService =
@@ -43,28 +51,23 @@ const AddressContactForm = ({ title, description }) => {
     updateRequestData,
   ]);
 
-  // 예전 페이지에서 state로 주소 넘어온 경우 (보조)
   useEffect(() => {
     if (location.state?.selectedAddress) {
       updateRequestData("customer_address", location.state.selectedAddress);
     }
   }, [location.state, updateRequestData]);
 
-  // 유저 기본정보로 "비어있는 필드만" 1회 채우기
   useEffect(() => {
-    if (!userInfo) return;
-    const patch = {};
-    if (!requestData.clientName) patch.clientName = userInfo.name || "";
-    if (!requestData.customer_phone)
-      patch.customer_phone = userInfo.phone || "";
-    if (!requestData.customer_address)
-      patch.customer_address = userInfo.address || "";
-    if (!requestData.customer_address_detail)
-      patch.customer_address_detail = userInfo.address_detail || "";
-    if (!requestData.customer_type && userInfo.job)
-      patch.customer_type = userInfo.job;
-    if (Object.keys(patch).length) updateRequestDataMany(patch);
-  }, [userInfo, requestData, updateRequestDataMany]);
+    if (!userInfo || !isReadOnly) return;
+    updateRequestDataMany({
+      clientName: userInfo.name || "",
+      customer_phone: formatPhone(userInfo.phone || ""),
+      customer_address: userInfo.address || "",
+      customer_address_detail: userInfo.address_detail || "",
+      customer_type: userInfo.job || "",
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userInfo, isReadOnly]);
 
   const formatPhone = (raw) => {
     const only = raw.replace(/\D/g, "").slice(0, 11);
@@ -83,55 +86,115 @@ const AddressContactForm = ({ title, description }) => {
     }
   };
 
-  const handleSubmit = (e) => {
+  const goToAddressSearch = () => {
+    if (!isReadOnly) setIsAddressOpen(true);
+  };
+
+  const selectCustomerType = (val) => {
+    if (!isReadOnly) updateRequestData("customer_type", val);
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // 추가: 약관 동의 체크
-    if (!agreementsOK) {
+    if (!agreementsOK)
       return setPopupMessage("약관(필수)에 모두 동의해주세요.");
-    }
-
     if (!requestData.customer_address)
       return setPopupMessage("주소를 선택해주세요.");
     if (!requestData.customer_address_detail)
       return setPopupMessage("상세주소를 입력해주세요.");
     if (!requestData.customer_phone)
       return setPopupMessage("전화번호를 입력해주세요.");
-    // if (!requestData.clientName) return setPopupMessage("성함을 입력해주세요.");
+
+    const requiredBefore = [
+      ["service_date", "서비스 날짜를 선택해주세요."],
+      ["service_time", "방문 시간을 선택해주세요."],
+      ["service_type", "서비스를 선택해주세요."],
+      ["aircon_type", "에어컨 종류를 선택해주세요."],
+      ["brand", "브랜드를 선택해주세요."],
+    ];
+    for (const [key, msg] of requiredBefore) {
+      if (!requestData[key]) return setPopupMessage(msg);
+    }
 
     const digitsPhone = requestData.customer_phone.replace(/\D/g, "");
     if (digitsPhone !== requestData.customer_phone) {
       updateRequestData("customer_phone", digitsPhone);
     }
 
-    const st = searchParams.get("service_type") || "";
-    //페이지이탈률
-    onAdvance(2);
-    navigate(`/request/step2?service_type=${encodeURIComponent(st)}`);
-  };
+    try {
+      setIsSubmitting(true);
 
-  const goToAddressSearch = () => {
-    if (!isReadOnly) setIsAddressOpen(true);
+      const user = auth.currentUser;
+      const clientId = user?.uid || "";
+
+      const n_keyword = sessionStorage.getItem("n_keyword") || "";
+      const n_ad = sessionStorage.getItem("n_ad") || "";
+      const n_rank = sessionStorage.getItem("n_rank") || "";
+      const trackingInfo = [
+        `n_keyword=${n_keyword}`,
+        `n_ad=${n_ad}`,
+        `n_rank=${n_rank}`,
+      ];
+      const updatedSprint = [
+        ...(requestData.sprint || []),
+        JSON.stringify(trackingInfo),
+      ];
+
+      const payload = {
+        ...requestData,
+        customer_uid: clientId,
+        sprint: updatedSprint,
+        customer_phone: digitsPhone,
+      };
+
+      const requestId = await submitRequest(payload);
+
+      // try {
+      //   await axios.post("https://api.coner.kr/sms/notify", {
+      //     service_date: requestData.service_date,
+      //     service_time: requestData.service_time,
+      //     brand: requestData.brand,
+      //     aircon_type: requestData.aircon_type,
+      //     service_type: requestData.service_type,
+      //     customer_address: requestData.customer_address,
+      //     customer_phone: digitsPhone,
+      //   });
+      // } catch (err) {
+      //   console.error("❌ 알림 전송 실패:", err.response?.data || err.message);
+      // }
+
+      onComplete();
+      resetRequestData();
+
+      navigate("/search/inquiry", {
+        state: { customer_phone: digitsPhone, requestId },
+      });
+    } catch (error) {
+      console.error(error);
+      setPopupMessage("제출 중 오류가 발생했습니다. 다시 시도해주세요.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const goToModifyInfo = () => {
-    navigate("/request/modify", { state: { from: "addressform" } });
-  };
-
-  const selectCustomerType = (val) => {
-    if (isReadOnly) return;
-    updateRequestData("customer_type", val);
+    navigate("/request/modify", {
+      state: { from: "addressform" },
+    });
   };
 
   return (
     <Container>
       <Form onSubmit={handleSubmit}>
-        <TitleSection>
-          <Title>
-            {title || `${searchParams.get("service_type") || ""} 서비스 신청`}
-          </Title>
-          <Description>{description}</Description>
-        </TitleSection>
+        {title || description ? (
+          <TitleSection>
+            <Title>
+              {title || `${searchParams.get("service_type") || ""} 서비스 신청`}
+            </Title>
+            <Description>{description}</Description>
+          </TitleSection>
+        ) : null}
 
         <Field>
           <Label>주소</Label>
@@ -153,7 +216,7 @@ const AddressContactForm = ({ title, description }) => {
             placeholder="클릭하여 주소 검색"
             value={requestData.customer_address || ""}
             readOnly
-            onClick={!isReadOnly ? goToAddressSearch : undefined}
+            onClick={goToAddressSearch}
           />
           <div style={{ height: "6px" }} />
           <TextField
@@ -180,41 +243,20 @@ const AddressContactForm = ({ title, description }) => {
           />
         </Field>
 
-        {/* <Field>
-          <TextField
-            label="이름"
-            size="md"
-            placeholder="성함을 입력해주세요"
-            type="text"
-            name="clientName"
-            value={requestData.clientName || ""}
-            onChange={handleChange}
-            readOnly={isReadOnly}
-          />
-        </Field> */}
-
         <Field>
           <Label>고객유형</Label>
-          {isReadOnly ? (
-            <TextField
-              size="md"
-              value={requestData.customer_type || ""}
-              readOnly
-            />
-          ) : (
-            <JobButtonBox>
-              {["사업장(기업/매장)", "개인(가정)"].map((item) => (
-                <JobButton
-                  key={item}
-                  $isSelected={requestData.customer_type === item}
-                  onClick={() => selectCustomerType(item)}
-                  type="button"
-                >
-                  {item}
-                </JobButton>
-              ))}
-            </JobButtonBox>
-          )}
+          <JobButtonBox>
+            {["사업장(기업/매장)", "개인(가정)"].map((item) => (
+              <JobButton
+                key={item}
+                $isSelected={requestData.customer_type === item}
+                onClick={() => selectCustomerType(item)}
+                type="button"
+              >
+                {item}
+              </JobButton>
+            ))}
+          </JobButtonBox>
 
           <AgreementForm onRequiredChange={setAgreementsOK} />
         </Field>
@@ -224,13 +266,12 @@ const AddressContactForm = ({ title, description }) => {
           fullWidth
           size="lg"
           style={{ marginTop: 20, marginBottom: 24 }}
-          disabled={!agreementsOK}
+          disabled={!agreementsOK || isSubmitting}
         >
-          제출하기
+          {isSubmitting ? "제출 중..." : "제출하기"}
         </Button>
       </Form>
 
-      {/* 주소 검색 모달 */}
       {isAddressOpen && (
         <Modal
           open={isAddressOpen}
@@ -264,6 +305,9 @@ const AddressContactForm = ({ title, description }) => {
   );
 };
 
+export default AddressContactForm;
+
+/* styled */
 const Container = styled.div``;
 
 const TitleSection = styled.div`
@@ -317,15 +361,6 @@ const InfoIcon = styled(HiOutlineExclamationCircle)`
   margin-top: 2px;
 `;
 
-const ModifyLink = styled.a`
-  font-size: ${({ theme }) => theme.font.size.bodySmall};
-  font-weight: ${({ theme }) => theme.font.weight.bold};
-  text-decoration: underline;
-  color: ${({ theme }) => theme.colors.subtext};
-  padding: 10px;
-  cursor: pointer;
-`;
-
 const JobButtonBox = styled.div`
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -346,5 +381,11 @@ const JobButton = styled.button`
     background: #80bfff;
   }
 `;
-
-export default AddressContactForm;
+const ModifyLink = styled.a`
+  font-size: ${({ theme }) => theme.font.size.bodySmall};
+  font-weight: ${({ theme }) => theme.font.weight.bold};
+  text-decoration: underline;
+  color: ${({ theme }) => theme.colors.subtext};
+  padding: 10px;
+  cursor: pointer;
+`;

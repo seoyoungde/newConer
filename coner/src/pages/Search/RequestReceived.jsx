@@ -62,10 +62,17 @@ const RequestReceived = ({
 
   const handleEditClick = (requestId) => {
     setEditingRequestId(requestId);
-    setSelectedDropdownOption(requestData.selectedDropdownOption || "");
-    setSelectedAirconditionerform(requestData.selectedairconditionerform || "");
-    setAdditionalInfo(requestData.detailInfo || "");
-    initialServiceTypeRef.current = requestData.service_type;
+    setSelectedService_date(requestData.service_date ?? "");
+    setSelectedService_time(requestData.service_time ?? "");
+    setSelectedBrand(requestData.brand ?? "");
+    setSelectedService_type(requestData.service_type ?? "");
+    setSelectedAircon_type(requestData.aircon_type ?? "");
+
+    setSelectedDropdownOption(requestData.selectedDropdownOption ?? "");
+    setSelectedAirconditionerform(requestData.selectedairconditionerform ?? "");
+    setAdditionalInfo(requestData.detailInfo ?? "");
+
+    initialServiceTypeRef.current = requestData.service_type ?? "";
   };
 
   const handleCancelClick = () => {
@@ -396,7 +403,7 @@ const RequestReceived = ({
             <Label>원하는서비스</Label>
             {editingRequestId === requestData.id ? (
               <DropdownSelector
-                title={selectedService_type}
+                title="원하는 서비스 선택하기"
                 icon={<GrUserSettings size="18" />}
                 options={[
                   "설치",
@@ -414,14 +421,14 @@ const RequestReceived = ({
                 setIsOpen={setIsServiceOpen}
                 optionWidths={[
                   "70px",
-                  "70px",
+                  "110px",
                   "70px",
                   "70px",
                   "90px",
                   "70px",
                   "70px",
+                  "70px",
                 ]}
-                disabled
               />
             ) : (
               <Value>{selectedService_type || "없음"}</Value>
@@ -477,12 +484,12 @@ const RequestReceived = ({
             </Value>
           </Section>
           {/* 이름수정불가능 */}
-          <Section>
+          {/* <Section>
             <Label>이름</Label>
             <Value style={{ marginTop: "5px" }}>
               {requestData.clientName || "없음"}
             </Value>
-          </Section>
+          </Section> */}
           {/* 추가요청사항 */}
           <Section style={{ whiteSpace: "pre-line" }}>
             {editingRequestId === requestData.id ? (
@@ -657,6 +664,7 @@ const RequestReceived = ({
           onClose={() => setIsCancelPopupOpen(false)}
           title="의뢰 취소"
           width={360}
+          containerId="rightbox-modal-root"
           footer={
             <PopupButtons>
               <CloseButton
