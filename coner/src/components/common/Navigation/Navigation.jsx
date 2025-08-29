@@ -29,7 +29,7 @@ const Navigation = () => {
       <Actions>
         <Hrefs>
           <Actionhref href="tel:010-5543-0636" onClick={handlePhoneClick}>
-            <FaPhoneAlt size={25} />
+            <FaPhoneAlt size={23} />
             전화 상담
           </Actionhref>
           <Actionhref
@@ -37,7 +37,7 @@ const Navigation = () => {
             target="_blank"
             rel="noopener noreferrer"
           >
-            <BsChatDotsFill size={25} />
+            <BsChatDotsFill size={23} />
             톡톡 상담
           </Actionhref>
         </Hrefs>
@@ -99,6 +99,9 @@ const Actionhref = styled.a`
   background: ${({ theme }) => theme.colors.bg};
   &:hover {
     color: #8b8b8b;
+  }
+  @media (max-width: ${({ theme }) => theme.font.breakpoints.smobile}) {
+    font-size: ${({ theme }) => theme.font.size.small};
   }
 `;
 

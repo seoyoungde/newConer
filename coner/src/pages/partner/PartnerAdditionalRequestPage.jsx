@@ -110,61 +110,61 @@ const PartnerAdditionalRequestPage = () => {
 
       resetRequestData();
 
-      try {
-        const validPartnerId =
-          partnerId && partnerId !== "undefined" && partnerId !== "null"
-            ? partnerId
-            : null;
+      // try {
+      //   const validPartnerId =
+      //     partnerId && partnerId !== "undefined" && partnerId !== "null"
+      //       ? partnerId
+      //       : null;
 
-        const hasPartnerInfo =
-          !!validPartnerId ||
-          !!requestData?.partner_uid ||
-          !!requestData?.partner_name ||
-          !!requestData?.partner_flow ||
-          !!requestData?.selectedTechnician;
+      //   const hasPartnerInfo =
+      //     !!validPartnerId ||
+      //     !!requestData?.partner_uid ||
+      //     !!requestData?.partner_name ||
+      //     !!requestData?.partner_flow ||
+      //     !!requestData?.selectedTechnician;
 
-        if (hasPartnerInfo) {
-          await axios.post("https://api.coner.kr/sms/notifyToSelectedCompany", {
-            service_date: requestData.service_date,
-            service_time: requestData.service_time,
-            brand: requestData.brand,
-            aircon_type: requestData.aircon_type,
-            service_type: requestData.service_type,
-            customer_address: requestData.customer_address,
-            customer_phone: requestData.customer_phone,
-            partner_id: validPartnerId || requestData?.partner_uid || "",
-          });
-        } else {
-          await axios.post("https://api.coner.kr/sms/notify", {
-            service_date: requestData.service_date,
-            service_time: requestData.service_time,
-            brand: requestData.brand,
-            aircon_type: requestData.aircon_type,
-            service_type: requestData.service_type,
-            customer_address: requestData.customer_address,
-            customer_phone: requestData.customer_phone,
-          });
-        }
-        console.log("✅ 알림 전송 성공");
-      } catch (err) {
-        console.error("❌ 알림 전송 실패:", err?.response?.data || err.message);
-        console.log("❓ 실제 요청 보낸 데이터:", {
-          service_date: requestData.service_date,
-          service_time: requestData.service_time,
-          brand: requestData.brand,
-          aircon_type: requestData.aircon_type,
-          service_type: requestData.service_type,
-          customer_address: requestData.customer_address,
-          customer_phone: requestData.customer_phone,
-          partner_id:
-            (partnerId &&
-              partnerId !== "undefined" &&
-              partnerId !== "null" &&
-              partnerId) ||
-            requestData?.partner_uid ||
-            "",
-        });
-      }
+      //   if (hasPartnerInfo) {
+      //     await axios.post("https://api.coner.kr/sms/notifyToSelectedCompany", {
+      //       service_date: requestData.service_date,
+      //       service_time: requestData.service_time,
+      //       brand: requestData.brand,
+      //       aircon_type: requestData.aircon_type,
+      //       service_type: requestData.service_type,
+      //       customer_address: requestData.customer_address,
+      //       customer_phone: requestData.customer_phone,
+      //       partner_id: validPartnerId || requestData?.partner_uid || "",
+      //     });
+      //   } else {
+      //     await axios.post("https://api.coner.kr/sms/notify", {
+      //       service_date: requestData.service_date,
+      //       service_time: requestData.service_time,
+      //       brand: requestData.brand,
+      //       aircon_type: requestData.aircon_type,
+      //       service_type: requestData.service_type,
+      //       customer_address: requestData.customer_address,
+      //       customer_phone: requestData.customer_phone,
+      //     });
+      //   }
+      //   console.log("✅ 알림 전송 성공");
+      // } catch (err) {
+      //   console.error("❌ 알림 전송 실패:", err?.response?.data || err.message);
+      //   console.log("❓ 실제 요청 보낸 데이터:", {
+      //     service_date: requestData.service_date,
+      //     service_time: requestData.service_time,
+      //     brand: requestData.brand,
+      //     aircon_type: requestData.aircon_type,
+      //     service_type: requestData.service_type,
+      //     customer_address: requestData.customer_address,
+      //     customer_phone: requestData.customer_phone,
+      //     partner_id:
+      //       (partnerId &&
+      //         partnerId !== "undefined" &&
+      //         partnerId !== "null" &&
+      //         partnerId) ||
+      //       requestData?.partner_uid ||
+      //       "",
+      //   });
+      // }
       onComplete();
       navigate("/search/inquiry", {
         state: { customer_phone: requestData.customer_phone, requestId },

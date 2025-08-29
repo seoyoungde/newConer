@@ -33,6 +33,9 @@ const CalendarWrapper = styled.div`
     font-weight: bold;
     font-size: ${({ theme }) => theme.font.size.body};
     color: ${({ theme }) => theme.colors.text};
+    @media (max-width: ${({ theme }) => theme.font.breakpoints.smobile}) {
+      font-size: 13px;
+    }
   }
   .react-calendar__tile {
     color: ${({ theme }) => theme.colors.text} !important;
@@ -40,6 +43,9 @@ const CalendarWrapper = styled.div`
   .react-calendar__navigation__label {
     font-size: ${({ theme }) => theme.font.size.body};
     color: ${({ theme }) => theme.colors.text};
+    @media (max-width: ${({ theme }) => theme.font.breakpoints.smobile}) {
+      font-size: ${({ theme }) => theme.font.size.bodySmall};
+    }
   }
 
   .react-calendar__navigation__arrow {

@@ -128,7 +128,6 @@ const PartnerAddressContactForm = ({ title, description }) => {
     // 이전 단계 값 검증(안전망)
     const requiredBefore = [
       ["service_date", "서비스 날짜를 선택해주세요."],
-      ["service_time", "방문 시간을 선택해주세요."],
       ["service_type", "서비스를 선택해주세요."],
       ["aircon_type", "에어컨 종류를 선택해주세요."],
       ["brand", "브랜드를 선택해주세요."],
@@ -176,44 +175,44 @@ const PartnerAddressContactForm = ({ title, description }) => {
       const requestId = await submitRequest(payload);
 
       // 파트너 선택되어 있으면 해당 업체 알림, 아니면 일반 알림
-      // try {
-      //   const validPartnerId =
-      //     partnerId && partnerId !== "undefined" && partnerId !== "null"
-      //       ? partnerId
-      //       : null;
+      try {
+        const validPartnerId =
+          partnerId && partnerId !== "undefined" && partnerId !== "null"
+            ? partnerId
+            : null;
 
-      //   const hasPartnerInfo =
-      //     !!validPartnerId ||
-      //     !!requestData?.partner_uid ||
-      //     !!requestData?.partner_name ||
-      //     !!requestData?.partner_flow ||
-      //     !!requestData?.selectedTechnician;
+        const hasPartnerInfo =
+          !!validPartnerId ||
+          !!requestData?.partner_uid ||
+          !!requestData?.partner_name ||
+          !!requestData?.partner_flow ||
+          !!requestData?.selectedTechnician;
 
-      //   if (hasPartnerInfo) {
-      //     await axios.post("https://api.coner.kr/sms/notifyToSelectedCompany", {
-      //       service_date: requestData.service_date,
-      //       service_time: requestData.service_time,
-      //       brand: requestData.brand,
-      //       aircon_type: requestData.aircon_type,
-      //       service_type: requestData.service_type,
-      //       customer_address: requestData.customer_address,
-      //       customer_phone: digitsPhone,
-      //       partner_id: validPartnerId || requestData?.partner_uid || "",
-      //     });
-      //   } else {
-      //     await axios.post("https://api.coner.kr/sms/notify", {
-      //       service_date: requestData.service_date,
-      //       service_time: requestData.service_time,
-      //       brand: requestData.brand,
-      //       aircon_type: requestData.aircon_type,
-      //       service_type: requestData.service_type,
-      //       customer_address: requestData.customer_address,
-      //       customer_phone: digitsPhone,
-      //     });
-      //   }
-      // } catch (err) {
-      //   console.error("❌ 알림 전송 실패:", err?.response?.data || err.message);
-      // }
+        if (hasPartnerInfo) {
+          await axios.post("https://api.coner.kr/sms/notifyToSelectedCompany", {
+            service_date: requestData.service_date,
+            service_time: requestData.service_time,
+            brand: requestData.brand,
+            aircon_type: requestData.aircon_type,
+            service_type: requestData.service_type,
+            customer_address: requestData.customer_address,
+            customer_phone: digitsPhone,
+            partner_id: validPartnerId || requestData?.partner_uid || "",
+          });
+        } else {
+          await axios.post("https://api.coner.kr/sms/notify", {
+            service_date: requestData.service_date,
+            service_time: requestData.service_time,
+            brand: requestData.brand,
+            aircon_type: requestData.aircon_type,
+            service_type: requestData.service_type,
+            customer_address: requestData.customer_address,
+            customer_phone: digitsPhone,
+          });
+        }
+      } catch (err) {
+        console.error("❌ 알림 전송 실패:", err?.response?.data || err.message);
+      }
 
       // 완료 처리
       onComplete();
@@ -254,7 +253,7 @@ const PartnerAddressContactForm = ({ title, description }) => {
               내 정보 (주소 / 고객유형) 수정하러가기
             </ModifyLink>
           )}
-
+          <div style={{ height: 6 }} />
           <TextField
             type="text"
             name="customer_address"
@@ -364,7 +363,6 @@ const PartnerAddressContactForm = ({ title, description }) => {
 
 export default PartnerAddressContactForm;
 
-/* styled */
 const Container = styled.div``;
 const TitleSection = styled.div`
   margin-bottom: 35px;
@@ -376,6 +374,9 @@ const Title = styled.h2`
 `;
 const Description = styled.p`
   font-weight: ${({ theme }) => theme.font.weight.bold};
+  @media (max-width: ${({ theme }) => theme.font.breakpoints.smobile}) {
+    font-size: ${({ theme }) => theme.font.size.bodySmall};
+  }
 `;
 const Form = styled.form`
   @media (max-width: ${({ theme }) => theme.font.breakpoints.mobile}) {

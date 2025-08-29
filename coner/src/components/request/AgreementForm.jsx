@@ -72,7 +72,6 @@ const AgreementForm = ({
       <Title>정보 동의</Title>
 
       <CheckboxGroup>
-        {/* 전체 동의 - 들여쓰기 없음 */}
         <label className="root">
           <input
             type="checkbox"
@@ -146,7 +145,6 @@ const AgreementForm = ({
 
 export default AgreementForm;
 
-// ================= 스타일 =================
 const Container = styled.div`
   width: 100%;
   margin-top: 35px;
@@ -168,7 +166,7 @@ const CheckboxGroup = styled.div`
   label {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 2px;
   }
 
   label.root {
@@ -177,6 +175,9 @@ const CheckboxGroup = styled.div`
 
   label.child {
     margin-left: 10px;
+    @media (max-width: ${({ theme }) => theme.font.breakpoints.mobile}) {
+      margin-left: 6px;
+    }
   }
 `;
 

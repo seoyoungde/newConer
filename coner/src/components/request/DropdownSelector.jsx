@@ -30,7 +30,7 @@ const DropdownSelector = ({
               key={option}
               $isSelected={selected === option}
               onClick={() => setSelected(option)}
-              width={optionWidths[index] || "auto"}
+              $width={optionWidths[index] || "auto"}
             >
               {option}
             </Option>
@@ -98,9 +98,9 @@ const Options = styled.div`
 `;
 
 const Option = styled.div`
-  padding: 8px;
+  padding: 6px;
   width: ${({ $width }) => $width};
-  border-radius: 20px;
+  border-radius: 18px;
   font-size: ${({ theme }) => theme.font.size.bodySmall};
   font-weight: ${({ theme }) => theme.font.weight.bold};
   text-align: center;

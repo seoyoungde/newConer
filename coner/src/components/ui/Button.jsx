@@ -45,10 +45,10 @@ const sizes = {
   `,
   lg: css`
     height: 52px;
-    padding: 0 20px;
-    font-size: ${({ theme }) => theme.font.size.bodyLarge};
+    padding: 0 6px;
+    font-size: ${({ theme }) => theme.font.size.body};
     font-weight: ${({ theme }) => theme.font.weight.medium};
-    border-radius: 10px;
+    border-radius: 8px;
   `,
 };
 

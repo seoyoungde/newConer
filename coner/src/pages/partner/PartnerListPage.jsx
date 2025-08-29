@@ -90,7 +90,7 @@ const PartnerListPage = () => {
     fetchTechnicians();
   }, []);
 
-  // ✅ 랜덤 매칭 시 기사님 뽑지 않고 undefined로 처리
+  // 랜덤 매칭 시 기사님 뽑지 않고 undefined로 처리
   const handleRandomMatch = () => {
     updateRequestData("selectedTechnician", undefined);
     navigate(`/partner/step1/undefined`, {
@@ -112,8 +112,8 @@ const PartnerListPage = () => {
     <Container>
       <NavHeader to="/" />
       <FormLayout
-        title="협력업체 선택"
-        subtitle="서비스 받고 싶은 업체를 선택해서 의뢰하세요!"
+        title="기사님 선택"
+        subtitle="서비스 받고 싶은 기사님을 선택해서 의뢰하세요!"
       >
         {/* 지역 선택 버튼 그룹 */}
         <FilterSection>
@@ -201,7 +201,7 @@ const PartnerListPage = () => {
                 </TextBox>
 
                 <AreaBox>
-                  <div style={{ display: "flex" }}>
+                  <AreaToggleBox>
                     <AreaListTitle style={{ margin: 0 }}>
                       서비스 가능한 지역
                     </AreaListTitle>
@@ -216,7 +216,7 @@ const PartnerListPage = () => {
                         {isExpanded ? "접기" : "+ 더보기"}
                       </ToggleButton>
                     )}
-                  </div>
+                  </AreaToggleBox>
                   <AreaList $expanded={isExpanded}>
                     {visibleAreas.map((area, idx) => (
                       <AreaPill key={idx}>{area}</AreaPill>
@@ -423,7 +423,6 @@ const Tag2 = styled.div`
   color: ${({ theme }) => theme.colors.text};
   font-weight: ${({ theme }) => theme.font.weight.semibold};
   font-size: ${({ theme }) => theme.font.size.bodySmall};
-  margin-left: 5px;
 `;
 
 const ActionText = styled.p`
@@ -450,7 +449,13 @@ const AreaListTitle = styled.p`
   font-size: ${({ theme }) => theme.font.size.bodySmall};
   font-weight: ${({ theme }) => theme.font.weight.semibold};
 `;
-
+const AreaToggleBox = styled.div`
+  display: flex;
+  @media (max-width: ${({ theme }) => theme.font.breakpoints.smobile}) {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+`;
 const AreaList = styled.div`
   display: flex;
   flex-wrap: wrap;
@@ -486,7 +491,7 @@ const ToggleButton = styled.button`
   cursor: pointer;
   padding: 2px 20px;
   @media (max-width: ${({ theme }) => theme.font.breakpoints.smobile}) {
-    padding: 0px 4px;
+    padding: 6px 0px;
   }
 `;
 
