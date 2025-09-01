@@ -4,6 +4,7 @@ import PartnerSelect from "./sections/PartnerSelect";
 import ServiceType from "./sections/ServiceType";
 import Footer from "../../components/common/footer";
 import mianbannerIcon from "../../assets/images/mainbanner.png";
+import Footer2 from "../../components/common/Footer2";
 
 const Home = () => {
   return (
@@ -20,6 +21,7 @@ const Home = () => {
         <PartnerSelect />
         <ServiceType />
         <Footer />
+        <Footer2 />
       </MainContent>
     </div>
   );

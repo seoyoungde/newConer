@@ -22,11 +22,12 @@ const PartnerStep1Page = () => {
 
   const [selectedDate, setSelectedDate] = useState(() => {
     const s = requestData.service_date;
-    if (s === "최대한빨리") return new Date();
+    if (s === "최대한빨리") {
+      return new Date(); // 이 경우만 오늘
+    }
     const m = s?.match?.(/(\d{4})년\s*(\d{2})월\s*(\d{2})일/);
-    return m ? new Date(+m[1], +m[2] - 1, +m[3]) : new Date();
+    return m ? new Date(+m[1], +m[2] - 1, +m[3]) : null; // ★ 기본값 null
   });
-
   const [selectedTime, setSelectedTime] = useState(
     requestData.service_time || ""
   );
@@ -41,10 +42,11 @@ const PartnerStep1Page = () => {
   const { onAdvance } = useFunnelStep({ step: 1 });
 
   const formatDate = (date) => {
-    const year = date.getFullYear();
-    const month = `${date.getMonth() + 1}`.padStart(2, "0");
-    const day = `${date.getDate()}`.padStart(2, "0");
-    return `${year}년 ${month}월 ${day}일`;
+    if (!(date instanceof Date) || isNaN(date)) return "";
+    const y = date.getFullYear();
+    const m = `${date.getMonth() + 1}`.padStart(2, "0");
+    const d = `${date.getDate()}`.padStart(2, "0");
+    return `${y}년 ${m}월 ${d}일`;
   };
 
   const handleToggleAsap = () => {
@@ -102,7 +104,7 @@ const PartnerStep1Page = () => {
         subtitle="원하시는 서비스 날짜를 선택해주세요."
         onNext={handleNext}
       >
-        <DateButtonBox>
+        {/* <DateButtonBox>
           <AsapButton
             type="button"
             aria-pressed={asap}
@@ -114,7 +116,7 @@ const PartnerStep1Page = () => {
           <AsapHelp>
             지역과 서비스에 맞춰, 가장 빠른 기사님이 연락드려요.
           </AsapHelp>
-        </DateButtonBox>
+        </DateButtonBox> */}
 
         <DateBox>
           <SelectedContainer>
@@ -122,12 +124,18 @@ const PartnerStep1Page = () => {
               <GrFormCalendar />
             </CalendarIcon>
             <SelectedText>
-              {asap ? "가장 빠른 날짜 희망" : formatDate(selectedDate)}
+              {asap
+                ? "가장 빠른 날짜 희망"
+                : selectedDate
+                ? formatDate(selectedDate)
+                : "날짜를 선택해주세요"}
             </SelectedText>
           </SelectedContainer>
 
           <CalendarWrapper $disabled={asap} aria-disabled={asap}>
-            <InfoText>오늘 날짜로부터 2일 이후에 예약이 가능합니다.</InfoText>
+            <InfoText>
+              당일신청시 가시님과 일정조율이 필요할 수 있습니다
+            </InfoText>
             <CalendarPicker
               selectedDate={selectedDate}
               setSelectedDate={(date) => {

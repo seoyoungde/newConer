@@ -18,7 +18,7 @@ const Navigation = () => {
   const handlePhoneClick = (e) => {
     e.preventDefault();
     if (isMobileDevice()) {
-      window.location.href = "tel:010-5543-0636";
+      window.location.href = "tel:010-9039-5572";
     } else {
       setShowPopup(true);
     }
@@ -28,7 +28,7 @@ const Navigation = () => {
       <PromoBar>수수료 없이 가장 빠른 에어컨 서비스 받기</PromoBar>
       <Actions>
         <Hrefs>
-          <Actionhref href="tel:010-5543-0636" onClick={handlePhoneClick}>
+          <Actionhref href="tel:010-9039-5572" onClick={handlePhoneClick}>
             <FaPhoneAlt size={23} />
             전화 상담
           </Actionhref>
@@ -53,7 +53,7 @@ const Navigation = () => {
         containerId="rightbox-modal-root"
       >
         <strong style={{ color: "#007bff", fontSize: "1rem" }}>
-          010-5543-0636
+          010-9039-5572
         </strong>
       </Modal>
     </NavBar>
