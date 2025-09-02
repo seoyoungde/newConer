@@ -8,7 +8,7 @@ import Footer2 from "../../components/common/Footer2";
 
 const Home = () => {
   return (
-    <div style={{ width: "100%", background: "#F5F5F5" }}>
+    <div style={{ width: "100%", background: "#F7F7F7" }}>
       <img
         src={mianbannerIcon}
         alt="코너 배너"

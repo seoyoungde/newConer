@@ -49,7 +49,7 @@ const PartnerSelect = () => {
   return (
     <PartnerSelectContainer>
       <Section>
-        <Title>코너 기사님</Title>
+        <Title>기사님 선택해서 예약하기</Title>
 
         <MoreButton
           onClick={() => {
