@@ -32,6 +32,9 @@ import RequestModifyPage from "./pages/Request/RequestModifyPage.jsx";
 import PartnerModifyPage from "./pages/partner/PartnerModifyPage.jsx";
 import RequestDraftResetter from "./components/guards/RequestDraftResetter.jsx";
 import { usePageView } from "./analytics/usePageView.jsx";
+import PayPage from "./pages/Pay/payPage.jsx";
+import SuccessPage from "./pages/Pay/successPage.jsx";
+import FailPage from "./pages/Pay/failPage.jsx";
 
 function PageViewTracker() {
   usePageView();
@@ -105,6 +108,9 @@ export default function App() {
             path="/partner/modify/:partnerId"
             element={<PartnerModifyPage />}
           />
+          <Route path="/pay/:requestId" element={<PayPage />} />
+          <Route path="/pay/success/:requestId" element={<SuccessPage />} />
+          <Route path="/pay/fail/:requestId" element={<FailPage />} />
         </Route>
 
         <Route element={<NavHeaderLayout />}></Route>

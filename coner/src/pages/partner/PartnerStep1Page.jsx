@@ -150,6 +150,7 @@ const PartnerStep1Page = () => {
         </DateBox>
 
         <TimeBox aria-disabled={asap}>
+
           <SelectedContainer>
             <TimeIcon>
               <AiOutlineClockCircle />
@@ -263,6 +264,7 @@ const TimeBox = styled.div`
   padding: 20px;
   border-radius: 10px;
   border: 1px solid #d6d6d6;
+  margin-top: 20px;
   display: flex;
   flex-direction: column;
   margin-top: 20px;
