@@ -3,20 +3,37 @@ import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
 import styled from "styled-components";
 
+const startOfToday = () => {
+  const now = new Date();
+  return new Date(now.getFullYear(), now.getMonth(), now.getDate());
+};
+
+const endOfDay = (d) =>
+  new Date(d.getFullYear(), d.getMonth(), d.getDate(), 23, 59, 59, 999);
+
+const addMonths = (date, n) => {
+  const d = new Date(date);
+  d.setMonth(d.getMonth() + n); // JS가 알아서 월 오버플로우 처리
+  return d;
+};
+
 const CalendarPicker = ({ selectedDate, setSelectedDate, excludeDates }) => {
+  const minDate = startOfToday();
+  const maxDate = endOfDay(addMonths(minDate, 6)); // 최대 6개월
+
   return (
     <CalendarWrapper>
       <Calendar
         onChange={setSelectedDate}
         value={selectedDate || undefined}
-        minDate={new Date()}
-        excludeDates={excludeDates}
+        minDate={minDate}
+        maxDate={maxDate}
         tileDisabled={({ date }) => {
-          const disabled = excludeDates?.some(
+          const disabledByExclude = excludeDates?.some(
             (excluded) =>
               date.toDateString() === new Date(excluded).toDateString()
           );
-          return disabled;
+          return disabledByExclude;
         }}
       />
     </CalendarWrapper>
