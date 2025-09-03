@@ -141,7 +141,7 @@ const PartnerStep2Page = () => {
 
       <FormLayout
         title={"의뢰서 기본 정보"}
-        subtitle="희망 서비스와 에어컨 종류를 선택하고, 추가 요청사항을 적어주세요."
+        subtitle="희망 서비스와 에어컨 종류를 선택하세요"
         onNext={handleNext}
       >
         {/* 서비스 선택 */}
@@ -149,20 +149,29 @@ const PartnerStep2Page = () => {
           title={requestData.service_type || "서비스 선택"}
           icon={<GrUserSettings />}
           options={[
-            "설치",
-            "설치 및 구매",
             "점검",
             "청소",
             "수리",
             "냉매충전",
             "이전",
             "철거",
+            "설치",
+            "설치 및 구매",
           ]}
           selected={requestData.service_type}
           setSelected={(value) => updateRequestData("service_type", value)}
           isOpen={isServiceTypeOpen}
           setIsOpen={setIsServiceTypeOpen}
-          optionWidths={["90px", "100px", "70px", "70px", "70px"]}
+          optionWidths={[
+            "75px",
+            "75px",
+            "75px",
+            "90px",
+            "75px",
+            "75px",
+            "75px",
+            "105px",
+          ]}
         />
 
         {/* 에어컨 종류 */}
@@ -174,35 +183,19 @@ const PartnerStep2Page = () => {
           setSelected={(value) => updateRequestData("aircon_type", value)}
           isOpen={isTypeOpen}
           setIsOpen={setIsTypeOpen}
-          optionWidths={["90px", "90px", "90px", "90px", "110px"]}
+          optionWidths={["80px", "80px", "80px", "80px", "95px"]}
         />
 
         {/* 브랜드 */}
         <DropdownSelector
           title="브랜드 선택하기"
           icon={<GrBookmark />}
-          options={[
-            "삼성전자",
-            "LG전자",
-            "캐리어",
-            "센추리",
-            "귀뚜라미",
-            "SK매직",
-            "기타(추천 또는 모름)",
-          ]}
+          options={["삼성전자", "LG전자", "캐리어", "센추리", "기타"]}
           selected={requestData.brand}
           setSelected={(value) => updateRequestData("brand", value)}
           isOpen={isBrandOpen}
           setIsOpen={setIsBrandOpen}
-          optionWidths={[
-            "100px",
-            "90px",
-            "90px",
-            "90px",
-            "100px",
-            "100px",
-            "150px",
-          ]}
+          optionWidths={["80px", "80px", "80px", "80px", "80px"]}
         />
 
         {/* 추가요청 선택 */}

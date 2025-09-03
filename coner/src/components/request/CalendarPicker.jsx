@@ -8,8 +8,8 @@ const CalendarPicker = ({ selectedDate, setSelectedDate, excludeDates }) => {
     <CalendarWrapper>
       <Calendar
         onChange={setSelectedDate}
-        value={selectedDate ? new Date(selectedDate) : null}
-        minDate={new Date(new Date().setDate(new Date().getDate() + 2))}
+        value={selectedDate || undefined}
+        minDate={new Date()}
         excludeDates={excludeDates}
         tileDisabled={({ date }) => {
           const disabled = excludeDates?.some(
@@ -33,13 +33,20 @@ const CalendarWrapper = styled.div`
     font-weight: bold;
     font-size: ${({ theme }) => theme.font.size.body};
     color: ${({ theme }) => theme.colors.text};
+    @media (max-width: ${({ theme }) => theme.font.breakpoints.smobile}) {
+      font-size: 13px;
+    }
   }
   .react-calendar__tile {
     color: ${({ theme }) => theme.colors.text} !important;
   }
+
   .react-calendar__navigation__label {
     font-size: ${({ theme }) => theme.font.size.body};
     color: ${({ theme }) => theme.colors.text};
+    @media (max-width: ${({ theme }) => theme.font.breakpoints.smobile}) {
+      font-size: ${({ theme }) => theme.font.size.bodySmall};
+    }
   }
 
   .react-calendar__navigation__arrow {
@@ -52,6 +59,13 @@ const CalendarWrapper = styled.div`
     cursor: not-allowed !important;
     border-radius: 0 !important;
   }
+  .react-calendar__tile--now {
+    background: transparent !important;
+    color: inherit !important;
+    font-weight: inherit !important;
+    border-radius: 0 !important;
+  }
+
   .react-calendar__tile--active {
     background: ${({ theme }) => theme.colors.primary} !important;
     color: white !important;

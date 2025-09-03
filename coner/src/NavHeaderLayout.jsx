@@ -30,7 +30,7 @@ export default NavHeaderLayout;
 const Container = styled.div`
   display: flex;
   width: 100%;
-  height: 100%;
+  height: 100dvh;
   align-items: center;
   justify-content: center;
   gap: 20px;

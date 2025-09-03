@@ -247,7 +247,7 @@ const SignupPage = () => {
           <TextField
             label="이름"
             size="sm"
-            placeholder="이름을 입력하세요."
+            placeholder="이름입력."
             autoComplete="name"
             value={name}
             onChange={(e) => setName(e.target.value)}
@@ -261,7 +261,7 @@ const SignupPage = () => {
           <InputGroup
             size="sm"
             inputProps={{
-              placeholder: "전화번호를 입력해주세요",
+              placeholder: "전화번호입력",
               inputMode: "numeric",
               autoComplete: "tel",
               value: phone,
@@ -437,6 +437,10 @@ const FormBox = styled.div`
   border-radius: 8px;
   padding: 20px 12px;
   background: #fff;
+  @media (max-width: ${({ theme }) => theme.font.breakpoints.smobile}) {
+    border: none;
+    padding: 0px;
+  }
 `;
 
 const FormGroup = styled.div`
@@ -463,12 +467,12 @@ const CheckboxGroup = styled.div`
   margin-top: 38px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
 
   label {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 2px;
     font-size: ${({ theme }) => theme.font.size.bodySmall};
   }
 
@@ -479,6 +483,9 @@ const CheckboxGroup = styled.div`
 
   label:not(:first-child) {
     padding-left: 10px;
+    @media (max-width: ${({ theme }) => theme.font.breakpoints.smobile}) {
+      padding-left: 6px;
+    }
   }
 
   input[type="checkbox"] {

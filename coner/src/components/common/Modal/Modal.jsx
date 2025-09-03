@@ -45,7 +45,7 @@ function Modal({
         onClick={(e) => e.stopPropagation()}
         ref={dialogRef}
         style={{
-          width: `min(90vw, ${
+          width: `min(85vw, ${
             typeof width === "number" ? `${width}px` : width
           })`,
         }}

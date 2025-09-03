@@ -2,12 +2,12 @@ import ServiceGrid from "./sections/ServiceGrid";
 import styled from "styled-components";
 import PartnerSelect from "./sections/PartnerSelect";
 import ServiceType from "./sections/ServiceType";
-import Footer from "../../components/common/footer";
+import Footer from "../../components/common/Footer";
 import mianbannerIcon from "../../assets/images/mainbanner.png";
 
 const Home = () => {
   return (
-    <div style={{ width: "100%", background: "#F5F5F5" }}>
+    <div style={{ width: "100%", background: "#F7F7F7" }}>
       <img
         src={mianbannerIcon}
         alt="코너 배너"

@@ -66,12 +66,10 @@ const Step2Page = () => {
   );
   const needsRepair = requestData.service_type === "수리";
 
-  // 선택값 변경 (로컬 상태만 변경 — 저장은 '다음'에서 한 번만)
   const handleSelectDropdown = useCallback((value) => {
     setSelectedDropdownOption(value);
   }, []);
 
-  // detailInfo를 항상 "현재 입력값"으로만 조합 (이전 저장본 절대 재사용 X)
   const buildDetailInfo = () => {
     const normalizePick = (v) =>
       Array.isArray(v) ? Array.from(new Set(v)).join(", ") : v || "";
@@ -118,7 +116,6 @@ const Step2Page = () => {
       return;
     }
 
-    // 저장은 항상 '덮어쓰기' (append 금지) + 다중선택은 중복 제거
     const normalizedSelected = Array.isArray(selectedDropdownOption)
       ? Array.from(new Set(selectedDropdownOption))
       : selectedDropdownOption || "";
@@ -143,7 +140,7 @@ const Step2Page = () => {
         title={`"의뢰서 기본 정보" - ${
           requestData.service_type || "서비스 미선택"
         }`}
-        subtitle="희망 서비스와 에어컨 정보를 선택하고 추가 요청을 입력해주세요."
+        subtitle="희망 서비스와 에어컨 정보를 선택하세요."
         onNext={handleNext}
       >
         <DropdownSelector
@@ -167,35 +164,19 @@ const Step2Page = () => {
           setSelected={(v) => updateRequestData("aircon_type", v)}
           isOpen={isTypeOpen}
           setIsOpen={setIsTypeOpen}
-          optionWidths={["90px", "90px", "90px", "90px", "110px"]}
+          optionWidths={["80px", "80px", "80px", "80px", "95px"]}
         />
 
         {/* 브랜드 선택 */}
         <DropdownSelector
           title="브랜드 선택하기"
           icon={<GrBookmark />}
-          options={[
-            "삼성전자",
-            "LG전자",
-            "캐리어",
-            "센추리",
-            "귀뚜라미",
-            "SK매직",
-            "기타(추천 또는 모름)",
-          ]}
+          options={["삼성전자", "LG전자", "캐리어", "센추리", "기타"]}
           selected={requestData.brand}
           setSelected={(v) => updateRequestData("brand", v)}
           isOpen={isBrandOpen}
           setIsOpen={setIsBrandOpen}
-          optionWidths={[
-            "100px",
-            "90px",
-            "90px",
-            "90px",
-            "100px",
-            "100px",
-            "150px",
-          ]}
+          optionWidths={["80px", "80px", "80px", "80px", "80px"]}
         />
 
         {/* 추가선택 & 추가요청 — 브랜드 다음, 가격표 이전 */}

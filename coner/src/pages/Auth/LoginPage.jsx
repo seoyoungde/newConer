@@ -131,7 +131,7 @@ const LoginPage = () => {
             <InputGroup
               size="lg"
               inputProps={{
-                placeholder: "인증번호를 입력해주세요",
+                placeholder: "인증번호입력",
                 inputMode: "numeric",
                 autoComplete: "one-time-code",
                 value: code,

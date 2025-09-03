@@ -49,14 +49,14 @@ const PartnerSelect = () => {
   return (
     <PartnerSelectContainer>
       <Section>
-        <Title>코너 협력업체</Title>
+        <Title>기사님 선택해서 예약하기</Title>
 
         <MoreButton
           onClick={() => {
             navigate("/partner/list");
           }}
         >
-          협력업체 더보기 &gt;
+          기사님 더보기 &gt;
         </MoreButton>
       </Section>
       {technicians.map((tech) => {
@@ -107,7 +107,7 @@ const PartnerSelect = () => {
                 <ActionText>의뢰하기</ActionText>
               </TextBox>
               <AreaBox>
-                <div style={{ display: "flex" }}>
+                <AreaToggleBox>
                   <AreaListTitle style={{ margin: "0" }}>
                     서비스 가능한 지역
                   </AreaListTitle>
@@ -122,7 +122,7 @@ const PartnerSelect = () => {
                       {isExpanded ? "접기" : "+ 더보기"}
                     </ToggleButton>
                   )}
-                </div>
+                </AreaToggleBox>
                 <AreaList $expanded={isExpanded}>
                   {visibleAreas.map((area, idx) => (
                     <Address key={idx}>{area}</Address>
@@ -146,6 +146,11 @@ const Section = styled.div`
   display: flex;
   justify-content: space-between;
   margin-bottom: 24px;
+  @media (max-width: ${({ theme }) => theme.font.breakpoints.mobile}) {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 7px;
+  }
 `;
 const MoreButton = styled.button`
   font-size: ${({ theme }) => theme.font.size.body};
@@ -223,6 +228,13 @@ const AreaList = styled.div`
   transition: max-height 0.3s ease;
   margin-bottom: 13px;
 `;
+const AreaToggleBox = styled.div`
+  display: flex;
+  @media (max-width: ${({ theme }) => theme.font.breakpoints.smobile}) {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+`;
 const AreaListTitle = styled.p`
   font-size: ${({ theme }) => theme.font.size.bodySmall};
   font-weight: ${({ theme }) => theme.font.weight.semibold};
@@ -271,4 +283,7 @@ const ToggleButton = styled.button`
   padding-right: 20px;
   padding-left: 20px;
   padding: 8px 20px;
+  @media (max-width: ${({ theme }) => theme.font.breakpoints.smobile}) {
+    padding: 10px 0px;
+  }
 `;

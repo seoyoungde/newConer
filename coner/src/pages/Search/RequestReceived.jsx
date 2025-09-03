@@ -441,28 +441,12 @@ const RequestReceived = ({
               <DropdownSelector
                 title="브랜드 선택하기"
                 icon={<GrBookmark size="18" />}
-                options={[
-                  "삼성전자",
-                  "LG전자",
-                  "캐리어",
-                  "센추리",
-                  "귀뚜라미",
-                  "SK매직",
-                  "기타(추천 또는 모름)",
-                ]}
+                options={["삼성전자", "LG전자", "캐리어", "센추리", "기타"]}
                 selected={selectedBrand}
                 setSelected={setSelectedBrand}
                 isOpen={isBrandOpen}
                 setIsOpen={setIsBrandOpen}
-                optionWidths={[
-                  "100px",
-                  "90px",
-                  "90px",
-                  "90px",
-                  "100px",
-                  "100px",
-                  "150px",
-                ]}
+                optionWidths={["100px", "90px", "90px", "90px", "90px", ,]}
               />
             ) : (
               <Value>{selectedBrand || "없음"}</Value>
@@ -708,6 +692,7 @@ const TechnicianContainer = styled.div``;
 
 const TechnicianETC = styled.div`
   font-size: ${({ theme }) => theme.font.size.bodySmall};
+  padding-bottom: 20px;
 `;
 const Container = styled.div`
   display: flex;
@@ -756,6 +741,9 @@ const StepLabel = styled.div`
   font-size: ${({ theme }) => theme.font.size.bodySmall};
   font-weight: ${({ $isActive }) => ($isActive ? "bold" : "normal")};
   color: ${({ $isActive }) => ($isActive ? "#0080FF" : "#666")};
+  @media (max-width: ${({ theme }) => theme.font.breakpoints.smobile}) {
+    font-size: ${({ theme }) => theme.font.size.small};
+  }
 `;
 
 const ContentBox = styled.div`
@@ -785,7 +773,6 @@ const ProfileImage = styled.img`
 `;
 const CompanyAcceptTimeInfo = styled.div`
   display: flex;
-  flex-direction: column;
 `;
 
 const Tag = styled.span`
@@ -794,9 +781,8 @@ const Tag = styled.span`
   color: ${({ theme }) => theme.colors.bg};
   font-size: ${({ theme }) => theme.font.size.body};
   font-weight: ${({ theme }) => theme.font.weight.bold};
-  padding: 5px 10px;
+  margin-right: 15px;
   border-radius: 15px;
-  margin-top: 10px;
 `;
 const Tag2 = styled.div``;
 const TechnicianName = styled.h2`

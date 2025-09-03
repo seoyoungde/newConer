@@ -6,6 +6,7 @@ import styled from "styled-components";
 import FormLayout from "../../components/request/FormLayout";
 import { GrFormCalendar } from "react-icons/gr";
 import { AiOutlineClockCircle } from "react-icons/ai";
+import { RiFlashlightLine } from "react-icons/ri";
 import { useRequest } from "../../context/context";
 import StepProgressBar from "../../components/request/StepProgressBar";
 import NavHeader from "../../components/common/Header/NavHeader";
@@ -16,49 +17,86 @@ const PartnerStep1Page = () => {
   const navigate = useNavigate();
   const { requestData, updateRequestData } = useRequest();
   const { partnerId } = useParams();
+
+  const [asap, setAsap] = useState(requestData.service_date === "최대한빨리");
+
   const [selectedDate, setSelectedDate] = useState(() => {
     const s = requestData.service_date;
+    if (s === "최대한빨리") {
+      return new Date(); // 이 경우만 오늘
+    }
     const m = s?.match?.(/(\d{4})년\s*(\d{2})월\s*(\d{2})일/);
-    return m ? new Date(+m[1], +m[2] - 1, +m[3]) : new Date();
+    return m ? new Date(+m[1], +m[2] - 1, +m[3]) : null; // ★ 기본값 null
   });
   const [selectedTime, setSelectedTime] = useState(
     requestData.service_time || ""
   );
   const [isDateTouched, setIsDateTouched] = useState(
-    Boolean(requestData.service_date)
+    Boolean(
+      requestData.service_date && requestData.service_date !== "최대한빨리"
+    )
   );
   const [popupMessage, setPopupMessage] = useState("");
-  //페이지이탈률
+
+  // 페이지이탈률
   const { onAdvance } = useFunnelStep({ step: 1 });
+
+  const formatDate = (date) => {
+    if (!(date instanceof Date) || isNaN(date)) return "";
+    const y = date.getFullYear();
+    const m = `${date.getMonth() + 1}`.padStart(2, "0");
+    const d = `${date.getDate()}`.padStart(2, "0");
+    return `${y}년 ${m}월 ${d}일`;
+  };
+
+  const handleToggleAsap = () => {
+    const next = !asap;
+    setAsap(next);
+    if (next) {
+      // 가장 빠른 날짜/시간으로 자동 배정
+      updateRequestData("service_date", "최대한빨리");
+      updateRequestData("service_time", "");
+    } else {
+      // 수동 선택으로 전환
+      updateRequestData("service_date", formatDate(selectedDate));
+      if (requestData.service_time === "") {
+        updateRequestData("service_time", "");
+      }
+    }
+  };
+
   const handleNext = () => {
-    if (!isDateTouched && !requestData.service_date) {
+    // ASAP이면 날짜/시간 검증 스킵
+    if (!asap && !isDateTouched && !requestData.service_date) {
       setPopupMessage("서비스 날짜를 선택해주세요.");
       return;
     }
-    if (!selectedTime && !requestData.service_time) {
+    if (!asap && !selectedTime && !requestData.service_time) {
       setPopupMessage("방문 시간을 선택해주세요.");
       return;
     }
-    const formattedDate = formatDate(selectedDate);
 
-    updateRequestData("service_date", formattedDate);
-    updateRequestData("service_time", selectedTime);
-    //페이지이탈률
+    if (asap) {
+      updateRequestData("service_date", "최대한빨리");
+      updateRequestData("service_time", "");
+    } else {
+      const formattedDate = formatDate(selectedDate);
+      updateRequestData("service_date", formattedDate);
+      updateRequestData("service_time", selectedTime);
+    }
+
+    // 페이지이탈률
     onAdvance(2);
     navigate(`/partner/step2/${partnerId}`);
   };
 
-  const formatDate = (date) => {
-    const year = date.getFullYear();
-    const month = `${date.getMonth() + 1}`.padStart(2, "0");
-    const day = `${date.getDate()}`.padStart(2, "0");
-    return `${year}년 ${month}월 ${day}일`;
-  };
+  const timeSelectedText = asap
+    ? "가장 빠른 시간으로 요청됨"
+    : selectedTime || "시간을 선택해주세요";
 
   return (
     <Container>
       <NavHeader to={"/"} />
-
       <StepProgressBar currentStep={1} totalSteps={2} />
 
       <FormLayout
@@ -66,51 +104,79 @@ const PartnerStep1Page = () => {
         subtitle="원하시는 서비스 날짜를 선택해주세요."
         onNext={handleNext}
       >
-        <InfoText>오늘 날짜로부터 2일 이후에 예약이 가능합니다.</InfoText>
+        {/* <DateButtonBox>
+          <AsapButton
+            type="button"
+            aria-pressed={asap}
+            onClick={handleToggleAsap}
+          >
+            <RiFlashlightLine />
+            최대한 빠른 날짜로 서비스 받기
+          </AsapButton>
+          <AsapHelp>
+            지역과 서비스에 맞춰, 가장 빠른 기사님이 연락드려요.
+          </AsapHelp>
+        </DateButtonBox> */}
 
         <DateBox>
           <SelectedContainer>
             <CalendarIcon>
               <GrFormCalendar />
             </CalendarIcon>
-            <SelectedText>{formatDate(selectedDate)}</SelectedText>
+            <SelectedText>
+              {asap
+                ? "가장 빠른 날짜 희망"
+                : selectedDate
+                ? formatDate(selectedDate)
+                : "날짜를 선택해주세요"}
+            </SelectedText>
           </SelectedContainer>
-          <CalendarPicker
-            selectedDate={selectedDate}
-            setSelectedDate={(date) => {
-              setSelectedDate(date);
-              setIsDateTouched(true);
-              updateRequestData("service_date", formatDate(date));
-            }}
-          />
+
+          <CalendarWrapper $disabled={asap} aria-disabled={asap}>
+            <InfoText>
+              당일신청시 가시님과 일정조율이 필요할 수 있습니다
+            </InfoText>
+            <CalendarPicker
+              selectedDate={selectedDate}
+              setSelectedDate={(date) => {
+                if (asap) return;
+                setSelectedDate(date);
+                setIsDateTouched(true);
+                updateRequestData("service_date", formatDate(date));
+              }}
+              disabled={asap}
+            />
+          </CalendarWrapper>
         </DateBox>
 
-        {/* <InfoText2>
-          <strong />
-          안내드립니다 <br />
-          현재 LGU+ 프로젝트 진행으로 인해 일부 일정에 변동이 생길 수 있습니다.
-          <br />
-          최상의 서비스 제공을 위해 조율이 필요한 점 너른 양해 부탁드립니다.
-          <br />더 나은 일정으로 찾아뵐 수 있도록 최선을 다하겠습니다
-          감사합니다.
-        </InfoText2> */}
-        <TimeBox>
+        <TimeBox aria-disabled={asap}>
+
           <SelectedContainer>
             <TimeIcon>
               <AiOutlineClockCircle />
             </TimeIcon>
-            <SelectedText>{selectedTime || "시간을 선택해주세요"}</SelectedText>
+            <SelectedText>{timeSelectedText}</SelectedText>
           </SelectedContainer>
-          <InfoText>선택하신 시간대에 기사님이 방문해요</InfoText>
-          <TimeSlotPicker
-            selectedTime={selectedTime}
-            setSelectedTime={(time) => {
-              setSelectedTime(time);
-              updateRequestData("service_time", time);
-            }}
-          />
+
+          <TimeControls $disabled={asap}>
+            <InfoText>
+              {asap
+                ? "빠른 배정 옵션에서는 시간 선택 없이 가장 빠른 시간대로 방문합니다."
+                : "선택하신 시간대에 기사님이 방문해요"}
+            </InfoText>
+            <TimeSlotPicker
+              selectedTime={selectedTime}
+              setSelectedTime={(time) => {
+                if (asap) return; // 입력 가드
+                setSelectedTime(time);
+                updateRequestData("service_time", time);
+              }}
+              disabled={asap}
+            />
+          </TimeControls>
         </TimeBox>
       </FormLayout>
+
       <Modal
         open={!!popupMessage}
         onClose={() => setPopupMessage("")}
@@ -122,6 +188,7 @@ const PartnerStep1Page = () => {
     </Container>
   );
 };
+
 export default PartnerStep1Page;
 
 const Container = styled.section`
@@ -131,6 +198,8 @@ const Container = styled.section`
 const InfoText = styled.p`
   font-size: ${({ theme }) => theme.font.size.bodySmall};
   color: ${({ theme }) => theme.colors.subtext};
+  text-align: left;
+  padding-left: 10px;
 `;
 const InfoText2 = styled.p`
   text-align: left;
@@ -149,6 +218,45 @@ const DateBox = styled.div`
   flex-direction: column;
 `;
 
+const DateButtonBox = styled.div`
+  display: flex;
+  flex-direction: column;
+  margin-top: 20px;
+  margin-bottom: 15px;
+  gap: 8px;
+`;
+
+const AsapButton = styled.button`
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: 999px;
+  background: ${({ theme }) => theme.colors.primary + "10"};
+  color: ${({ theme }) => theme.colors.primary};
+  font-weight: ${({ theme }) => theme.font.weight.bold};
+  transition: transform 0.04s ease;
+  &:active {
+    transform: translateY(1px);
+  }
+  &[aria-pressed="true"] {
+    background: ${({ theme }) => theme.colors.primary};
+    color: #fff;
+  }
+`;
+
+const AsapHelp = styled.p`
+  font-size: ${({ theme }) => theme.font.size.bodySmall};
+  color: ${({ theme }) => theme.colors.subtext};
+  line-height: 1.4;
+  text-align: left;
+  padding-left: 15px;
+`;
+
+const CalendarWrapper = styled.div`
+  opacity: ${({ $disabled }) => ($disabled ? 0.5 : 1)};
+`;
+
 const TimeBox = styled.div`
   background: ${({ theme }) => theme.colors.bg};
   width: 100%;
@@ -159,7 +267,13 @@ const TimeBox = styled.div`
   margin-top: 20px;
   display: flex;
   flex-direction: column;
+  margin-top: 20px;
 `;
+
+const TimeControls = styled.div`
+  opacity: ${({ $disabled }) => ($disabled ? 0.5 : 1)};
+`;
+
 const TimeIcon = styled(AiOutlineClockCircle)`
   font-size: 1.3rem;
 `;

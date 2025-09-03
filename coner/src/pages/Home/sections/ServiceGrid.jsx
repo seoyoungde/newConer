@@ -68,7 +68,7 @@ const serviceData = [
   },
   {
     id: 9,
-    title: "서비스별 가격",
+    title: "서비스 가격",
     icon: priceIcon,
     path: "/price",
   },
@@ -168,6 +168,10 @@ const ServiceItem = styled.li`
     @media (max-width: ${({ theme }) => theme.font.breakpoints.mobile}) {
       width: 70px;
       height: 70px;
+    }
+    @media (max-width: ${({ theme }) => theme.font.breakpoints.smobile}) {
+      width: 60px;
+      height: 60px;
     }
   }
   p {

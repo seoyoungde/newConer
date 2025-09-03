@@ -61,6 +61,9 @@ const TechnicianText = styled.div`
 const RequestDetails = styled.div`
   display: flex;
   flex-direction: row;
+  @media (max-width: ${({ theme }) => theme.font.breakpoints.mobile}) {
+    flex-direction: column;
+  }
 `;
 
 const TagContainer = styled.div`

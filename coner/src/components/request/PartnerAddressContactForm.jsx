@@ -128,7 +128,6 @@ const PartnerAddressContactForm = ({ title, description }) => {
     // 이전 단계 값 검증(안전망)
     const requiredBefore = [
       ["service_date", "서비스 날짜를 선택해주세요."],
-      ["service_time", "방문 시간을 선택해주세요."],
       ["service_type", "서비스를 선택해주세요."],
       ["aircon_type", "에어컨 종류를 선택해주세요."],
       ["brand", "브랜드를 선택해주세요."],
@@ -254,7 +253,7 @@ const PartnerAddressContactForm = ({ title, description }) => {
               내 정보 (주소 / 고객유형) 수정하러가기
             </ModifyLink>
           )}
-
+          <div style={{ height: 6 }} />
           <TextField
             type="text"
             name="customer_address"
@@ -364,7 +363,6 @@ const PartnerAddressContactForm = ({ title, description }) => {
 
 export default PartnerAddressContactForm;
 
-/* styled */
 const Container = styled.div``;
 const TitleSection = styled.div`
   margin-bottom: 35px;
@@ -376,6 +374,9 @@ const Title = styled.h2`
 `;
 const Description = styled.p`
   font-weight: ${({ theme }) => theme.font.weight.bold};
+  @media (max-width: ${({ theme }) => theme.font.breakpoints.smobile}) {
+    font-size: ${({ theme }) => theme.font.size.bodySmall};
+  }
 `;
 const Form = styled.form`
   @media (max-width: ${({ theme }) => theme.font.breakpoints.mobile}) {

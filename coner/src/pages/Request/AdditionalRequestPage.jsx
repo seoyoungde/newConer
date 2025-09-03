@@ -163,19 +163,19 @@ const AddressContactForm = ({ title, description }) => {
       const requestId = await submitRequest(payload);
 
       // SMS 알림
-      try {
-        await axios.post("https://api.coner.kr/sms/notify", {
-          service_date: requestData.service_date,
-          service_time: requestData.service_time,
-          brand: requestData.brand,
-          aircon_type: requestData.aircon_type,
-          service_type: requestData.service_type,
-          customer_address: requestData.customer_address,
-          customer_phone: digitsPhone,
-        });
-      } catch (err) {
-        console.error("알림 전송 실패:", err.response?.data || err.message);
-      }
+      // try {
+      //   await axios.post("https://api.coner.kr/sms/notify", {
+      //     service_date: requestData.service_date,
+      //     service_time: requestData.service_time,
+      //     brand: requestData.brand,
+      //     aircon_type: requestData.aircon_type,
+      //     service_type: requestData.service_type,
+      //     customer_address: requestData.customer_address,
+      //     customer_phone: digitsPhone,
+      //   });
+      // } catch (err) {
+      //   console.error("알림 전송 실패:", err.response?.data || err.message);
+      // }
 
       onComplete();
       resetRequestData();

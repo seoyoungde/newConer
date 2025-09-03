@@ -26,7 +26,7 @@ export default NoHeaderLayout;
 const Container = styled.div`
   display: flex;
   width: 100%;
-  height: 100%;
+  height: 100dvh;
   align-items: center;
   justify-content: center;
   gap: 20px;
@@ -50,6 +50,7 @@ const RightBox = styled.main`
   height: 100%;
   flex-direction: column;
   border: 1px solid #d4d4d4;
+  box-sizing: border-box;
 `;
 
 const ScrollArea = styled.div`
@@ -58,6 +59,8 @@ const ScrollArea = styled.div`
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
+  padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px));
+
   &::-webkit-scrollbar {
     width: 0;
     height: 0;
@@ -79,6 +82,7 @@ const ContentBox = styled.div`
   max-width: 605px;
   height: 100%;
   padding: 0 24px;
+
   @media (max-width: ${({ theme }) => theme.font.breakpoints.mobile}) {
     padding: 0 15px;
   }

@@ -11,7 +11,7 @@ const sizeGap = {
 
 const Group = styled.div`
   display: grid;
-  grid-template-columns: 1fr auto; /* 입력은 늘고, 버튼은 내용만큼 */
+  grid-template-columns: 1fr auto;
   gap: ${({ $size = "md" }) => sizeGap[$size]};
   align-items: stretch;
 `;

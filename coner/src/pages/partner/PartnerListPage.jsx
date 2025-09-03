@@ -8,31 +8,31 @@ import { useRequest } from "../../context/context";
 import NavHeader from "../../components/common/Header/NavHeader";
 
 const AREAS = [
+  "강남구",
+  "강동구",
   "강북구",
-  "도봉구",
+  "강서구",
+  "관악구",
+  "광진구",
+  "구로구",
+  "금천구",
   "노원구",
-  "중랑구",
+  "도봉구",
   "동대문구",
+  "동작구",
+  "마포구",
+  "서대문구",
+  "서초구",
+  "성동구",
   "성북구",
+  "송파구",
+  "양천구",
+  "영등포구",
+  "용산구",
   "은평구",
   "종로구",
   "중구",
-  "서대문구",
-  "마포구",
-  "용산구",
-  "성동구",
-  "광진구",
-  "강서구",
-  "양천구",
-  "구로구",
-  "영등포구",
-  "동작구",
-  "금천구",
-  "관악구",
-  "서초구",
-  "강남구",
-  "송파구",
-  "강동구",
+  "중랑구",
 ];
 
 const PartnerListPage = () => {
@@ -90,7 +90,7 @@ const PartnerListPage = () => {
     fetchTechnicians();
   }, []);
 
-  // ✅ 랜덤 매칭 시 기사님 뽑지 않고 undefined로 처리
+  // 랜덤 매칭 시 기사님 뽑지 않고 undefined로 처리
   const handleRandomMatch = () => {
     updateRequestData("selectedTechnician", undefined);
     navigate(`/partner/step1/undefined`, {
@@ -105,15 +105,17 @@ const PartnerListPage = () => {
     selectedArea === "전체"
       ? technicians
       : technicians.filter(
-          (tech) => Array.isArray(tech.area) && tech.area.includes(selectedArea)
+          (tech) =>
+            Array.isArray(tech.area) &&
+            (tech.area.includes(selectedArea) || tech.area[0] === "서울 전지역")
         );
 
   return (
     <Container>
       <NavHeader to="/" />
       <FormLayout
-        title="협력업체 선택"
-        subtitle="서비스 받고 싶은 업체를 선택해서 의뢰하세요!"
+        title="기사님 선택"
+        subtitle="서비스 받고 싶은 기사님을 선택해서 의뢰하세요!"
       >
         {/* 지역 선택 버튼 그룹 */}
         <FilterSection>
@@ -201,7 +203,7 @@ const PartnerListPage = () => {
                 </TextBox>
 
                 <AreaBox>
-                  <div style={{ display: "flex" }}>
+                  <AreaToggleBox>
                     <AreaListTitle style={{ margin: 0 }}>
                       서비스 가능한 지역
                     </AreaListTitle>
@@ -216,7 +218,7 @@ const PartnerListPage = () => {
                         {isExpanded ? "접기" : "+ 더보기"}
                       </ToggleButton>
                     )}
-                  </div>
+                  </AreaToggleBox>
                   <AreaList $expanded={isExpanded}>
                     {visibleAreas.map((area, idx) => (
                       <AreaPill key={idx}>{area}</AreaPill>
@@ -351,6 +353,9 @@ const Card = styled.div`
   background: #fff;
   padding-top: 10px;
   padding-bottom: 10px;
+  @media (max-width: ${({ theme }) => theme.font.breakpoints.smobile}) {
+    flex-direction: column;
+  }
 `;
 
 const ProfileImage = styled.img`
@@ -372,6 +377,9 @@ const LeftBox = styled.div`
   display: flex;
   flex-direction: column;
   align-items: stretch;
+  @media (max-width: ${({ theme }) => theme.font.breakpoints.smobile}) {
+    margin-top: 5px;
+  }
 `;
 
 const TextBox = styled.div`
@@ -385,12 +393,18 @@ const TextBox = styled.div`
     padding: 0 14px;
     flex-direction: column;
   }
+  @media (max-width: ${({ theme }) => theme.font.breakpoints.smobile}) {
+    align-items: center;
+  }
 `;
 
 const InfoContent = styled.div`
   display: flex;
   flex-direction: column;
   align-items: flex-start;
+  @media (max-width: ${({ theme }) => theme.font.breakpoints.smobile}) {
+    align-items: center;
+  }
 `;
 
 const CareerBox = styled.div`
@@ -400,9 +414,6 @@ const CareerBox = styled.div`
   margin-top: 8px;
   gap: 6px;
   align-items: center;
-  @media (max-width: ${({ theme }) => theme.font.breakpoints.smobile}) {
-    flex-direction: column;
-  }
 `;
 
 const Name = styled.h3`
@@ -423,7 +434,6 @@ const Tag2 = styled.div`
   color: ${({ theme }) => theme.colors.text};
   font-weight: ${({ theme }) => theme.font.weight.semibold};
   font-size: ${({ theme }) => theme.font.size.bodySmall};
-  margin-left: 5px;
 `;
 
 const ActionText = styled.p`
@@ -441,8 +451,14 @@ const ActionText = styled.p`
 const AreaBox = styled.div`
   width: 100%;
   padding: 0 24px;
+
   @media (max-width: ${({ theme }) => theme.font.breakpoints.mobile}) {
     padding: 0 14px;
+  }
+  @media (max-width: ${({ theme }) => theme.font.breakpoints.smobile}) {
+    padding: 0px;
+    width: 210px;
+    margin: auto;
   }
 `;
 
@@ -450,7 +466,9 @@ const AreaListTitle = styled.p`
   font-size: ${({ theme }) => theme.font.size.bodySmall};
   font-weight: ${({ theme }) => theme.font.weight.semibold};
 `;
-
+const AreaToggleBox = styled.div`
+  display: flex;
+`;
 const AreaList = styled.div`
   display: flex;
   flex-wrap: wrap;
@@ -485,9 +503,6 @@ const ToggleButton = styled.button`
   border: none;
   cursor: pointer;
   padding: 2px 20px;
-  @media (max-width: ${({ theme }) => theme.font.breakpoints.smobile}) {
-    padding: 0px 4px;
-  }
 `;
 
 const TechCard = styled.div`

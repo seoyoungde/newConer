@@ -100,7 +100,7 @@ export default function App() {
           />
           <Route path="/mypage" element={<MyPage />} />
           <Route path="/mypage/inquiry" element={<MypageInquiryPage />} />
-          <Route path="/mypage/qna" element={<QnaPage />} />
+          <Route path="/qna" element={<QnaPage />} />
           <Route path="/mypage/modify" element={<ModifyPage />} />
           <Route path="/mypage/withdraw" element={<WithdrawPage />} />
           <Route path="/request/modify" element={<RequestModifyPage />} />

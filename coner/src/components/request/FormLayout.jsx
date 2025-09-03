@@ -35,6 +35,9 @@ const Title = styled.h2``;
 
 const Subtitle = styled.p`
   font-weight: ${({ theme }) => theme.font.weight.bold};
+  @media (max-width: ${({ theme }) => theme.font.breakpoints.smobile}) {
+    font-size: ${({ theme }) => theme.font.size.bodySmall};
+  }
 `;
 
 const Content = styled.div`

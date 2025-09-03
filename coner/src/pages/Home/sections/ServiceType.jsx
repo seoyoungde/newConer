@@ -65,6 +65,9 @@ const TypeList = styled.ul`
   justify-content: space-between;
   padding: 0 8px;
   list-style: none;
+  @media (max-width: ${({ theme }) => theme.font.breakpoints.smobile}) {
+    padding: 0 0px;
+  }
 `;
 
 const TypeCard = styled.li`
