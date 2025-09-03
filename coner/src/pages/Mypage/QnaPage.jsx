@@ -31,7 +31,7 @@ const QnaPage = () => {
 
   return (
     <QnaCards>
-      <NavHeader to="/mypage" title="자주 묻는 질문" />
+      <NavHeader to="/" title="자주 묻는 질문" />
       {faqList.map((item, idx) => {
         return (
           <QnaItem key={idx}>

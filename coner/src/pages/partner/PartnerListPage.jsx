@@ -105,7 +105,9 @@ const PartnerListPage = () => {
     selectedArea === "전체"
       ? technicians
       : technicians.filter(
-          (tech) => Array.isArray(tech.area) && tech.area.includes(selectedArea)
+          (tech) =>
+            Array.isArray(tech.area) &&
+            (tech.area.includes(selectedArea) || tech.area[0] === "서울 전지역")
         );
 
   return (
@@ -351,6 +353,9 @@ const Card = styled.div`
   background: #fff;
   padding-top: 10px;
   padding-bottom: 10px;
+  @media (max-width: ${({ theme }) => theme.font.breakpoints.smobile}) {
+    flex-direction: column;
+  }
 `;
 
 const ProfileImage = styled.img`
@@ -372,6 +377,9 @@ const LeftBox = styled.div`
   display: flex;
   flex-direction: column;
   align-items: stretch;
+  @media (max-width: ${({ theme }) => theme.font.breakpoints.smobile}) {
+    margin-top: 5px;
+  }
 `;
 
 const TextBox = styled.div`
@@ -385,12 +393,18 @@ const TextBox = styled.div`
     padding: 0 14px;
     flex-direction: column;
   }
+  @media (max-width: ${({ theme }) => theme.font.breakpoints.smobile}) {
+    align-items: center;
+  }
 `;
 
 const InfoContent = styled.div`
   display: flex;
   flex-direction: column;
   align-items: flex-start;
+  @media (max-width: ${({ theme }) => theme.font.breakpoints.smobile}) {
+    align-items: center;
+  }
 `;
 
 const CareerBox = styled.div`
@@ -400,9 +414,6 @@ const CareerBox = styled.div`
   margin-top: 8px;
   gap: 6px;
   align-items: center;
-  @media (max-width: ${({ theme }) => theme.font.breakpoints.smobile}) {
-    flex-direction: column;
-  }
 `;
 
 const Name = styled.h3`
@@ -440,8 +451,14 @@ const ActionText = styled.p`
 const AreaBox = styled.div`
   width: 100%;
   padding: 0 24px;
+
   @media (max-width: ${({ theme }) => theme.font.breakpoints.mobile}) {
     padding: 0 14px;
+  }
+  @media (max-width: ${({ theme }) => theme.font.breakpoints.smobile}) {
+    padding: 0px;
+    width: 210px;
+    margin: auto;
   }
 `;
 
@@ -451,10 +468,6 @@ const AreaListTitle = styled.p`
 `;
 const AreaToggleBox = styled.div`
   display: flex;
-  @media (max-width: ${({ theme }) => theme.font.breakpoints.smobile}) {
-    flex-direction: column;
-    align-items: flex-start;
-  }
 `;
 const AreaList = styled.div`
   display: flex;
@@ -490,9 +503,6 @@ const ToggleButton = styled.button`
   border: none;
   cursor: pointer;
   padding: 2px 20px;
-  @media (max-width: ${({ theme }) => theme.font.breakpoints.smobile}) {
-    padding: 6px 0px;
-  }
 `;
 
 const TechCard = styled.div`

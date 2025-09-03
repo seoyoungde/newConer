@@ -17,11 +17,6 @@ const sections = [
         label: "공지사항",
         link: "https://coner-aircon.notion.site/e3cfa3b4d2e447cc8ee54048172e61db",
       },
-    ],
-  },
-  {
-    items: [
-      { label: "자주 묻는 질문", link: "/mypage/qna" },
       {
         label: "개인정보처리방침",
         link: "https://seojinhyeong.notion.site/79b84540aa2642e2ba26db26c2d39e7d",

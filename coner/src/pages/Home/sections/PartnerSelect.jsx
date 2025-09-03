@@ -146,6 +146,11 @@ const Section = styled.div`
   display: flex;
   justify-content: space-between;
   margin-bottom: 24px;
+  @media (max-width: ${({ theme }) => theme.font.breakpoints.mobile}) {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 7px;
+  }
 `;
 const MoreButton = styled.button`
   font-size: ${({ theme }) => theme.font.size.body};
