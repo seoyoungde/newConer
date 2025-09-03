@@ -85,7 +85,7 @@ const PartnerStep1Page = () => {
           />
         </DateBox>
 
-        <InfoText2>
+        {/* <InfoText2>
           <strong />
           안내드립니다 <br />
           현재 LGU+ 프로젝트 진행으로 인해 일부 일정에 변동이 생길 수 있습니다.
@@ -93,7 +93,7 @@ const PartnerStep1Page = () => {
           최상의 서비스 제공을 위해 조율이 필요한 점 너른 양해 부탁드립니다.
           <br />더 나은 일정으로 찾아뵐 수 있도록 최선을 다하겠습니다
           감사합니다.
-        </InfoText2>
+        </InfoText2> */}
         <TimeBox>
           <SelectedContainer>
             <TimeIcon>
@@ -156,6 +156,7 @@ const TimeBox = styled.div`
   padding: 20px;
   border-radius: 10px;
   border: 1px solid #d6d6d6;
+  margin-top: 20px;
   display: flex;
   flex-direction: column;
 `;
