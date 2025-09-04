@@ -35,6 +35,7 @@ import { usePageView } from "./analytics/usePageView.jsx";
 import PayPage from "./pages/Pay/payPage.jsx";
 import SuccessPage from "./pages/Pay/successPage.jsx";
 import FailPage from "./pages/Pay/failPage.jsx";
+import PartnerApply from "./pages/partner/PartnerApply.jsx";
 
 function PageViewTracker() {
   usePageView();
@@ -98,6 +99,9 @@ export default function App() {
             path="/partner/price/:partnerId"
             element={<PartnerPricePage />}
           />
+
+          <Route path="/partner/apply" element={<PartnerApply />} />
+
           <Route path="/mypage" element={<MyPage />} />
           <Route path="/mypage/inquiry" element={<MypageInquiryPage />} />
           <Route path="/qna" element={<QnaPage />} />

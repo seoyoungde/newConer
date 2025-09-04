@@ -1,24 +1,35 @@
 import React from "react";
 import styled from "styled-components";
 
-const timeSlots = [
-  "오전9시 ~ 오후12시",
-  "오후1시 ~ 오후4시",
-  "오후5시 ~ 오후8시",
+const timesSlots = [
+  { display: "오전9시 ~ 오전12시", startHour: 9 },
+  { display: "오후1시 ~ 오후4시", startHour: 13 },
+  { display: "오후5시 ~ 오후 8시", startHour: 17 },
 ];
+
+const isTimeSlotAvailable = (startHour) => {
+  const now = new Date();
+  const currentHour = now.getHours();
+  return startHour > currentHour;
+};
 
 const TimeSlotPicker = ({ selectedTime, setSelectedTime }) => {
   return (
     <TimeSlotContainer>
-      {timeSlots.map((time) => (
-        <TimeSlotButton
-          key={time}
-          $isSelected={selectedTime === time}
-          onClick={() => setSelectedTime(time)}
-        >
-          {time}
-        </TimeSlotButton>
-      ))}
+      {timesSlots.map((timeSlot) => {
+        const isAvailable = isTimeSlotAvailable(timeSlot.startHour);
+        return (
+          <TimeSlotButton
+            key={timeSlot.display}
+            $isSelected={selectedTime === timeSlot.display}
+            $isDisabled={!isAvailable}
+            onClick={() => isAvailable && setSelectedTime(timeSlot.display)}
+            disabled={!isAvailable}
+          >
+            {timeSlot.display}
+          </TimeSlotButton>
+        );
+      })}
     </TimeSlotContainer>
   );
 };
@@ -40,10 +51,19 @@ const TimeSlotButton = styled.button`
   border-radius: 20px;
   font-size: ${({ theme }) => theme.font.size.bodySmall};
   font-weight: ${({ theme }) => theme.font.weight.bold};
-  border: ${({ $isSelected }) =>
-    $isSelected ? "2px solid #004FFF" : "1px solid #d6d6d6"};
-  background: ${({ $isSelected }) => ($isSelected ? "#004FFF" : "white")};
-  color: ${({ $isSelected }) => ($isSelected ? "white" : "#333")};
-  cursor: pointer;
+  border: ${({ $isSelected, $isDisabled }) => {
+    if ($isDisabled) return "1px solid #e0e0e0";
+    return $isSelected ? "2px solid #004FFF" : "1px solid #d6d6d6";
+  }};
+  background: ${({ $isSelected, $isDisabled }) => {
+    if ($isDisabled) return "#f5f5f5";
+    return $isSelected ? "#004FFF" : "white";
+  }};
+  color: ${({ $isSelected, $isDisabled }) => {
+    if ($isDisabled) return "#999";
+    return $isSelected ? "white" : "#333";
+  }};
+  cursor: ${({ $isDisabled }) => ($isDisabled ? "not-allowed" : "pointer")};
   text-align: center;
+  opacity: ${({ $isDisabled }) => ($isDisabled ? 0.6 : 1)};
 `;

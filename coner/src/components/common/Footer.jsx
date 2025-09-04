@@ -6,7 +6,7 @@ import {
   MdExpandLess,
 } from "react-icons/md";
 import { SiNaver, SiInstagram } from "react-icons/si";
-import FooterLogo from "../../assets/images/footerlogo.png";
+import { Link } from "react-router-dom";
 
 const Footer = () => {
   const [isBusinessInfoOpen, setIsBusinessInfoOpen] = useState(false);
@@ -17,8 +17,6 @@ const Footer = () => {
 
   return (
     <Section>
-      <Logo src={FooterLogo} alt="코너로고" />
-      <Divider />
       <LinksRow>
         <Footerhref
           href="https://www.notion.so/harvies/v-20250806-2475c6005f1280128afbca706f57af23"
@@ -48,7 +46,7 @@ const Footer = () => {
           </IconWrapper>
           <span>고객센터</span>
         </CustomerCenterPill>
-        <Pillhref>파트너 모집</Pillhref>
+        <Pillhref to="/partner/apply">협력업체 신청하기</Pillhref>
         <TimeBox>
           <TimeText>8:30~22:00</TimeText>
           <TimeText>* 연중 무휴</TimeText>
@@ -137,10 +135,6 @@ const Section = styled.section`
   font-family: inherit;
 `;
 
-const Logo = styled.img`
-  height: 15px;
-  display: block;
-`;
 const ButtonRow = styled.div`
   display: grid;
   grid-auto-flow: column;
@@ -181,7 +175,7 @@ const IconWrapper = styled.span`
   justify-content: center;
 `;
 
-const Pillhref = styled.a`
+const Pillhref = styled(Link)`
   padding: 10px 18px;
   border: 1px solid #d9d9d9;
   border-radius: 7px;

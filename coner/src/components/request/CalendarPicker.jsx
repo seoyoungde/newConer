@@ -13,7 +13,7 @@ const endOfDay = (d) =>
 
 const addMonths = (date, n) => {
   const d = new Date(date);
-  d.setMonth(d.getMonth() + n); // JS가 알아서 월 오버플로우 처리
+  d.setMonth(d.getMonth() + n);
   return d;
 };
 
