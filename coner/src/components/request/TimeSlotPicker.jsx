@@ -1,3 +1,4 @@
+// TimeSlotPicker.jsx
 import React from "react";
 import styled from "styled-components";
 
@@ -7,26 +8,43 @@ const timesSlots = [
   { display: "오후5시 ~ 오후 8시", startHour: 17 },
 ];
 
-const isTimeSlotAvailable = (startHour) => {
+const TimeSlotPicker = ({
+  selectedDate, // Date | null
+  selectedTime,
+  setSelectedTime,
+  disabled = false, // ASAP 등 외부에서 비활성 제어
+}) => {
   const now = new Date();
-  const currentHour = now.getHours();
-  return startHour > currentHour;
-};
 
-const TimeSlotPicker = ({ selectedTime, setSelectedTime }) => {
+  const isAvailable = (startHour) => {
+    // 1) 외부 비활성
+    if (disabled) return false;
+
+    // 2) 날짜가 없으면 선택 불가
+    if (!(selectedDate instanceof Date) || isNaN(selectedDate)) return false;
+
+    // 3) 오늘이 아니면 모두 가능
+    const isToday = selectedDate.toDateString() === now.toDateString();
+    if (!isToday) return true;
+
+    // 4) 오늘이면 현재 시각 이후만 가능
+    return startHour > now.getHours();
+  };
+
   return (
-    <TimeSlotContainer>
-      {timesSlots.map((timeSlot) => {
-        const isAvailable = isTimeSlotAvailable(timeSlot.startHour);
+    <TimeSlotContainer aria-disabled={disabled}>
+      {timesSlots.map((t) => {
+        const available = isAvailable(t.startHour);
         return (
           <TimeSlotButton
-            key={timeSlot.display}
-            $isSelected={selectedTime === timeSlot.display}
-            $isDisabled={!isAvailable}
-            onClick={() => isAvailable && setSelectedTime(timeSlot.display)}
-            disabled={!isAvailable}
+            key={t.display}
+            $isSelected={selectedTime === t.display}
+            $isDisabled={!available}
+            onClick={() => available && setSelectedTime(t.display)}
+            disabled={!available}
+            aria-disabled={!available}
           >
-            {timeSlot.display}
+            {t.display}
           </TimeSlotButton>
         );
       })}
@@ -41,8 +59,9 @@ const TimeSlotContainer = styled.div`
   grid-template-columns: repeat(3, 1fr);
   gap: 10px;
   padding-top: 20px;
+
   @media (max-width: ${({ theme }) => theme.font.breakpoints.mobile}) {
-    grid-template-columns: repeat(1, 1fr);
+    grid-template-columns: 1fr;
   }
 `;
 

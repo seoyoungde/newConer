@@ -59,7 +59,16 @@ const RequestReceived = ({
     { label: "기사님 배정 완료", content: "기사님이 배정되었습니다." },
     { label: "결제요청", content: "결제 url 전송예정" },
   ];
+  const handleGoToPayment = () => {
+    const id = localRequestData?.id || requestData?.id;
 
+    if (!id) {
+      console.error("결제 이동 실패: 요청 ID가 없습니다.");
+      return;
+    }
+
+    navigate(`/pay/${id}`);
+  };
   const handleEditClick = (requestId) => {
     setEditingRequestId(requestId);
     setSelectedService_date(requestData.service_date ?? "");
@@ -638,6 +647,18 @@ const RequestReceived = ({
                 수정
               </EditButton>
             )}
+          </ButtonGroup>
+        )}
+
+        {!editingRequestId && localRequestData.status === 3 && (
+          <ButtonGroup>
+            <Button
+              size="md"
+              style={{ width: "100%" }}
+              onClick={handleGoToPayment}
+            >
+              결제하기
+            </Button>
           </ButtonGroup>
         )}
       </RequestBox>

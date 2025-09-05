@@ -2,8 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import { loadTossPayments, ANONYMOUS } from "@tosspayments/tosspayments-sdk";
 import { doc, onSnapshot } from "firebase/firestore";
-import { db } from "../../lib/firebase";
-import styled from "styled-components";
+import { db } from "../../lib/firebase"; // Firebase 설정 경로에 맞게 수정하세요
 
 const STATUS = {
   CANCELED: 0,
@@ -11,6 +10,14 @@ const STATUS = {
   PAID: 2,
   FEE_PENDING: 3,
   FEE_DONE: 4,
+};
+
+const STATUS_MESSAGES = {
+  [STATUS.CANCELED]: "취소된 결제",
+  [STATUS.REQUESTED]: "결제 요청됨",
+  [STATUS.PAID]: "결제 완료",
+  [STATUS.FEE_PENDING]: "수수료 처리 중",
+  [STATUS.FEE_DONE]: "처리 완료",
 };
 
 function parseAmountToNumber(str) {
@@ -22,19 +29,21 @@ function parseAmountToNumber(str) {
 
 export default function PayPage() {
   const { requestId } = useParams();
+
   const [docLoading, setDocLoading] = useState(true);
   const [paymentDoc, setPaymentDoc] = useState(null);
+  const [firebaseError, setFirebaseError] = useState("");
 
   const amountObj = useMemo(
     () => ({ currency: "KRW", value: parseAmountToNumber(paymentDoc?.amount) }),
     [paymentDoc?.amount]
   );
+
   const statusNum = useMemo(
     () => (paymentDoc?.status == null ? undefined : Number(paymentDoc.status)),
     [paymentDoc?.status]
   );
 
-  // Toss Widgets refs
   const widgetsRef = useRef(null);
   const pmRef = useRef(null);
   const agRef = useRef(null);
@@ -42,50 +51,81 @@ export default function PayPage() {
 
   const [widgetReady, setWidgetReady] = useState(false);
   const [uiNote, setUiNote] = useState("");
-  const [payBusy, setPayBusy] = useState(false); // 이중 클릭 방지
+  const [payBusy, setPayBusy] = useState(false);
 
-  const envKey = String(import.meta.env.VITE_TOSS_CLIENT_KEY || "");
+  // 환경변수에서 Toss 클라이언트 키 가져오기
+  const envKey =
+    import.meta.env?.VITE_TOSS_CLIENT_KEY ||
+    "test_ck_D5GePWvyJnrK0W0k6q8gLzN97Eoq";
   const hasClientKey = !!envKey.trim();
 
-  // 결제 문서 구독
+  // Firebase에서 결제 정보 실시간 구독
   useEffect(() => {
-    if (!requestId) return;
-    const unsub = onSnapshot(doc(db, "Payment", requestId), (snap) => {
+    if (!requestId) {
       setDocLoading(false);
-      if (!snap.exists()) {
-        setPaymentDoc(null);
-        return;
+      setFirebaseError("결제 ID가 없습니다.");
+      return;
+    }
+
+    setDocLoading(true);
+    setFirebaseError("");
+
+    const unsubscribe = onSnapshot(
+      doc(db, "Payment", requestId),
+      (docSnapshot) => {
+        setDocLoading(false);
+
+        if (!docSnapshot.exists()) {
+          setPaymentDoc(null);
+          setFirebaseError("결제 정보를 찾을 수 없습니다.");
+          return;
+        }
+
+        const data = docSnapshot.data();
+        setPaymentDoc(data);
+        setFirebaseError("");
+
+        console.log("Payment data loaded:", data);
+      },
+      (error) => {
+        setDocLoading(false);
+        setFirebaseError(
+          "결제 정보 로딩 중 오류가 발생했습니다: " + error.message
+        );
+        console.error("Firebase error:", error);
       }
-      setPaymentDoc(snap.data());
-    });
-    return () => unsub();
+    );
+
+    return () => unsubscribe();
   }, [requestId]);
 
-  // TossPayments 초기화
+  // Toss Payments SDK 초기화
   useEffect(() => {
     let cancelled = false;
-    (async () => {
+
+    const initializeTossPayments = async () => {
       setWidgetReady(false);
+
       if (!requestId) return;
 
       if (!hasClientKey) {
-        setUiNote("승인 대기: 키가 없어 버튼이 비활성 상태입니다.");
+        setUiNote("Toss 클라이언트 키가 설정되지 않았습니다.");
         return;
       }
 
-      // 동일 키로 이미 초기화된 경우 재초기화 불필요
       if (widgetsRef.current && lastKeyRef.current === envKey) {
         setUiNote("");
         return;
       }
 
-      // 기존 인스턴스 정리
+      // 기존 위젯 정리
       try {
         await pmRef.current?.destroy();
-      } catch {}
-      try {
         await agRef.current?.destroy();
-      } catch {}
+      } catch (e) {
+        console.log("Widget cleanup:", e.message);
+      }
+
       pmRef.current = null;
       agRef.current = null;
       widgetsRef.current = null;
@@ -93,50 +133,56 @@ export default function PayPage() {
       try {
         const tossPayments = await loadTossPayments(envKey);
         if (cancelled) return;
+
         const widgets = tossPayments.widgets({ customerKey: ANONYMOUS });
         widgetsRef.current = widgets;
         lastKeyRef.current = envKey;
         setUiNote("");
       } catch (err) {
         console.error("[loadTossPayments error]", err);
-        setUiNote("결제 모듈 초기화 실패. 클라이언트 키를 확인하세요.");
+        setUiNote("결제 모듈 초기화 실패: " + err.message);
       }
-    })();
+    };
+
+    initializeTossPayments();
+
     return () => {
       cancelled = true;
-      (async () => {
+      const cleanup = async () => {
         try {
           await pmRef.current?.destroy();
-        } catch {}
-        try {
           await agRef.current?.destroy();
-        } catch {}
+        } catch (e) {
+          console.log("Cleanup error:", e);
+        }
         pmRef.current = null;
         agRef.current = null;
         widgetsRef.current = null;
         setWidgetReady(false);
-      })();
+      };
+      cleanup();
     };
   }, [requestId, hasClientKey, envKey]);
 
-  // 결제수단/약관 렌더
+  // 결제 위젯 렌더링
   useEffect(() => {
     const widgets = widgetsRef.current;
-    if (!widgets) return;
-    if (!requestId || !paymentDoc) return;
+    if (!widgets || !requestId || !paymentDoc) return;
 
+    // 결제 가능한 상태가 아닌 경우 위젯 정리
     if (statusNum !== STATUS.REQUESTED) {
-      (async () => {
+      const cleanupWidgets = async () => {
         try {
           await pmRef.current?.destroy();
-        } catch {}
-        try {
           await agRef.current?.destroy();
-        } catch {}
+        } catch (e) {
+          console.log("Widget cleanup:", e);
+        }
         pmRef.current = null;
         agRef.current = null;
         setWidgetReady(false);
-      })();
+      };
+      cleanupWidgets();
       return;
     }
 
@@ -146,12 +192,13 @@ export default function PayPage() {
     }
 
     let cancelled = false;
-    (async () => {
+
+    const renderWidgets = async () => {
       try {
-        // 금액 반영
+        // 금액 설정
         await widgets.setAmount(amountObj);
 
-        // 기존 위젯 파기
+        // 기존 위젯 정리
         if (pmRef.current) {
           await pmRef.current.destroy();
           pmRef.current = null;
@@ -161,11 +208,9 @@ export default function PayPage() {
           agRef.current = null;
         }
 
-        // 최초 렌더 시 금액/스킨 명시 (간편결제/계좌이체/가상계좌 노출 안정화)
+        // 새 위젯 렌더링
         pmRef.current = await widgets.renderPaymentMethods({
           selector: "#payment-method",
-          // variantKey는 옵션이지만, 없애도 무방합니다. (남겨두고 싶으면 아래 주석 해제)
-          // variantKey: "DEFAULT",
         });
 
         agRef.current = await widgets.renderAgreement({
@@ -180,35 +225,46 @@ export default function PayPage() {
         console.error("[Toss render error]", err);
         if (!cancelled) {
           setWidgetReady(false);
-          setUiNote("결제 위젯 렌더링 실패");
+          setUiNote("결제 위젯 렌더링 실패: " + err.message);
         }
       }
-    })();
+    };
+
+    renderWidgets();
+
     return () => {
       cancelled = true;
       setWidgetReady(false);
     };
   }, [requestId, paymentDoc, amountObj.value, statusNum]);
 
-  // 결제 버튼
+  // 결제 요청
   const onPay = async () => {
-    if (payBusy) return; // 이중 클릭 방지
+    if (payBusy) return;
     const widgets = widgetsRef.current;
     if (!widgets || !paymentDoc || !requestId) return;
 
     if (statusNum !== STATUS.REQUESTED) {
-      alert("현재 상태에서는 결제를 진행할 수 없습니다.");
+      alert(
+        `현재 상태에서는 결제를 진행할 수 없습니다. (${STATUS_MESSAGES[statusNum]})`
+      );
       return;
     }
+
     if (!amountObj.value || amountObj.value <= 0) {
       alert("결제 금액이 올바르지 않습니다.");
       return;
     }
 
     const orderId = `order_${requestId}_${Date.now()}`;
-    const orderName = paymentDoc.method
-      ? `${paymentDoc.method} / ${requestId}`
-      : `주문 ${requestId}`;
+    const orderName =
+      paymentDoc.method || paymentDoc.service_type || paymentDoc.aircon_type
+        ? `${
+            paymentDoc.method ||
+            paymentDoc.service_type ||
+            paymentDoc.aircon_type
+          } / ${requestId}`
+        : `주문 ${requestId}`;
 
     try {
       setPayBusy(true);
@@ -220,239 +276,401 @@ export default function PayPage() {
       });
     } catch (e) {
       console.error("[Toss requestPayment error]", e);
-      alert("결제 요청 중 오류가 발생했습니다.");
+      alert("결제 요청 중 오류가 발생했습니다: " + e.message);
     } finally {
       setPayBusy(false);
     }
   };
 
-  // 버튼 상태
+  // 버튼 상태 계산
   const payEnabled =
     hasClientKey && statusNum === STATUS.REQUESTED && widgetReady && !payBusy;
-
   const disabledReason = !hasClientKey
     ? "키 미설정"
     : statusNum !== STATUS.REQUESTED
-    ? "결제 불가"
+    ? STATUS_MESSAGES[statusNum] || "결제 불가"
     : !widgetReady
     ? "모듈 준비 중"
     : payBusy
     ? "결제 진행 중"
     : "";
 
-  if (!requestId || docLoading)
-    return <Loading>결제 정보를 불러오는 중...</Loading>;
-  if (!paymentDoc) return <Loading>결제 정보를 찾을 수 없습니다.</Loading>;
+  // 로딩 상태
+  if (!requestId || docLoading) {
+    return (
+      <div style={styles.loading}>
+        <div style={styles.loadingSpinner}></div>
+        <p>결제 정보를 불러오는 중...</p>
+      </div>
+    );
+  }
+
+  // Firebase 에러 또는 결제 정보 없음
+  if (firebaseError || !paymentDoc) {
+    return (
+      <div style={styles.loading}>
+        <div style={styles.errorIcon}>⚠️</div>
+        <h2>결제 정보 오류</h2>
+        <p style={styles.errorText}>
+          {firebaseError || "결제 정보를 찾을 수 없습니다."}
+        </p>
+        <button
+          style={styles.retryButton}
+          onClick={() => window.location.reload()}
+        >
+          다시 시도
+        </button>
+      </div>
+    );
+  }
 
   return (
-    <>
-      <Shell>
-        <Card>
-          <Title>Coner 결제</Title>
-          <SubTitle>주문 ID {requestId}</SubTitle>
+    <div style={styles.container}>
+      <div style={styles.shell}>
+        <div style={styles.card}>
+          <h1 style={styles.title}>Coner 결제</h1>
+          <p style={styles.subTitle}>주문 ID: {requestId}</p>
 
-          <AmountBox>
-            <span>결제금액</span>
-            <strong>{amountObj.value.toLocaleString()}원</strong>
-          </AmountBox>
-
-          {uiNote && <Note>{uiNote}</Note>}
-          <Note
+          {/* 결제 상태 표시 */}
+          <div
             style={{
-              background: "#F8FBFF",
-              color: "#0F172A",
-              border: "1px solid #E5EAF0",
+              ...styles.statusBox,
+              ...(statusNum === STATUS.REQUESTED
+                ? styles.statusActive
+                : styles.statusInactive),
             }}
           >
-            <strong>안내</strong>
-            <br />
-            · 애플페이는 iOS/Safari 및 등록 카드가 있을 때 노출됩니다.
-            <br />
-            · 삼성페이는 삼성 기기/브라우저에서만 노출됩니다.
-            <br />· 가상계좌는 결제 후 <u>입금 완료 시 자동 반영</u>됩니다.
-          </Note>
+            상태: {STATUS_MESSAGES[statusNum] || "알 수 없음"}
+          </div>
 
-          <WidgetBox id="payment-method">
-            {!hasClientKey && <em>승인 후 결제수단이 표시됩니다.</em>}
-          </WidgetBox>
-          <WidgetBox id="agreement">
-            {!hasClientKey && <em>승인 후 약관 영역이 표시됩니다.</em>}
-          </WidgetBox>
+          <div style={styles.amountBox}>
+            <span>결제금액</span>
+            <strong>{amountObj.value.toLocaleString()}원</strong>
+          </div>
 
-          <Button disabled={!payEnabled} onClick={onPay} title={disabledReason}>
+          {/* 결제 정보 표시 */}
+          <div style={styles.infoBox}>
+            {paymentDoc.customer_name && (
+              <p>
+                <strong>고객명:</strong> {paymentDoc.customer_name}
+              </p>
+            )}
+            {paymentDoc.service_date && (
+              <p>
+                <strong>서비스 날짜:</strong> {paymentDoc.service_date}
+              </p>
+            )}
+            {paymentDoc.service_time && (
+              <p>
+                <strong>서비스 시간:</strong> {paymentDoc.service_time}
+              </p>
+            )}
+            {paymentDoc.brand && (
+              <p>
+                <strong>브랜드:</strong> {paymentDoc.brand}
+              </p>
+            )}
+            {paymentDoc.aircon_type && (
+              <p>
+                <strong>에어컨 유형:</strong> {paymentDoc.aircon_type}
+              </p>
+            )}
+            {paymentDoc.service_type && (
+              <p>
+                <strong>서비스 유형:</strong> {paymentDoc.service_type}
+              </p>
+            )}
+            {paymentDoc.customer_address && (
+              <p>
+                <strong>주소:</strong> {paymentDoc.customer_address}
+              </p>
+            )}
+          </div>
+
+          {uiNote && (
+            <div style={{ ...styles.note, ...styles.errorNote }}>{uiNote}</div>
+          )}
+
+          {statusNum === STATUS.REQUESTED ? (
+            <>
+              <div style={styles.infoNote}>
+                <strong>결제 안내</strong>
+                <br />
+                · 애플페이는 iOS/Safari 및 등록 카드가 있을 때 노출됩니다.
+                <br />
+                · 삼성페이는 삼성 기기/브라우저에서만 노출됩니다.
+                <br />· 가상계좌는 결제 후 입금 완료 시 자동 반영됩니다.
+              </div>
+
+              <div style={styles.widgetBox} id="payment-method">
+                {!hasClientKey && <em>승인 후 결제수단이 표시됩니다.</em>}
+              </div>
+
+              <div style={styles.widgetBox} id="agreement">
+                {!hasClientKey && <em>승인 후 약관 영역이 표시됩니다.</em>}
+              </div>
+            </>
+          ) : (
+            <div style={styles.notAvailableBox}>
+              <h3>결제 불가능</h3>
+              <p>
+                현재 결제 상태: <strong>{STATUS_MESSAGES[statusNum]}</strong>
+              </p>
+              <p>이미 처리된 결제이거나 취소된 결제입니다.</p>
+            </div>
+          )}
+
+          <button
+            style={{
+              ...styles.button,
+              ...(payEnabled ? styles.buttonEnabled : styles.buttonDisabled),
+            }}
+            disabled={!payEnabled}
+            onClick={onPay}
+            title={disabledReason}
+          >
             {payEnabled
               ? payBusy
                 ? "처리 중..."
                 : "결제하기"
-              : `결제하기 (${disabledReason})`}
-          </Button>
-        </Card>
-      </Shell>
+              : `결제불가 (${disabledReason})`}
+          </button>
+        </div>
+      </div>
 
       {/* 모바일 하단 고정 결제바 */}
-      <StickyBar role="region" aria-label="바닥 고정 결제 바">
-        <StickyInfo>
-          <span className="label">결제금액</span>
-          <strong className="amount">
+      <div style={styles.stickyBar}>
+        <div style={styles.stickyInfo}>
+          <span style={styles.stickyLabel}>결제금액</span>
+          <strong style={styles.stickyAmount}>
             {amountObj.value.toLocaleString()}원
           </strong>
-        </StickyInfo>
-        <StickyBtn
+        </div>
+        <button
+          style={{
+            ...styles.stickyBtn,
+            ...(payEnabled
+              ? styles.stickyBtnEnabled
+              : styles.stickyBtnDisabled),
+          }}
           disabled={!payEnabled}
           onClick={payEnabled ? onPay : undefined}
-          aria-label={
-            payEnabled ? "결제하기" : `결제 비활성: ${disabledReason}`
-          }
         >
-          {payEnabled ? (payBusy ? "처리 중..." : "결제하기") : "결제 준비중"}
-        </StickyBtn>
-      </StickyBar>
-    </>
+          {payEnabled ? (payBusy ? "처리 중..." : "결제하기") : "결제 불가"}
+        </button>
+      </div>
+    </div>
   );
 }
 
-const Shell = styled.div`
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #fafcff;
-  padding: 10px 0px;
-`;
-
-const Card = styled.div`
-  width: 100%;
-  background: #fff;
-  border: 1px solid #e5eaf0;
-  border-radius: 24px;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.05);
-  padding: 10px;
-  text-align: center;
-  margin-bottom: 100px;
-`;
-
-const Title = styled.h1`
-  margin: 0;
-  font-size: 22px;
-  color: #0f172a;
-  font-weight: 800;
-`;
-
-const SubTitle = styled.p`
-  margin: 4px 0 16px;
-  color: #64748b;
-  font-size: 14px;
-`;
-
-const AmountBox = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  background: #f0f7ff;
-  border: 1px solid #e0ebff;
-  border-radius: 16px;
-  padding: 14px 16px;
-  margin-bottom: 16px;
-  span {
-    color: #475569;
-    font-size: 14px;
-  }
-  strong {
-    font-size: 20px;
-    color: #1e40af;
-  }
-`;
-
-const Note = styled.div`
-  background: #fff4f4;
-  color: #b91c1c;
-  border: 1px solid #fecaca;
-  padding: 10px;
-  border-radius: 12px;
-  margin-bottom: 14px;
-  font-size: 14px;
-`;
-
-const WidgetBox = styled.div`
-  min-height: 100px;
-  border: 1px dashed #cbd5e1;
-  border-radius: 14px;
-  margin-bottom: 12px;
-  color: #94a3b8;
-  font-size: 14px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-`;
-
-const Button = styled.button`
-  width: 100%;
-  height: 50px;
-  border: none;
-  border-radius: 14px;
-  font-size: 16px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.2s;
-  background: ${(p) =>
-    p.disabled ? "#E2E8F0" : "linear-gradient(90deg,#2F80ED,#56CCF2)"};
-  color: ${(p) => (p.disabled ? "#94A3B8" : "#fff")};
-  box-shadow: ${(p) =>
-    p.disabled ? "none" : "0 4px 12px rgba(47,128,237,0.3)"};
-`;
-
-/* 로딩 상태 표시용 */
-const Loading = styled.div`
-  text-align: center;
-  color: #64748b;
-  padding: 40px;
-`;
-
-// Sticky bottom bar (mobile)
-const StickyBar = styled.div`
-  position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  display: none;
-  align-items: center;
-  gap: 12px;
-  padding: 10px 14px;
-  background: rgba(255, 255, 255, 0.96);
-  backdrop-filter: saturate(180%) blur(8px);
-  border-top: 1px solid #e5eaf0;
-  box-shadow: 0 -4px 16px rgba(15, 23, 42, 0.06);
-  padding-bottom: calc(10px + env(safe-area-inset-bottom));
-  z-index: 50;
-  @media (max-width: 520px) {
-    display: flex;
-  }
-`;
-const StickyInfo = styled.div`
-  display: flex;
-  flex-direction: column;
-  .label {
-    font-size: 12px;
-    color: #64748b;
-  }
-  .amount {
-    font-size: 18px;
-  }
-`;
-const StickyBtn = styled.button`
-  margin-left: auto;
-  height: 46px;
-  padding: 0 18px;
-  border-radius: 12px;
-  border: none;
-  font-weight: 800;
-  color: #fff;
-  background: linear-gradient(180deg, #2f80ed 0%, #4fa1ff 100%);
-  box-shadow: 0 6px 14px rgba(47, 128, 237, 0.25);
-  &:disabled {
-    color: #475569;
-    background: linear-gradient(180deg, #bfd8ff, #a7c9ff);
-    cursor: not-allowed;
-    box-shadow: none;
-  }
-`;
+const styles = {
+  container: {
+    minHeight: "100vh",
+    background: "#fafcff",
+  },
+  shell: {
+    minHeight: "100vh",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: "20px 10px",
+  },
+  card: {
+    width: "100%",
+    maxWidth: "480px",
+    background: "#fff",
+    border: "1px solid #e5eaf0",
+    borderRadius: "24px",
+    boxShadow: "0 6px 20px rgba(0, 0, 0, 0.05)",
+    padding: "24px",
+    textAlign: "center",
+    marginBottom: "100px",
+  },
+  title: {
+    margin: "0",
+    fontSize: "22px",
+    color: "#0f172a",
+    fontWeight: "800",
+  },
+  subTitle: {
+    margin: "4px 0 16px",
+    color: "#64748b",
+    fontSize: "14px",
+  },
+  statusBox: {
+    padding: "8px 12px",
+    borderRadius: "12px",
+    fontSize: "14px",
+    fontWeight: "600",
+    marginBottom: "16px",
+  },
+  statusActive: {
+    background: "#ecfdf5",
+    color: "#166534",
+    border: "1px solid #86efac",
+  },
+  statusInactive: {
+    background: "#fef2f2",
+    color: "#991b1b",
+    border: "1px solid #fecaca",
+  },
+  amountBox: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    background: "#f0f7ff",
+    border: "1px solid #e0ebff",
+    borderRadius: "16px",
+    padding: "14px 16px",
+    marginBottom: "16px",
+  },
+  infoBox: {
+    background: "#f8fafc",
+    border: "1px solid #e2e8f0",
+    borderRadius: "12px",
+    padding: "12px 16px",
+    marginBottom: "16px",
+    textAlign: "left",
+    fontSize: "14px",
+    color: "#475569",
+  },
+  note: {
+    padding: "10px",
+    borderRadius: "12px",
+    marginBottom: "14px",
+    fontSize: "14px",
+  },
+  errorNote: {
+    background: "#fff4f4",
+    color: "#b91c1c",
+    border: "1px solid #fecaca",
+  },
+  infoNote: {
+    background: "#f8fbff",
+    color: "#0f172a",
+    border: "1px solid #e5eaf0",
+    padding: "12px",
+    borderRadius: "12px",
+    marginBottom: "14px",
+    fontSize: "14px",
+    textAlign: "left",
+  },
+  notAvailableBox: {
+    background: "#fef2f2",
+    border: "1px solid #fecaca",
+    borderRadius: "12px",
+    padding: "20px",
+    marginBottom: "16px",
+    color: "#991b1b",
+  },
+  widgetBox: {
+    minHeight: "100px",
+    border: "1px dashed #cbd5e1",
+    borderRadius: "14px",
+    marginBottom: "12px",
+    color: "#94a3b8",
+    fontSize: "14px",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  button: {
+    width: "100%",
+    height: "50px",
+    border: "none",
+    borderRadius: "14px",
+    fontSize: "16px",
+    fontWeight: "700",
+    cursor: "pointer",
+    transition: "all 0.2s",
+  },
+  buttonEnabled: {
+    background: "linear-gradient(90deg,#2F80ED,#56CCF2)",
+    color: "#fff",
+    boxShadow: "0 4px 12px rgba(47,128,237,0.3)",
+  },
+  buttonDisabled: {
+    background: "#E2E8F0",
+    color: "#94A3B8",
+    cursor: "not-allowed",
+  },
+  loading: {
+    textAlign: "center",
+    color: "#64748b",
+    padding: "40px",
+    minHeight: "100vh",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  loadingSpinner: {
+    width: "40px",
+    height: "40px",
+    border: "4px solid #e5eaf0",
+    borderTop: "4px solid #3b82f6",
+    borderRadius: "50%",
+    animation: "spin 1s linear infinite",
+    margin: "0 auto 16px",
+  },
+  errorIcon: {
+    fontSize: "48px",
+    marginBottom: "16px",
+  },
+  errorText: {
+    color: "#dc2626",
+    marginBottom: "20px",
+  },
+  retryButton: {
+    padding: "12px 24px",
+    background: "#3b82f6",
+    color: "white",
+    border: "none",
+    borderRadius: "8px",
+    cursor: "pointer",
+  },
+  stickyBar: {
+    position: "fixed",
+    left: "0",
+    right: "0",
+    bottom: "0",
+    display: "none",
+    alignItems: "center",
+    gap: "12px",
+    padding: "10px 14px",
+    background: "rgba(255, 255, 255, 0.96)",
+    backdropFilter: "saturate(180%) blur(8px)",
+    borderTop: "1px solid #e5eaf0",
+    boxShadow: "0 -4px 16px rgba(15, 23, 42, 0.06)",
+    zIndex: "50",
+  },
+  stickyInfo: {
+    display: "flex",
+    flexDirection: "column",
+  },
+  stickyLabel: {
+    fontSize: "12px",
+    color: "#64748b",
+  },
+  stickyAmount: {
+    fontSize: "18px",
+  },
+  stickyBtn: {
+    marginLeft: "auto",
+    height: "46px",
+    padding: "0 18px",
+    borderRadius: "12px",
+    border: "none",
+    fontWeight: "800",
+  },
+  stickyBtnEnabled: {
+    color: "#fff",
+    background: "linear-gradient(180deg, #2f80ed 0%, #4fa1ff 100%)",
+    boxShadow: "0 6px 14px rgba(47, 128, 237, 0.25)",
+  },
+  stickyBtnDisabled: {
+    color: "#475569",
+    background: "linear-gradient(180deg, #bfd8ff, #a7c9ff)",
+    cursor: "not-allowed",
+  },
+};

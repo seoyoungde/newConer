@@ -75,7 +75,7 @@ export default function FailPage() {
             다시 결제하기
           </RetryBtn>
           <GhostBtn onClick={copyDebug}>
-            {copied ? "✅ 복사됨" : "버그 리포트용 복사"}
+            {copied ? "복사됨" : "버그 리포트용 복사"}
           </GhostBtn>
         </BtnRow>
       </Card>

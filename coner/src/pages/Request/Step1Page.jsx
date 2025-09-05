@@ -164,6 +164,7 @@ const Step1Page = () => {
             </InfoText>
 
             <TimeSlotPicker
+              selectedDate={selectedDate}
               selectedTime={selectedTime}
               setSelectedTime={(time) => {
                 if (asap) return; // 입력 가드

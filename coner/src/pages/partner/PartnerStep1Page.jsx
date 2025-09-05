@@ -150,7 +150,6 @@ const PartnerStep1Page = () => {
         </DateBox>
 
         <TimeBox aria-disabled={asap}>
-
           <SelectedContainer>
             <TimeIcon>
               <AiOutlineClockCircle />
@@ -165,6 +164,7 @@ const PartnerStep1Page = () => {
                 : "선택하신 시간대에 기사님이 방문해요"}
             </InfoText>
             <TimeSlotPicker
+              selectedDate={selectedDate}
               selectedTime={selectedTime}
               setSelectedTime={(time) => {
                 if (asap) return; // 입력 가드
