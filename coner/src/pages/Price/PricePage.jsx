@@ -1,8 +1,7 @@
 import React, { useState } from "react";
 import styled from "styled-components";
-import pricingchartIcon from "../../assets/price/pricing-chart.png";
-import pricingchartoptionsIcon from "../../assets/price/pricing-chart-options.png";
 import TitleHeader from "../../components/common/Header/NavHeader";
+import PricingTable from "./PriceTable";
 
 const PricingPage = () => {
   const [showExtraImage, setShowExtraImage] = useState(false);
@@ -13,19 +12,19 @@ const PricingPage = () => {
 
   return (
     <Container>
-      <TitleHeader title="서비스 가격" />
-
+      <TitleHeader />
+      {/* 
       <ImageWrapper>
         <img src={pricingchartIcon} alt="서비스 비용 도표" />
-      </ImageWrapper>
+      </ImageWrapper> */}
+      <PricingTable />
+      {/* <ExtraButton onClick={handleShowExtra}>추가비용안내</ExtraButton>
 
-      <ExtraButton onClick={handleShowExtra}>추가비용안내</ExtraButton>
-
-      {showExtraImage && (
+       {showExtraImage && (
         <ImageWrapper>
           <img src={pricingchartoptionsIcon} alt="추가 비용 도표" />
         </ImageWrapper>
-      )}
+      )}  */}
     </Container>
   );
 };

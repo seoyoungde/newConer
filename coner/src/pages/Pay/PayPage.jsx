@@ -54,9 +54,7 @@ export default function PayPage() {
   const [payBusy, setPayBusy] = useState(false);
 
   // 환경변수에서 Toss 클라이언트 키 가져오기
-  const envKey =
-    import.meta.env?.VITE_TOSS_CLIENT_KEY ||
-    "test_ck_D5GePWvyJnrK0W0k6q8gLzN97Eoq";
+  const envKey = import.meta.env?.VITE_TOSS_CLIENT_KEY;
   const hasClientKey = !!envKey.trim();
 
   // Firebase에서 결제 정보 실시간 구독
@@ -238,7 +236,7 @@ export default function PayPage() {
     };
   }, [requestId, paymentDoc, amountObj.value, statusNum]);
 
-  // 결제 요청
+  // 결제 요청 - 수정된 부분
   const onPay = async () => {
     if (payBusy) return;
     const widgets = widgetsRef.current;
@@ -256,7 +254,8 @@ export default function PayPage() {
       return;
     }
 
-    const orderId = `order_${requestId}_${Date.now()}`;
+    // orderId를 명시적으로 requestId로 설정 (수정된 부분)
+    const orderId = requestId;
     const orderName =
       paymentDoc.method || paymentDoc.service_type || paymentDoc.aircon_type
         ? `${
@@ -266,10 +265,17 @@ export default function PayPage() {
           } / ${requestId}`
         : `주문 ${requestId}`;
 
+    console.log("결제 요청 정보:", {
+      orderId,
+      orderName,
+      amount: amountObj.value,
+      requestId,
+    });
+
     try {
       setPayBusy(true);
       await widgets.requestPayment({
-        orderId,
+        orderId, // 이제 requestId와 동일
         orderName,
         successUrl: `${window.location.origin}/pay/success/${requestId}`,
         failUrl: `${window.location.origin}/pay/fail/${requestId}`,

@@ -11,26 +11,25 @@ import styled from "styled-components";
 import { GrApps, GrUserSettings, GrBookmark } from "react-icons/gr";
 import { useRequest } from "../../context/context";
 import StepProgressBar from "../../components/request/StepProgressBar";
-import cleanInspection from "../../assets/price/clean_inspection_price.png";
-import installMove from "../../assets/price/install_move_price.png";
-import repairImg from "../../assets/price/repair_price.png";
-import demolish from "../../assets/price/demolish_price.png";
-import gas from "../../assets/price/gas_price.png";
 import NavHeader from "../../components/common/Header/NavHeader";
 import Modal from "../../components/common/Modal/Modal";
 import { useFunnelStep } from "../../analytics/useFunnelStep";
-
+import RepairPrice from "../../components/price/RepairPrice";
+import InstallMovePrice from "../../components/price/InstallMovePrice";
+import CleanInspectionPrice from "../../components/price/CleanInspectionPrice";
+import DemolishPrice from "../../components/price/DemolishPrice";
+import GasPrice from "../../components/price/GasPrice";
 import AdditionalDropSelected from "../../components/request/AdditionalDropSelected";
 import RequestDetails from "../../components/request/RequestDetails";
 
-const imageMap = {
-  청소: cleanInspection,
-  설치: installMove,
-  이전: installMove,
-  수리: repairImg,
-  점검: cleanInspection,
-  철거: demolish,
-  냉매충전: gas,
+const priceComponentMap = {
+  청소: <CleanInspectionPrice />,
+  설치: <InstallMovePrice />,
+  이전: <InstallMovePrice />,
+  수리: <RepairPrice />,
+  점검: <CleanInspectionPrice />,
+  철거: <DemolishPrice />,
+  냉매충전: <GasPrice />,
 };
 
 const Step2Page = () => {
@@ -83,11 +82,9 @@ const Step2Page = () => {
       return memo;
     }
     if (svc === "설치" || svc === "설치 및 구매") {
-      // 예: [옵션] + 메모
       return [pick, memo].filter(Boolean).join("\n");
     }
     if (svc === "이전" || svc === "수리") {
-      // 예: [이상사항] + 메모
       return [pick, memo].filter(Boolean).join("\n");
     }
     return memo;
@@ -100,7 +97,6 @@ const Step2Page = () => {
       return;
     }
 
-    // 추가 항목 검증
     if (needsInstallMove || needsRepair) {
       const sel = selectedDropdownOption;
       const emptyMulti = Array.isArray(sel) && sel.length === 0;
@@ -224,18 +220,14 @@ const Step2Page = () => {
 
         <RequestDetails
           additionalInfo={additionalInfo}
-          setAdditionalInfo={setAdditionalInfo} // 로컬만 변경; 저장은 onNext에서 한 번
+          setAdditionalInfo={setAdditionalInfo}
         />
 
         {/* 가격표 이미지 */}
-        {requestData.service_type && imageMap[requestData.service_type] && (
-          <ImageBox>
-            <img
-              src={imageMap[requestData.service_type]}
-              alt={`${requestData.service_type} 이미지`}
-            />
-          </ImageBox>
-        )}
+        {requestData.service_type &&
+          priceComponentMap[requestData.service_type] && (
+            <PriceBox>{priceComponentMap[requestData.service_type]}</PriceBox>
+          )}
 
         <StyledLink to="/request/price" state={{ from: "request-basic-info" }}>
           서비스비용이 궁금하신가요?
@@ -259,15 +251,14 @@ export default Step2Page;
 const Container = styled.section`
   width: 100%;
 `;
-const ImageBox = styled.div`
+const PriceBox = styled.div`
   margin-top: 10px;
-  img {
+  width: 100%;
+  > * {
     width: 100%;
-    height: auto;
   }
 `;
 const StyledLink = styled(Link)`
   color: #a0a0a0;
   font-size: 14px;
-  padding: 30px;
 `;

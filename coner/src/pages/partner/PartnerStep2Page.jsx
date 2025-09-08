@@ -6,27 +6,25 @@ import styled from "styled-components";
 import { GrApps, GrUserSettings, GrBookmark } from "react-icons/gr";
 import { useRequest } from "../../context/context";
 import StepProgressBar from "../../components/request/StepProgressBar";
-import cleanInspection from "../../assets/price/clean_inspection_price.png";
-import installMove from "../../assets/price/install_move_price.png";
-import repair from "../../assets/price/repair_price.png";
-import demolish from "../../assets/price/demolish_price.png";
-import gas from "../../assets/price/gas_price.png";
 import NavHeader from "../../components/common/Header/NavHeader";
 import Modal from "../../components/common/Modal/Modal";
 import { useFunnelStep } from "../../analytics/useFunnelStep";
-
-// 추가요청 UI들
+import CleanInspectionPrice from "../../components/price/CleanInspectionPrice";
+import InstallMovePrice from "../../components/price/InstallMovePrice";
+import RepairPrice from "../../components/price/RepairPrice";
+import DemolishPrice from "../../components/price/DemolishPrice";
+import GasPrice from "../../components/price/GasPrice";
 import AdditionalDropSelected from "../../components/request/AdditionalDropSelected";
 import RequestDetails from "../../components/request/RequestDetails";
 
-const imageMap = {
-  청소: cleanInspection,
-  설치: installMove,
-  이전: installMove,
-  수리: repair,
-  점검: cleanInspection,
-  철거: demolish,
-  냉매충전: gas,
+const priceComponentMap = {
+  청소: <CleanInspectionPrice />,
+  설치: <InstallMovePrice />,
+  이전: <InstallMovePrice />,
+  수리: <RepairPrice />,
+  점검: <CleanInspectionPrice />,
+  철거: <DemolishPrice />,
+  냉매충전: <GasPrice />,
 };
 
 const PartnerStep2Page = () => {
@@ -241,14 +239,10 @@ const PartnerStep2Page = () => {
           setAdditionalInfo={setAdditionalInfo}
         />
         {/* 가격 이미지 (선택 사항) */}
-        {requestData.service_type && imageMap[requestData.service_type] && (
-          <ImageBox>
-            <img
-              src={imageMap[requestData.service_type]}
-              alt={`${requestData.service_type} 이미지`}
-            />
-          </ImageBox>
-        )}
+        {requestData.service_type &&
+          priceComponentMap[requestData.service_type] && (
+            <PriceBox>{priceComponentMap[requestData.service_type]}</PriceBox>
+          )}
         <StyledLink to={`/partner/price/${partnerId}`}>
           서비스비용이 궁금하신가요?
         </StyledLink>
@@ -271,11 +265,11 @@ export default PartnerStep2Page;
 const Container = styled.section`
   width: 100%;
 `;
-const ImageBox = styled.div`
+const PriceBox = styled.div`
   margin-top: 10px;
-  img {
+  width: 100%;
+  > * {
     width: 100%;
-    height: auto;
   }
 `;
 const StyledLink = styled(Link)`

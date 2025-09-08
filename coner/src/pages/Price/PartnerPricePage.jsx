@@ -1,21 +1,22 @@
 import React, { useState } from "react";
 import { useParams } from "react-router-dom";
 import styled from "styled-components";
-import pricingchartIcon from "../../assets/price/pricing-chart.png";
-import pricingchartoptionsIcon from "../../assets/price/pricing-chart-options.png";
 import NavHeader from "../../components/common/Header/NavHeader";
+import PricingTable from "./PriceTable";
+
 const PartnerPricePage = () => {
-  const [showExtraImage, setShowExtraImage] = useState(false);
+  // const [showExtraImage, setShowExtraImage] = useState(false);
   const { partnerId } = useParams();
-  const handleShowExtra = () => {
-    if (!showExtraImage) setShowExtraImage(true);
-  };
+  // const handleShowExtra = () => {
+  //   if (!showExtraImage) setShowExtraImage(true);
+  // };
 
   return (
     <Container>
-      <NavHeader to={`/partner/step2/${partnerId}`} title="서비스 가격" />
+      <NavHeader to={`/partner/step2/${partnerId}`} />
+      <PricingTable />
 
-      <ImageWrapper>
+      {/* <ImageWrapper>
         <img src={pricingchartIcon} alt="서비스 비용 도표" />
       </ImageWrapper>
 
@@ -25,7 +26,7 @@ const PartnerPricePage = () => {
         <ImageWrapper>
           <img src={pricingchartoptionsIcon} alt="추가 비용 도표" />
         </ImageWrapper>
-      )}
+      )} */}
     </Container>
   );
 };

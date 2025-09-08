@@ -1,19 +1,20 @@
 import React, { useState } from "react";
 import styled from "styled-components";
-import pricingchartIcon from "../../assets/price/pricing-chart.png";
-import pricingchartoptionsIcon from "../../assets/price/pricing-chart-options.png";
 import NavHeader from "../../components/common/Header/NavHeader";
-const RequestPricePage = () => {
-  const [showExtraImage, setShowExtraImage] = useState(false);
+import PricingTable from "./PriceTable";
 
-  const handleShowExtra = () => {
-    if (!showExtraImage) setShowExtraImage(true);
-  };
+const RequestPricePage = () => {
+  // const [showExtraImage, setShowExtraImage] = useState(false);
+
+  // const handleShowExtra = () => {
+  //   if (!showExtraImage) setShowExtraImage(true);
+  // };
 
   return (
     <Container>
-      <NavHeader to="/request/step2" title="서비스 가격" />
-
+      <NavHeader to="/request/step2" />
+      <PricingTable />
+      {/* 
       <ImageWrapper>
         <img src={pricingchartIcon} alt="서비스 비용 도표" />
       </ImageWrapper>
@@ -24,7 +25,7 @@ const RequestPricePage = () => {
         <ImageWrapper>
           <img src={pricingchartoptionsIcon} alt="추가 비용 도표" />
         </ImageWrapper>
-      )}
+      )} */}
     </Container>
   );
 };

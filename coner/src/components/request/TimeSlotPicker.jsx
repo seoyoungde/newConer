@@ -21,7 +21,7 @@ const TimeSlotPicker = ({
     if (disabled) return false;
 
     // 2) 날짜가 없으면 선택 불가
-    if (!(selectedDate instanceof Date) || isNaN(selectedDate)) return false;
+    if (!(selectedDate instanceof Date) || isNaN(selectedDate)) return true;
 
     // 3) 오늘이 아니면 모두 가능
     const isToday = selectedDate.toDateString() === now.toDateString();
