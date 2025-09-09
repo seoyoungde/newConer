@@ -155,12 +155,12 @@ const Step2Page = () => {
         <DropdownSelector
           title="에어컨 종류 선택하기"
           icon={<GrApps />}
-          options={["벽걸이형", "스탠드형", "천장형", "창문형", "항온항습기"]}
+          options={["스탠드형", "천장형", "항온항습기", "벽걸이형"]}
           selected={requestData.aircon_type}
           setSelected={(v) => updateRequestData("aircon_type", v)}
           isOpen={isTypeOpen}
           setIsOpen={setIsTypeOpen}
-          optionWidths={["80px", "80px", "80px", "80px", "95px"]}
+          optionWidths={["85px", "85px", "85px", "95px"]}
         />
 
         {/* 브랜드 선택 */}

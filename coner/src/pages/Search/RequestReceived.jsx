@@ -390,18 +390,12 @@ const RequestReceived = ({
               <DropdownSelector
                 title="에어컨 종류 선택하기"
                 icon={<GrApps size="18" />}
-                options={[
-                  "벽걸이형",
-                  "스탠드형",
-                  "천장형",
-                  "창문형",
-                  "항온항습기",
-                ]}
+                options={["스탠드형", "천장형", "항온항습기", "벽걸이형"]}
                 selected={selectedAircon_type}
                 setSelected={setSelectedAircon_type}
                 isOpen={isTypeOpen}
                 setIsOpen={setIsTypeOpen}
-                optionWidths={["90px", "90px", "90px", "90px", "110px"]}
+                optionWidths={["90px", "90px", "90px", "110px"]}
               />
             ) : (
               <Value>{selectedAircon_type || "없음"}</Value>

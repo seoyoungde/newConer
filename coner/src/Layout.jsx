@@ -46,7 +46,6 @@ const Layout = () => {
     };
   }, []);
 
-  // ✅ 스크롤 프록시: 헤더/네비에서의 터치/휠을 ScrollArea로 전달
   useEffect(() => {
     const target = scrollRef.current;
     const headers = [headerRef.current, navRef.current].filter(Boolean);
@@ -55,14 +54,11 @@ const Layout = () => {
     const attachScrollProxy = (el) => {
       if (!el) return;
 
-      // 휠 이벤트 → ScrollArea로 전달
       const onWheel = (e) => {
-        // 수평 스크롤 대비: deltaX는 무시하고 deltaY만 반영
         target.scrollBy({ top: e.deltaY, behavior: "auto" });
-        e.preventDefault(); // 기본(뷰포트) 스크롤 방지
+        e.preventDefault();
       };
 
-      // 터치 드래그 → ScrollArea로 전달
       let startY = 0;
       let lastY = 0;
       let dragging = false;
@@ -76,12 +72,11 @@ const Layout = () => {
       const onTouchMove = (e) => {
         if (!dragging || !e.touches || e.touches.length !== 1) return;
         const y = e.touches[0].clientY;
-        const dy = y - lastY; // 손가락 이동량(+아래 / -위)
+        const dy = y - lastY;
         lastY = y;
 
-        // 터치 이동을 ScrollArea 스크롤로 변환(부드럽게 즉시 반영)
         target.scrollTop -= dy;
-        // 기본 스크롤/바운스 방지 (중첩 스크롤 충돌 회피)
+
         e.preventDefault();
       };
 
@@ -89,14 +84,12 @@ const Layout = () => {
         dragging = false;
       };
 
-      // passive:false로 해야 preventDefault 가능 (특히 iOS)
       el.addEventListener("wheel", onWheel, { passive: false });
       el.addEventListener("touchstart", onTouchStart, { passive: true });
       el.addEventListener("touchmove", onTouchMove, { passive: false });
       el.addEventListener("touchend", onTouchEnd, { passive: true });
       el.addEventListener("touchcancel", onTouchEnd, { passive: true });
 
-      // 정리 함수 반환
       return () => {
         el.removeEventListener("wheel", onWheel);
         el.removeEventListener("touchstart", onTouchStart);
