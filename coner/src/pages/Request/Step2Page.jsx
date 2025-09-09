@@ -107,11 +107,6 @@ const Step2Page = () => {
       }
     }
 
-    if (!additionalInfo.trim()) {
-      setPopupMessage("추가 요청사항을 입력해주세요.");
-      return;
-    }
-
     const normalizedSelected = Array.isArray(selectedDropdownOption)
       ? Array.from(new Set(selectedDropdownOption))
       : selectedDropdownOption || "";
@@ -139,7 +134,7 @@ const Step2Page = () => {
         subtitle="희망 서비스와 에어컨 정보를 선택하세요."
         onNext={handleNext}
       >
-        <DropdownSelector
+        {/* <DropdownSelector
           title={requestData.service_type || "서비스 선택"}
           icon={<GrUserSettings />}
           options={["청소", "설치", "이전", "수리", "철거", "냉매충전", "점검"]}
@@ -149,7 +144,7 @@ const Step2Page = () => {
           setIsOpen={() => {}}
           optionWidths={["70px", "70px", "70px", "70px", "70px"]}
           disabled
-        />
+        /> */}
 
         {/* 에어컨 종류 */}
         <DropdownSelector
@@ -222,18 +217,17 @@ const Step2Page = () => {
           additionalInfo={additionalInfo}
           setAdditionalInfo={setAdditionalInfo}
         />
-
+      </FormLayout>
+      <div style={{ textAlign: "center" }}>
         {/* 가격표 이미지 */}
+        <StyledLink to="/request/price" state={{ from: "request-basic-info" }}>
+          서비스비용이 궁금하신가요?
+        </StyledLink>
         {requestData.service_type &&
           priceComponentMap[requestData.service_type] && (
             <PriceBox>{priceComponentMap[requestData.service_type]}</PriceBox>
           )}
-
-        <StyledLink to="/request/price" state={{ from: "request-basic-info" }}>
-          서비스비용이 궁금하신가요?
-        </StyledLink>
-      </FormLayout>
-
+      </div>
       <Modal
         open={!!popupMessage}
         onClose={() => setPopupMessage("")}
@@ -261,4 +255,6 @@ const PriceBox = styled.div`
 const StyledLink = styled(Link)`
   color: #a0a0a0;
   font-size: 14px;
+  paading-bottom: 8px;
+  padding-top: 20px;
 `;

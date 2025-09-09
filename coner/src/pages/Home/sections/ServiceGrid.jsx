@@ -16,43 +16,41 @@ import requestIcon from "../../../assets/servicegridimages/request.png";
 const serviceData = [
   {
     id: 1,
-    title: "설치",
-    icon: installIcon,
-    path: "/request/install",
-  },
-  {
-    id: 2,
     title: "설치 및 구매",
     icon: purchaseIcon,
     path: "/request/install-purchase",
   },
-
+  {
+    id: 2,
+    title: "설치",
+    icon: installIcon,
+    path: "/install",
+  },
   {
     id: 3,
+    title: "수리",
+    icon: repairIcon,
+    path: "/repair",
+  },
+  {
+    id: 4,
+    title: "냉매충전",
+    icon: chargeIcon,
+    path: "/charge",
+  },
+  {
+    id: 5,
     title: "점검",
     icon: inspectionIcon,
     path: "/inspection",
   },
   {
-    id: 4,
+    id: 6,
     title: "청소",
     icon: cleanIcon,
     path: "/clean",
   },
 
-  {
-    id: 5,
-    title: "수리",
-    icon: repairIcon,
-    path: "/repair",
-  },
-
-  {
-    id: 6,
-    title: "냉매충전",
-    icon: chargeIcon,
-    path: "/charge",
-  },
   {
     id: 7,
     title: "이전",
@@ -99,7 +97,6 @@ const ServiceGrid = () => {
     const qs = `?service_type=${encodeURIComponent(service.title)}`;
 
     if (
-      service.path === "/request/install" ||
       service.path === "/request/install-purchase" ||
       service.path === "/price" ||
       service.path === "/search/request"

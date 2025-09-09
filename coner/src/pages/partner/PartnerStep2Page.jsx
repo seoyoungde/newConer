@@ -114,11 +114,6 @@ const PartnerStep2Page = () => {
       return;
     }
 
-    if (!(additionalInfo || "").trim()) {
-      setPopupMessage("요청사항 설명을 입력해주세요.");
-      return;
-    }
-
     // detailInfo 작성하여 Context에 저장
     const detailInfo = makeDetailInfo();
     updateRequestDataMany({
@@ -238,16 +233,17 @@ const PartnerStep2Page = () => {
           additionalInfo={additionalInfo}
           setAdditionalInfo={setAdditionalInfo}
         />
-        {/* 가격 이미지 (선택 사항) */}
+      </FormLayout>
+      {/* 가격 이미지 (선택 사항) */}
+      <div style={{ textAlign: "center" }}>
+        <StyledLink to={`/partner/price/${partnerId}`}>
+          서비스비용이 궁금하신가요?
+        </StyledLink>
         {requestData.service_type &&
           priceComponentMap[requestData.service_type] && (
             <PriceBox>{priceComponentMap[requestData.service_type]}</PriceBox>
           )}
-        <StyledLink to={`/partner/price/${partnerId}`}>
-          서비스비용이 궁금하신가요?
-        </StyledLink>
-      </FormLayout>
-
+      </div>
       <Modal
         open={!!popupMessage}
         onClose={() => setPopupMessage("")}
@@ -275,5 +271,6 @@ const PriceBox = styled.div`
 const StyledLink = styled(Link)`
   color: #a0a0a0;
   font-size: 14px;
-  padding: 30px;
+  paading-bottom: 8px;
+  padding-top: 20px;
 `;

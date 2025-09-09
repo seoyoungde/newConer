@@ -15,7 +15,7 @@ const InstallpurchasePage = () => {
   return (
     <Container>
       <NavHeader to="/" />
-      <StepProgressBar currentStep={0} totalSteps={4} />
+      <StepProgressBar currentStep={0} totalSteps={2} />
       <AirconditionerForm
         options={["중고에어컨으로 구매원해요", "신규에어컨으로 구매원해요"]}
         title="에어컨 선택"

@@ -131,7 +131,6 @@ const PartnerAddressContactForm = ({ title, description }) => {
       ["service_type", "서비스를 선택해주세요."],
       ["aircon_type", "에어컨 종류를 선택해주세요."],
       ["brand", "브랜드를 선택해주세요."],
-      ["detailInfo", "추가 요청사항을 입력해주세요."],
     ];
     for (const [k, msg] of requiredBefore) {
       if (!requestData[k]) return setPopupMessage(msg);

@@ -33,7 +33,6 @@ const ServicesType = () => {
   return (
     <TypeCards>
       <h1>서비스 가능 기기</h1>
-      <p>창문형은 설치 서비스를 제공하지 않아요</p>
       <TypeList>
         {types.map((type) => (
           <TypeCard key={type.id}>
@@ -49,16 +48,13 @@ const ServicesType = () => {
 const TypeCards = styled.section`
   cursor: default;
   margin-bottom: 60px;
-  p {
-    font-size: ${({ theme }) => theme.font.size.body};
-    margin-bottom: 24px;
-  }
 `;
 
 const TypeList = styled.ul`
   display: flex;
   justify-content: space-between;
   padding: 0 8px;
+  margin-top: 20px;
   list-style: none;
   @media (max-width: ${({ theme }) => theme.font.breakpoints.smobile}) {
     padding: 0 0px;

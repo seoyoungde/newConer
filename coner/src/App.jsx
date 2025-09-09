@@ -12,7 +12,6 @@ import AuthAddressPage from "./pages/Auth/AuthAddressPage.jsx";
 import PricingPage from "./pages/Price/PricePage.jsx";
 import RequestAddressModalPage from "./pages/Request/RequestAddressModalPage.jsx";
 import RequestPricePage from "./pages/Price/RequestPricePage.jsx";
-import InstallPage from "./pages/Request/InstallPage.jsx";
 import InstallpurchasePage from "./pages/Request/InstallPurchasePage.jsx";
 import RequestSearchPage from "./pages/Search/RequestSearchPage.jsx";
 import NavHeaderLayout from "./NavHeaderLayout.jsx";
@@ -56,7 +55,6 @@ export default function App() {
         <Route element={<NoHeaderLayout />}>
           <Route path="/signup" element={<SignupPage />} />
           <Route path="/price" element={<PricingPage />} />
-          <Route path="/request/install" element={<InstallPage />} />
           <Route
             path="/request/install-purchase"
             element={<InstallpurchasePage />}

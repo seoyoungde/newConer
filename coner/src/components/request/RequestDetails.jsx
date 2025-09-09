@@ -4,7 +4,7 @@ import styled from "styled-components";
 const RequestDetails = ({ additionalInfo, setAdditionalInfo }) => {
   return (
     <Container>
-      <Label>요청사항</Label>
+      <Label>요청사항 (선택사항)</Label>
       <Textarea
         placeholder="고장 증상, 실외기 위치 등 추가적인 정보를 입력해주세요."
         value={additionalInfo}
