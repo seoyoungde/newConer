@@ -134,7 +134,7 @@ const PartnerStep1Page = () => {
 
           <CalendarWrapper $disabled={asap} aria-disabled={asap}>
             <InfoText>
-              당일신청시 가시님과 일정조율이 필요할 수 있습니다
+              당일신청시 기사님과 일정조율이 필요할 수 있습니다
             </InfoText>
             <CalendarPicker
               selectedDate={selectedDate}

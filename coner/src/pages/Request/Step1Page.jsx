@@ -130,7 +130,7 @@ const Step1Page = () => {
           {/* 달력: ASAP 시 시각적 비활성 + 입력가드 (스크롤은 유지) */}
           <CalendarWrapper $disabled={asap} aria-disabled={asap}>
             <InfoText>
-              당일신청시 가시님과 일정조율이 필요할 수 있습니다
+              당일신청시 기사님과 일정조율이 필요할 수 있습니다
             </InfoText>
             <CalendarPicker
               selectedDate={selectedDate}
