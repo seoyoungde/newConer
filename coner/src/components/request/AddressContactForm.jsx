@@ -241,22 +241,30 @@ const AddressContactForm = ({ title, description }) => {
             readOnly={isReadOnly}
           />
         </Field>
-
         <Field>
           <Label>고객유형</Label>
-          <JobButtonBox>
-            {["사업장(기업/매장)", "개인(가정)"].map((item) => (
-              <JobButton
-                key={item}
-                $isSelected={requestData.customer_type === item}
-                onClick={() => selectCustomerType(item)}
-                type="button"
-              >
-                {item}
-              </JobButton>
-            ))}
-          </JobButtonBox>
-
+          {isReadOnly ? (
+            <TextField
+              size="md"
+              value={requestData.customer_type || ""}
+              readOnly
+            />
+          ) : (
+            <JobButtonBox>
+              {["사업장(기업/매장)", "개인(가정)"].map((item) => (
+                <JobButton
+                  key={item}
+                  $isSelected={requestData.customer_type === item}
+                  onClick={() => updateRequestData("customer_type", item)}
+                  type="button"
+                >
+                  {item}
+                </JobButton>
+              ))}
+            </JobButtonBox>
+          )}
+        </Field>
+        <Field>
           <AgreementForm onRequiredChange={setAgreementsOK} />
         </Field>
 
