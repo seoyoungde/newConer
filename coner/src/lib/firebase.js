@@ -1,6 +1,6 @@
 import { initializeApp, getApps, getApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
-import { initializeFirestore } from "firebase/firestore";
+import { getFirestore } from "firebase/firestore"; // initializeFirestore 대신
 import { getAnalytics, isSupported } from "firebase/analytics";
 
 const firebaseConfig = {
@@ -16,12 +16,27 @@ const firebaseConfig = {
 const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 
 export const auth = getAuth(app);
-export const db = initializeFirestore(app, {
-  experimentalForceLongPolling: true,
-  useFetchStreams: false,
-});
+export const db = getFirestore(app); // 단순하게 변경
 
-export const analytics = await (async () => {
-  const ok = await isSupported().catch(() => false);
-  return ok ? getAnalytics(app) : null;
-})();
+// Analytics를 지연 로딩으로 변경
+export const getAnalyticsInstance = async () => {
+  try {
+    const supported = await isSupported();
+    return supported ? getAnalytics(app) : null;
+  } catch (error) {
+    console.warn("Analytics not supported:", error);
+    return null;
+  }
+};
+
+// 또는 필요하면 이렇게 동기적으로
+export let analytics = null;
+isSupported()
+  .then((supported) => {
+    if (supported) {
+      analytics = getAnalytics(app);
+    }
+  })
+  .catch(() => {
+    console.warn("Analytics not supported");
+  });

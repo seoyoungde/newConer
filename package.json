@@ -10,6 +10,7 @@
     "styled-components": "^6.1.19"
   },
   "devDependencies": {
-    "rollup-plugin-visualizer": "^6.0.3"
+    "rollup-plugin-visualizer": "^6.0.3",
+    "vite-plugin-imagemin": "^0.6.1"
   }
 }
