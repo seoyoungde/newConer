@@ -9,12 +9,11 @@ import {
   doc,
   getDoc,
 } from "firebase/firestore";
-import { db } from "../../lib/firebase";
 import CompletedRequests from "../../components/search/CompletedRequests";
 import RequestReceived from "../Search/RequestReceived";
-import * as firebaseAuth from "firebase/auth";
-import { auth } from "../../lib/firebase";
+import { db, auth } from "../../lib/firebase";
 import { useAuth } from "../../context/AuthProvider";
+import { onAuthStateChanged } from "firebase/auth";
 import NavHeader from "../../components/common/Header/NavHeader";
 
 const MypageInquiryPage = () => {
@@ -34,7 +33,7 @@ const MypageInquiryPage = () => {
   const [activeTab, setActiveTab] = useState("progress");
 
   useEffect(() => {
-    const unsubscribe = firebaseAuth.onAuthStateChanged(auth, (u) => {
+    const unsubscribe = onAuthStateChanged(auth, (u) => {
       if (!customer_uid && u) {
         setCustomerUid(u.uid);
       }

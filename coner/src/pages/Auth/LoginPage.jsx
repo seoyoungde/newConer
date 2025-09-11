@@ -9,7 +9,7 @@ import NavHeader from "../../components/common/Header/NavHeader";
 import { db, auth } from "../../lib/firebase";
 import { collection, query, where, getDocs } from "firebase/firestore";
 import axios from "axios";
-import * as firebaseAuth from "firebase/auth";
+import { signInWithCustomToken } from "firebase/auth";
 
 const LoginPage = () => {
   const [phoneNumber, setPhoneNumber] = useState("");
@@ -102,7 +102,7 @@ const LoginPage = () => {
       });
 
       const token = response.data.customToken;
-      await firebaseAuth.signInWithCustomToken(auth, token);
+      await signInWithCustomToken(auth, token);
 
       navigate("/");
       setSentCode("");

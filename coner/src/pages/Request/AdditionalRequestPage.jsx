@@ -12,8 +12,6 @@ import AddressModal, {
 } from "../../components/common/Modal/AddressModal";
 import { useFunnelStep } from "../../analytics/useFunnelStep";
 import AgreementForm from "../../components/request/AgreementForm";
-
-import axios from "axios";
 import { auth } from "../../lib/firebase";
 
 const AddressContactForm = ({ title, description }) => {

@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-
 import styled from "styled-components";
 import { useNavigate, useLocation, useParams } from "react-router-dom";
 import {
@@ -19,6 +18,7 @@ import TextField from "../ui/formControls/TextField";
 import Button from "../ui/Button";
 import Modal from "../common/Modal/Modal";
 import AddressModal, { SERVICE_AREAS } from "../common/Modal/AddressModal";
+
 const Modify = () => {
   const navigate = useNavigate();
   const location = useLocation();

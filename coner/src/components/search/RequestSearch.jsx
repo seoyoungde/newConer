@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import { useRequest } from "../../context/context";
-import * as firebaseAuth from "firebase/auth";
+import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "../../lib/firebase";
 import TextField from "../ui/formControls/TextField";
 import Button from "../ui/Button";
@@ -80,7 +80,7 @@ const RequestSearch = () => {
   };
 
   useEffect(() => {
-    const unsubscribe = firebaseAuth.onAuthStateChanged(auth, (currentUser) => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       if (currentUser) {
         navigate("/search/inquiry", {
           state: { customer_uid: currentUser.uid },

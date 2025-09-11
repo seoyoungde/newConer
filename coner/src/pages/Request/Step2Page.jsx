@@ -8,7 +8,7 @@ import {
 import FormLayout from "../../components/request/FormLayout";
 import DropdownSelector from "../../components/request/DropdownSelector";
 import styled from "styled-components";
-import { GrApps, GrUserSettings, GrBookmark } from "react-icons/gr";
+import { GrApps, GrBookmark } from "react-icons/gr";
 import { useRequest } from "../../context/context";
 import StepProgressBar from "../../components/request/StepProgressBar";
 import NavHeader from "../../components/common/Header/NavHeader";

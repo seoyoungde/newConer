@@ -6,7 +6,6 @@ import styled from "styled-components";
 import FormLayout from "../../components/request/FormLayout";
 import { GrFormCalendar } from "react-icons/gr";
 import { AiOutlineClockCircle } from "react-icons/ai";
-import { RiFlashlightLine } from "react-icons/ri";
 import { useRequest } from "../../context/context";
 import StepProgressBar from "../../components/request/StepProgressBar";
 import NavHeader from "../../components/common/Header/NavHeader";

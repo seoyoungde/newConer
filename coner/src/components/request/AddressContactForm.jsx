@@ -10,7 +10,6 @@ import Modal from "../common/Modal/Modal";
 import AddressModal, { SERVICE_AREAS } from "../common/Modal/AddressModal";
 import { useFunnelStep } from "../../analytics/useFunnelStep";
 import AgreementForm from "./AgreementForm";
-
 import axios from "axios";
 import { auth } from "../../lib/firebase";
 
