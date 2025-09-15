@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import CalendarPicker from "../../components/request/CalendarPicker";
 import TimeSlotPicker from "../../components/request/TimeSlotPicker";
 import styled from "styled-components";
@@ -11,11 +11,13 @@ import StepProgressBar from "../../components/request/StepProgressBar";
 import NavHeader from "../../components/common/Header/NavHeader";
 import Modal from "../../components/common/Modal/Modal";
 import { useFunnelStep } from "../../analytics/useFunnelStep";
+import { serverTimestamp } from "firebase/firestore";
 
 const PartnerStep1Page = () => {
   const navigate = useNavigate();
   const { requestData, updateRequestData } = useRequest();
   const { partnerId } = useParams();
+  const [searchParms] = useSearchParams();
 
   const [asap, setAsap] = useState(requestData.service_date === "최대한빨리");
 
@@ -39,6 +41,18 @@ const PartnerStep1Page = () => {
 
   // 페이지이탈률
   const { onAdvance } = useFunnelStep({ step: 1 });
+
+  useEffect(() => {
+    const source = searchParms.get("source");
+    if (
+      source &&
+      (!requestData.sprint || !requestData.sprint.includes(source))
+    ) {
+      const currentSprint = requestData.sprint || [];
+      const newSprint = [...currentSprint, source];
+      updateRequestData("sprint", newSprint);
+    }
+  }, [searchParms, requestData.sprint, updateRequestData]);
 
   const formatDate = (date) => {
     if (!(date instanceof Date) || isNaN(date)) return "";

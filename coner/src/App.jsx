@@ -28,6 +28,7 @@ import { usePageView } from "./analytics/usePageView.jsx";
 import PayPage from "./pages/Pay/payPage.jsx";
 import SuccessPage from "./pages/Pay/successPage.jsx";
 import PartnerApply from "./pages/partner/PartnerApply.jsx";
+import SmsRequestPage from "./pages/Search/SmsRequestPage.jsx";
 
 const FailPage = lazy(() => import("./pages/Pay/FailPage.jsx"));
 const WithdrawPage = lazy(() => import("./pages/Mypage/WithdrawPage.jsx"));
@@ -73,6 +74,8 @@ export default function App() {
           <Route path="/request/price" element={<RequestPricePage />} />
           <Route path="/search/request" element={<RequestSearchPage />} />
           <Route path="/search/inquiry" element={<InquiryPage />} />
+          <Route path="/search/sms/:requestId" element={<SmsRequestPage />} />
+
           <Route path="/partner/list" element={<PartnerListPage />} />
           <Route
             path="/partner/step1/:partnerId"
