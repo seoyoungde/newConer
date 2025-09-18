@@ -22,6 +22,14 @@ export const inputSizes = {
     padding: 16px 16px;
     font-size: ${({ theme }) => theme.font.size.body};
   `,
+  reviewsize: css`
+    padding: 0px 12px;
+    height: 100px;
+    font-size: ${({ theme }) => theme.font.size.bodySmall};
+    @media (max-width: ${({ theme }) => theme.font.breakpoints.mobile}) {
+      font-size: ${({ theme }) => theme.font.size.body};
+    }
+  `,
 };
 
 /** 컨트롤(테두리 박스) 높이/밀도 */
@@ -34,6 +42,9 @@ export const controlSizes = {
   `, // 모바일 권장 최소 터치 타겟
   lg: css`
     min-height: 52px;
+  `,
+  reviewsize: css`
+    min-height: 80px;
   `,
 };
 
@@ -51,6 +62,10 @@ export const labelSizes = {
   lg: css`
     font-size: ${({ theme }) => theme.font.size.body};
     line-height: ${({ theme }) => theme.font.lineHeight.body};
+  `,
+  reviewsize: css`
+    font-size: ${({ theme }) => theme.font.size.bodySmall};
+    line-height: ${({ theme }) => theme.font.lineHeight.small};
   `,
 };
 

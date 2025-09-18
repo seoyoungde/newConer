@@ -1,5 +1,4 @@
 import { lazy, Suspense } from "react";
-
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Layout from "./Layout.jsx";
 import Home from "./pages/Home/Home.jsx";
@@ -39,6 +38,10 @@ const RequestModifyPage = lazy(() =>
 const PartnerModifyPage = lazy(() =>
   import("./pages/partner/PartnerModifyPage.jsx")
 );
+const CancelReviewPage = lazy(() =>
+  import("./pages/Review/CancelReviewPage.jsx")
+);
+const ReviewPage = lazy(() => import("./pages/Review/ReviewPage.jsx"));
 
 function PageViewTracker() {
   usePageView();
@@ -110,6 +113,8 @@ export default function App() {
           <Route path="/pay/:requestId" element={<PayPage />} />
           <Route path="/pay/success/:requestId" element={<SuccessPage />} />
           <Route path="/pay/fail/:requestId" element={<FailPage />} />
+          <Route path="/reviewform/:requestId" element={<ReviewPage />} />
+          <Route path="/cancelform/:requestId" element={<CancelReviewPage />} />
         </Route>
       </Routes>
       <RequestDraftResetter />

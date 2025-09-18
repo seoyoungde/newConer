@@ -492,6 +492,12 @@ const PartnerApply = () => {
 
       alert("협력업체 신청이 완료되었습니다.");
       navigate("/");
+
+      try {
+        await axios.post("https://api.coner.kr/sms/notifyAddApplicant", {});
+      } catch (err) {
+        console.error("❌ 알림 전송 실패:", err.response?.data || err.message);
+      }
     } catch (error) {
       alert("신청 실패: " + (error.response?.data?.message || error.message));
     } finally {
@@ -615,7 +621,7 @@ const PartnerApply = () => {
           )}
         </FormGroup>
 
-        {/* ── 단일 약관 체크박스 + 모달 ───────────────────────────── */}
+        {/* ── 단일 약관 체크박스 + 모달 ── */}
         <TermsSection>
           <label>
             <input

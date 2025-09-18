@@ -1,6 +1,7 @@
 import { initializeApp, getApps, getApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore"; // initializeFirestore 대신
+import { getStorage } from "firebase/storage";
 import { getAnalytics, isSupported } from "firebase/analytics";
 
 const firebaseConfig = {
@@ -16,7 +17,9 @@ const firebaseConfig = {
 const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 
 export const auth = getAuth(app);
+
 export const db = getFirestore(app); // 단순하게 변경
+export const storage = getStorage(app);
 
 // Analytics를 지연 로딩으로 변경
 export const getAnalyticsInstance = async () => {

@@ -329,10 +329,6 @@ const RequestReceived = ({
                 </CompanyAcceptTimeInfo>
               </TechnicianFooter>
             </TechnicianCard>
-            <TechnicianETC>
-              진행 중인 의뢰는 기사님의 일정에 따라 변경되거나 취소될 수
-              있습니다
-            </TechnicianETC>
           </TechnicianContainer>
         )}
         <ContentBox>
