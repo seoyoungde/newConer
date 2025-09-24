@@ -11,12 +11,12 @@ export const theme = {
     family:
       "'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, 'Helvetica Neue', 'Segoe UI', 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif",
     size: {
-      bodySmall: "0.875rem", // 14px
-      body: "1rem", // 16px
+      bodySmall: "0.75rem", // 12px
+      body: "0.875 rem", // 14px
       bodyLarge: "1.125rem", // 18px
       h3: "1.25rem", // 20px
-      h2: "1.5rem", // 24px
-      h1: "1.75rem", // 28px
+      h2: "1.25rem", // 24px
+      h1: "1.5rem", // 24px
       small: "0.75rem", // 12px
     },
     lineHeight: {

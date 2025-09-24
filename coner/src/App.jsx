@@ -24,10 +24,11 @@ import MypageInquiryPage from "./pages/Mypage/MypageInquiryPage.jsx";
 import ModifyPage from "./pages/Mypage/ModifyPage.jsx";
 import RequestDraftResetter from "./components/guards/RequestDraftResetter.jsx";
 import { usePageView } from "./analytics/usePageView.jsx";
-import PayPage from "./pages/Pay/payPage.jsx";
-import SuccessPage from "./pages/Pay/successPage.jsx";
+import PayPage from "./pages/Pay/PayPage.jsx";
+import SuccessPage from "./pages/Pay/SuccessPage.jsx";
 import PartnerApply from "./pages/partner/PartnerApply.jsx";
 import SmsRequestPage from "./pages/Search/SmsRequestPage.jsx";
+import PaymentProcessingPage from "./pages/Pay/PaymentProcessingPage.jsx";
 
 const FailPage = lazy(() => import("./pages/Pay/FailPage.jsx"));
 const WithdrawPage = lazy(() => import("./pages/Mypage/WithdrawPage.jsx"));
@@ -111,6 +112,10 @@ export default function App() {
             element={<PartnerModifyPage />}
           />
           <Route path="/pay/:requestId" element={<PayPage />} />
+          <Route
+            path="/payment/processing/:requestId"
+            element={<PaymentProcessingPage />}
+          />
           <Route path="/pay/success/:requestId" element={<SuccessPage />} />
           <Route path="/pay/fail/:requestId" element={<FailPage />} />
           <Route path="/reviewform/:requestId" element={<ReviewPage />} />

@@ -54,8 +54,7 @@ const QnaItem = styled.div`
   padding: 18px 20px;
   margin-bottom: 15px;
 `;
-const Q = styled.h1`
-  font-size: ${({ theme }) => theme.font.size.bodyLarge};
+const Q = styled.p`
   font-weight: ${({ theme }) => theme.font.weight.bold};
   margin-bottom: 12px;
 `;

@@ -416,8 +416,10 @@ const CareerBox = styled.div`
   align-items: center;
 `;
 
-const Name = styled.h3`
+const Name = styled.p`
   margin-top: 4px;
+  font-size: ${({ theme }) => theme.font.size.body};
+  font-weight: ${({ theme }) => theme.font.weight.bold};
   @media (max-width: ${({ theme }) => theme.font.breakpoints.mobile}) {
     font-size: ${({ theme }) => theme.font.size.body};
   }

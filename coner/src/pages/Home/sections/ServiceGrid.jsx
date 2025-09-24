@@ -38,40 +38,40 @@ const serviceData = [
     icon: chargeIcon,
     path: "/charge",
   },
+  // {
+  //   id: 5,
+  //   title: "점검",
+  //   icon: inspectionIcon,
+  //   path: "/inspection",
+  // },
   {
     id: 5,
-    title: "점검",
-    icon: inspectionIcon,
-    path: "/inspection",
-  },
-  {
-    id: 6,
     title: "청소",
     icon: cleanIcon,
     path: "/clean",
   },
 
   {
-    id: 7,
-    title: "이전",
+    id: 6,
+    title: "이전설치",
     icon: moveIcon,
     path: "/move",
   },
 
+  // {
+  //   id: 8,
+  //   title: "철거",
+  //   icon: demolishIcon,
+  //   path: "/demolish",
+  // },
   {
-    id: 8,
-    title: "철거",
-    icon: demolishIcon,
-    path: "/demolish",
-  },
-  {
-    id: 9,
+    id: 7,
     title: "서비스 가격",
     icon: priceIcon,
     path: "/price",
   },
   {
-    id: 10,
+    id: 8,
     title: "의뢰서 조회",
     icon: requestIcon,
     path: "/search/request",
@@ -148,7 +148,7 @@ const ServiceList = styled.ul`
 `;
 
 const ServiceItem = styled.li`
-  flex: 0 0 20%;
+  flex: 0 0 25%;
   display: flex;
   flex-direction: column;
   align-items: center;
