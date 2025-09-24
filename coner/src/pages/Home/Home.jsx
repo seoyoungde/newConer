@@ -18,7 +18,7 @@ const Home = () => {
       <MainContent>
         <ServiceGrid />
         <PartnerSelect />
-        <ServiceType />
+        {/* <ServiceType /> */}
         <Footer />
       </MainContent>
     </div>

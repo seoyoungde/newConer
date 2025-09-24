@@ -289,6 +289,17 @@ const RequestReceived = ({
             </ProgressStep>
           ))}
         </ProgressBar>
+        {!editingRequestId && localRequestData.status === 3 && (
+          <ButtonGroup>
+            <Button
+              size="md"
+              style={{ width: "100%" }}
+              onClick={handleGoToPayment}
+            >
+              결제하기
+            </Button>
+          </ButtonGroup>
+        )}
         <RefreshIconButton onClick={handleRefresh} title="새로고침">
           <MdRefresh />
           <RefreshText>실시간 의뢰서 정보 업데이트하기</RefreshText>
@@ -639,18 +650,6 @@ const RequestReceived = ({
             )}
           </ButtonGroup>
         )}
-
-        {!editingRequestId && localRequestData.status === 3 && (
-          <ButtonGroup>
-            <Button
-              size="md"
-              style={{ width: "100%" }}
-              onClick={handleGoToPayment}
-            >
-              결제하기
-            </Button>
-          </ButtonGroup>
-        )}
       </RequestBox>
 
       {isCancelPopupOpen && (
@@ -701,10 +700,6 @@ const LabelBox = styled.div`
 `;
 const TechnicianContainer = styled.div``;
 
-const TechnicianETC = styled.div`
-  font-size: ${({ theme }) => theme.font.size.bodySmall};
-  padding-bottom: 20px;
-`;
 const Container = styled.div`
   display: flex;
   flex-direction: column;
@@ -770,7 +765,7 @@ const TechnicianCard = styled.div`
   margin-bottom: 20px;
 `;
 
-const TechnicianTitle = styled.h3`
+const TechnicianTitle = styled.p`
   font-size: ${({ theme }) => theme.font.size.body};
   font-weight: ${({ theme }) => theme.font.weight.bold};
   margin-bottom: 15px;
@@ -796,7 +791,7 @@ const Tag = styled.span`
   border-radius: 15px;
 `;
 const Tag2 = styled.div``;
-const TechnicianName = styled.h2`
+const TechnicianName = styled.p`
   font-size: ${({ theme }) => theme.font.size.body};
   font-weight: ${({ theme }) => theme.font.weight.bold};
   margin-top: 5px;
@@ -848,7 +843,7 @@ const Section = styled.div`
 `;
 
 const Label = styled.div`
-  font-size: ${({ theme }) => theme.font.size.body};
+  font-size: ${({ theme }) => theme.font.size.bodySm};
   font-weight: ${({ theme }) => theme.font.weight.bold};
   margin-bottom: 5px;
 `;

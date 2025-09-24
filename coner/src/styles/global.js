@@ -73,7 +73,7 @@ export const GlobalStyle = createGlobalStyle`
     font-weight: ${({ theme }) => theme.font.weight.bold};
   }
 
-  h1 { font-size: ${({ theme }) => theme.font.size.h1}; line-height: ${({
+  h1 { font-size: ${({ theme }) => theme.font.size.h2}; line-height: ${({
   theme,
 }) => theme.font.lineHeight.h1}; }
   h2 { font-size: ${({ theme }) => theme.font.size.h2}; line-height: ${({

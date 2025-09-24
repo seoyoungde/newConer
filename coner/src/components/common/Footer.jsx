@@ -99,22 +99,34 @@ const Footer = () => {
             <BusinessInfoLabel>상호</BusinessInfoLabel>
             <BusinessInfoValue>(주)코너플랫폼</BusinessInfoValue>
           </BusinessInfoRow>
+
           <BusinessInfoRow>
             <BusinessInfoLabel>대표자</BusinessInfoLabel>
             <BusinessInfoValue>서진형</BusinessInfoValue>
           </BusinessInfoRow>
+
           <BusinessInfoRow>
             <BusinessInfoLabel>전화번호</BusinessInfoLabel>
             <BusinessInfoValue>010-5543-0636</BusinessInfoValue>
           </BusinessInfoRow>
+
           <BusinessInfoRow>
             <BusinessInfoLabel>사업자등록번호</BusinessInfoLabel>
             <BusinessInfoValue>527-86-03637</BusinessInfoValue>
           </BusinessInfoRow>
-          {/* <BusinessInfoRow>
-            <BusinessInfoLabel>통신판매업신고</BusinessInfoLabel>
-            <BusinessInfoValue>제2025-서울강남-0001호</BusinessInfoValue>
-          </BusinessInfoRow> */}
+
+          <BusinessInfoRow>
+            <BusinessInfoLabel>통신판매업신고증</BusinessInfoLabel>
+            <BusinessInfoValue>
+              통신판매업신고증 : 제 2025-서울중랑-1489 호
+            </BusinessInfoValue>
+          </BusinessInfoRow>
+
+          <BusinessInfoRow>
+            <BusinessInfoLabel>호스팅서비스 제공자</BusinessInfoLabel>
+            <BusinessInfoValue>Firebase Hosting</BusinessInfoValue>
+          </BusinessInfoRow>
+
           <BusinessInfoRow>
             <BusinessInfoLabel>주소</BusinessInfoLabel>
             <BusinessInfoValue>
@@ -368,7 +380,7 @@ const BusinessInfoValue = styled.span`
   font-size: ${({ theme }) => theme.font.size.small};
   font-weight: ${({ theme }) => theme.font.weight.regular};
   color: ${({ theme }) => theme.colors.text};
-  line-height: 1.4;
+  line-height: 2;
 
   @media (max-width: ${({ theme }) => theme.font.breakpoints.smobile}) {
     font-size: 12px;

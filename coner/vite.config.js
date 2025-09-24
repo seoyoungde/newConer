@@ -13,6 +13,7 @@ export default defineConfig(({ mode }) => ({
       open: true,
     }),
   ],
+
   build: {
     outDir: "dist",
     sourcemap: mode !== "production",
