@@ -14,17 +14,14 @@ export default function FailPage() {
   const payMethod = params.get("PayMethod") || ""; // 결제수단
   const mid = params.get("MID") || ""; // 가맹점 ID
 
-  // 기존 토스페이먼츠 방식도 호환 (혹시 모를 경우를 대비)
   const legacyCode = params.get("code") || "";
   const legacyMessage = params.get("message") || "";
   const legacyOrderId = params.get("orderId") || "";
 
-  // 최종 코드와 메시지 결정
   const finalCode = authResultCode || legacyCode;
   const finalMessage = authResultMsg || legacyMessage;
   const finalOrderId = moid || legacyOrderId;
 
-  // 실패코드 → 사용자 안내 문구 매핑 (나이스페이용)
   const friendly = useMemo(
     () => mapNicePayFailCodeToHelp(finalCode),
     [finalCode]
@@ -40,7 +37,7 @@ export default function FailPage() {
         moid,
         payMethod,
         mid,
-        // 레거시 정보도 포함
+
         legacyCode,
         legacyMessage,
         legacyOrderId,
@@ -50,7 +47,6 @@ export default function FailPage() {
       setCopied(true);
       setTimeout(() => setCopied(false), 1200);
     } catch (e) {
-      // 클립보드 권한이 없을 수 있음
       alert("복사에 실패했습니다. 수동으로 캡처해 주세요.");
     }
   };
@@ -88,7 +84,6 @@ export default function FailPage() {
           )}
         </InfoBox>
 
-        {/* 사용자 친화 가이드 */}
         <Guide>
           <strong>{friendly.title}</strong>
           <ul>
@@ -112,7 +107,6 @@ export default function FailPage() {
   );
 }
 
-// 결제수단 이름 변환
 function getPaymentMethodName(method) {
   const methodNames = {
     CARD: "신용카드",
@@ -128,7 +122,6 @@ function getPaymentMethodName(method) {
   return methodNames[method] || method;
 }
 
-// 나이스페이 실패 코드 매핑
 function mapNicePayFailCodeToHelp(code) {
   const fallback = {
     title: "결제가 중단되었습니다",
@@ -203,7 +196,7 @@ function mapNicePayFailCodeToHelp(code) {
       ],
       note: "",
     },
-    // 기존 토스페이먼츠 코드들도 호환
+
     USER_CANCEL: {
       title: "결제가 취소되었습니다",
       suggestions: [

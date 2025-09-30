@@ -63,11 +63,11 @@ const RequestReceived = ({
     const id = localRequestData?.id || requestData?.id;
 
     if (!id) {
-      console.error("결제 이동 실패: 요청 ID가 없습니다.");
       return;
     }
 
-    navigate(`/pay/${id}`);
+    // navigate(`/pay/${id}`);
+    navigate("/");
   };
   const handleEditClick = (requestId) => {
     setEditingRequestId(requestId);
@@ -107,26 +107,14 @@ const RequestReceived = ({
     if (!request.id) return;
 
     let formattedDetailInfo = "";
-    if (["청소", "철거", "점검", "냉매 충전"].includes(selectedService_type)) {
+    if (
+      ["청소", "냉매 충전", "수리", "이전설치", "설치"].includes(
+        selectedService_type
+      )
+    ) {
       formattedDetailInfo = additionalInfo;
-    } else if (selectedService_type === "설치") {
-      formattedDetailInfo = [
-        selectedDropdownOption,
-        additionalInfo,
-        selectedairconditionerform,
-      ]
-        .filter(Boolean)
-        .join("\n");
-    } else if (["수리", "이전"].includes(selectedService_type)) {
-      formattedDetailInfo = [additionalInfo, selectedDropdownOption]
-        .filter(Boolean)
-        .join("\n");
-    } else if (selectedService_type === "설치&에어컨구매") {
-      formattedDetailInfo = [
-        selectedDropdownOption,
-        selectedairconditionerform,
-        additionalInfo,
-      ]
+    } else if (selectedService_type === "설치 및 구매") {
+      formattedDetailInfo = [selectedairconditionerform, additionalInfo]
         .filter(Boolean)
         .join("\n");
     }
@@ -200,14 +188,6 @@ const RequestReceived = ({
       console.error("새로고침 중 오류:", error);
     }
   };
-
-  //   useEffect(() => {
-  //     setRequests((prevRequests) =>
-  //       prevRequests.map((req) =>
-  //         req.id === requestData.id ? { ...req, detailInfo: additionalInfo } : req
-  //       )
-  //     );
-  //   }, [additionalInfo]);
 
   const handleCancelRequestPopup = (requestId) => {
     setCancelRequestId(requestId);
@@ -417,13 +397,11 @@ const RequestReceived = ({
                 icon={<GrUserSettings size="18" />}
                 options={[
                   "설치",
-                  "설치&에어컨구매",
-                  "점검",
+                  "설치 및 구매",
                   "청소",
                   "수리",
                   "냉매 충전",
-                  "이전",
-                  "철거",
+                  "이전설치",
                 ]}
                 selected={selectedService_type}
                 setSelected={setSelectedService_type}
@@ -488,7 +466,7 @@ const RequestReceived = ({
           <Section style={{ whiteSpace: "pre-line" }}>
             {editingRequestId === requestData.id ? (
               <>
-                {["청소", "철거", "점검", "냉매 충전"].includes(
+                {["청소", "냉매 충전", "수리", "설치", "이전설치"].includes(
                   selectedService_type
                 ) && (
                   <RequestDetails
@@ -496,61 +474,8 @@ const RequestReceived = ({
                     setAdditionalInfo={setAdditionalInfo}
                   />
                 )}
-                {selectedService_type === "수리" && (
-                  <>
-                    <AdditionalDropSelected
-                      options={[
-                        "에어컨이 작동하지 않아요.",
-                        "에어컨에서 이상한 소리가 나요.",
-                        "에어컨 전원이 켜지지 않아요.",
-                        "에어컨에서 이상한 냄새가 나요.",
-                        "에어컨에서 물이 흘러나와요.",
-                        "에어컨이 부분적으로만 작동돼요.",
-                        "에어컨이 자동으로 꺼지거나 켜져요.",
-                        "에어컨 온도 조절이 잘 안돼요.",
-                        "기타",
-                      ]}
-                      placeholderText="에어컨 이상사항을 선택해주세요"
-                      boxPerRow={2}
-                      isMultiSelect={true}
-                      onSelect={(option) => setSelectedDropdownOption(option)}
-                    />
-                    <Label>추가요청사항</Label>
-                    <RequestDetails
-                      additionalInfo={additionalInfo}
-                      setAdditionalInfo={setAdditionalInfo}
-                    />
-                  </>
-                )}
 
-                {selectedService_type === "설치" && (
-                  <>
-                    <AdditionalDropSelected
-                      options={[
-                        "에어컨 구매까지 원해요",
-                        "에어컨은 있어요. 설치 서비스만 원해요",
-                      ]}
-                      placeholderText="에어컨 구매 여부 선택하기"
-                      boxPerRow={2}
-                      onSelect={setSelectedAirconditionerform}
-                    />
-                    <AdditionalDropSelected
-                      options={[
-                        "앵글 설치가 필요해요.",
-                        "앵글 설치는 필요 없어요.",
-                      ]}
-                      placeholderText="앵글 설치 여부 선택하기"
-                      boxPerRow={2}
-                      onSelect={setSelectedDropdownOption}
-                    />
-                    <Label>추가요청사항</Label>
-                    <RequestDetails
-                      additionalInfo={additionalInfo}
-                      setAdditionalInfo={setAdditionalInfo}
-                    />
-                  </>
-                )}
-                {selectedService_type === "설치&에어컨구매" && (
+                {selectedService_type === "설치 및 구매" && (
                   <>
                     <AdditionalDropSelected
                       options={[
@@ -561,42 +486,8 @@ const RequestReceived = ({
                       boxPerRow={2}
                       onSelect={setSelectedAirconditionerform}
                     />
-                    <AdditionalDropSelected
-                      options={[
-                        "앵글 설치가 필요해요.",
-                        "앵글 설치는 필요 없어요.",
-                      ]}
-                      placeholderText="앵글 설치 여부 선택하기"
-                      boxPerRow={2}
-                      onSelect={setSelectedDropdownOption}
-                    />
+
                     <Label>추가요청사항</Label>
-                    <RequestDetails
-                      additionalInfo={additionalInfo}
-                      setAdditionalInfo={setAdditionalInfo}
-                    />
-                  </>
-                )}
-                {selectedService_type === "이전" && (
-                  <>
-                    <AdditionalDropSelected
-                      options={[
-                        "앵글 설치가 필요해요.",
-                        "앵글 설치는 필요 없어요.",
-                      ]}
-                      placeholderText="앵글 설치 여부 선택하기"
-                      boxPerRow={2}
-                      onSelect={setSelectedDropdownOption}
-                    />
-                    <Label>추가요청사항</Label>
-                    {additionalInfo.startsWith(
-                      "※ 서비스 유형이 변경되었습니다."
-                    ) && (
-                      <InfoNotice>
-                        서비스 유형을 변경하셨습니다. 새로운 추가 요청사항을
-                        다시 입력해주세요.
-                      </InfoNotice>
-                    )}
                     <RequestDetails
                       additionalInfo={additionalInfo}
                       setAdditionalInfo={setAdditionalInfo}

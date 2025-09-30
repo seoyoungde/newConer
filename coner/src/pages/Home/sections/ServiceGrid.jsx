@@ -3,12 +3,10 @@ import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
 import { useRequest } from "../../../context/context";
 import installIcon from "../../../assets/servicegridimages/install.png";
-import inspectionIcon from "../../../assets/servicegridimages/inspection.png";
 import cleanIcon from "../../../assets/servicegridimages/clean.png";
 import repairIcon from "../../../assets/servicegridimages/repair.png";
 import chargeIcon from "../../../assets/servicegridimages/charge.png";
 import moveIcon from "../../../assets/servicegridimages/move.png";
-import demolishIcon from "../../../assets/servicegridimages/demolish.png";
 import purchaseIcon from "../../../assets/servicegridimages/purchase.png";
 import priceIcon from "../../../assets/servicegridimages/price.png";
 import requestIcon from "../../../assets/servicegridimages/request.png";
@@ -18,7 +16,7 @@ const serviceData = [
     id: 1,
     title: "설치 및 구매",
     icon: purchaseIcon,
-    path: "/request/install-purchase",
+    path: "/request/step0",
   },
   {
     id: 2,
@@ -38,12 +36,7 @@ const serviceData = [
     icon: chargeIcon,
     path: "/charge",
   },
-  // {
-  //   id: 5,
-  //   title: "점검",
-  //   icon: inspectionIcon,
-  //   path: "/inspection",
-  // },
+
   {
     id: 5,
     title: "청소",
@@ -58,12 +51,6 @@ const serviceData = [
     path: "/move",
   },
 
-  // {
-  //   id: 8,
-  //   title: "철거",
-  //   icon: demolishIcon,
-  //   path: "/demolish",
-  // },
   {
     id: 7,
     title: "서비스 가격",
@@ -97,7 +84,7 @@ const ServiceGrid = () => {
     const qs = `?service_type=${encodeURIComponent(service.title)}`;
 
     if (
-      service.path === "/request/install-purchase" ||
+      service.path === "/request/step0" ||
       service.path === "/price" ||
       service.path === "/search/request"
     ) {

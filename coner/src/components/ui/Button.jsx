@@ -50,6 +50,12 @@ const sizes = {
     font-weight: ${({ theme }) => theme.font.weight.medium};
     border-radius: 8px;
   `,
+  stepsize: css`
+    height: 52px;
+    font-size: ${({ theme }) => theme.font.size.bodyLarge};
+    font-weight: ${({ theme }) => theme.font.weight.semibold};
+    border-radius: 8px;
+  `,
 };
 
 const variants = {

@@ -13,7 +13,7 @@ export const theme = {
     size: {
       bodySmall: "0.75rem", // 12px
       body: "0.875 rem", // 14px
-      bodyLarge: "1.125rem", // 18px
+      bodyLarge: "1rem", // 16px
       h3: "1.25rem", // 20px
       h2: "1.25rem", // 24px
       h1: "1.5rem", // 24px

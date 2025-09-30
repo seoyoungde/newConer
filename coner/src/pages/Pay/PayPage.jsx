@@ -1,8 +1,8 @@
-// PayPage.js - NicePay tid 오류 수정 버전
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { doc, onSnapshot } from "firebase/firestore";
+import { doc, onSnapshot, updateDoc } from "firebase/firestore";
 import { db } from "../../lib/firebase";
+import Modal from "../../components/common/Modal/Modal";
 
 const STATUS = {
   CANCELED: 0,
@@ -39,6 +39,8 @@ export default function PayPage() {
   const [paymentMethod, setPaymentMethod] = useState("card");
   const [debugLogs, setDebugLogs] = useState([]);
   const [sdkLoaded, setSdkLoaded] = useState(false);
+  const [showAccountModal, setShowAccountModal] = useState(false);
+  const [paymentTimeout, setPaymentTimeout] = useState(null);
 
   const addDebugLog = (message, data = null) => {
     const timestamp = new Date().toLocaleTimeString();
@@ -57,19 +59,63 @@ export default function PayPage() {
     [paymentDoc?.status]
   );
 
-  const nicepayClientId = "S2_defdb5cbf69b4adc81e4b09e90c23bdb";
-  const hasClientId = !!nicepayClientId?.trim();
+  // 환경별 설정
+  const NICEPAY_CONFIG = {
+    clientId: "R2_7e78b8ceb1c04a68bb1b3f991a153f99",
+    returnUrl: "https://api.coner.kr/payment/serverAuth",
+    sdkUrl: "https://pay.nicepay.co.kr/v1/js/",
+  };
+
+  const hasClientId = !!NICEPAY_CONFIG.clientId?.trim();
+
+  // 서버 리다이렉트로 돌아온 경우 처리
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const authResultCode = urlParams.get("authResultCode");
+    const authResultMsg = urlParams.get("authResultMsg");
+    const tid = urlParams.get("tid");
+    const serverStatus = urlParams.get("status");
+
+    // 서버에서 리다이렉트로 돌아온 경우
+    if (authResultCode || serverStatus) {
+      addDebugLog("서버 리다이렉트 감지", {
+        authResultCode,
+        authResultMsg,
+        tid,
+        serverStatus,
+      });
+
+      // 성공 케이스
+      if (authResultCode === "0000" || serverStatus === "success") {
+        addDebugLog("서버 승인 성공 - 성공 페이지로 이동");
+        navigate(
+          `/pay/success/${requestId}?status=success&tid=${
+            tid || ""
+          }&authResultMsg=${encodeURIComponent(
+            authResultMsg || "결제가 완료되었습니다"
+          )}`
+        );
+      }
+      // 실패 케이스
+      else if (serverStatus === "fail" || authResultCode) {
+        addDebugLog("서버 승인 실패 - 실패 페이지로 이동");
+        navigate(
+          `/pay/fail/${requestId}?message=${encodeURIComponent(
+            authResultMsg || "결제 처리 중 오류가 발생했습니다"
+          )}&code=${authResultCode || ""}`
+        );
+      }
+    }
+  }, [requestId, navigate]);
 
   // Firebase에서 결제 정보 실시간 구독
   useEffect(() => {
     if (!requestId) {
       setDocLoading(false);
       setFirebaseError("결제 ID가 없습니다.");
-      addDebugLog("❌ Error: 결제 ID가 없습니다");
       return;
     }
 
-    addDebugLog("🔄 Firebase 데이터 로딩 시작", { requestId });
     setDocLoading(true);
     setFirebaseError("");
 
@@ -81,168 +127,103 @@ export default function PayPage() {
         if (!docSnapshot.exists()) {
           setPaymentDoc(null);
           setFirebaseError("결제 정보를 찾을 수 없습니다.");
-          addDebugLog("❌ Firebase Error: 결제 정보 없음");
           return;
         }
 
         const data = docSnapshot.data();
+        const newStatus = Number(data.status);
+
         setPaymentDoc(data);
         setFirebaseError("");
 
-        addDebugLog("✅ Firebase 데이터 로드 성공", data);
-        addDebugLog("💰 결제 금액 파싱", {
-          원본: data.amount,
-          파싱결과: parseAmountToNumber(data.amount),
-        });
+        const isPaymentCompleted =
+          newStatus === STATUS.FEE_PENDING ||
+          newStatus === STATUS.PAID ||
+          newStatus === STATUS.FEE_DONE;
+
+        const isPaymentCanceled = newStatus === STATUS.CANCELED;
+
+        if (isPaymentCompleted) {
+          navigate(
+            `/pay/success/${requestId}?status=success&tid=${data.tid || ""}`
+          );
+        } else if (isPaymentCanceled && payBusy) {
+          navigate(
+            `/pay/fail/${requestId}?message=${encodeURIComponent(
+              data.error_message || "결제가 취소되었습니다"
+            )}`
+          );
+        }
       },
       (error) => {
         setDocLoading(false);
         setFirebaseError(
           "결제 정보 로딩 중 오류가 발생했습니다: " + error.message
         );
-        addDebugLog("❌ Firebase 구독 오류", error);
       }
     );
 
     return () => unsubscribe();
-  }, [requestId]);
+  }, [requestId, payBusy, navigate]);
 
-  // NicePay SDK 로드 - 강화된 버전
+  useEffect(() => {
+    return () => {
+      if (paymentTimeout) {
+        clearTimeout(paymentTimeout);
+      }
+    };
+  }, [paymentTimeout]);
+
   useEffect(() => {
     const loadNicePayScript = () => {
       return new Promise((resolve, reject) => {
-        // 1. 이미 로드된 경우 체크
         if (
           window.AUTHNICE &&
           typeof window.AUTHNICE.requestPay === "function"
         ) {
-          addDebugLog("✅ NicePay SDK 이미 로드됨");
           setSdkLoaded(true);
           resolve();
           return;
         }
 
-        // 2. 기존 스크립트들을 모두 제거
         const existingScripts = document.querySelectorAll(
           'script[src*="nicepay"], script[src*="pay.nicepay"]'
         );
         existingScripts.forEach((script) => {
-          addDebugLog("🗑️ 기존 스크립트 제거", { src: script.src });
           script.remove();
         });
 
-        // 3. AUTHNICE 객체도 초기화
         if (window.AUTHNICE) {
-          addDebugLog("🗑️ 기존 AUTHNICE 객체 제거");
           delete window.AUTHNICE;
         }
 
-        addDebugLog("🔄 NicePay SDK 새로 로딩 시작");
-
-        // 4. 메인 SDK URL (공식 문서 기준)
-        const mainSdkUrl = "https://pay.nicepay.co.kr/v1/js/";
-
         const script = document.createElement("script");
-        script.src = mainSdkUrl;
+        script.src = NICEPAY_CONFIG.sdkUrl;
         script.type = "text/javascript";
         script.charset = "utf-8";
-        script.async = false; // 동기 로딩
-        script.defer = false;
-
-        let timeoutId;
-        let retryCount = 0;
-        const maxRetries = 3;
+        script.async = false;
 
         const checkAuthNice = (attempts = 0) => {
-          addDebugLog(`🔍 AUTHNICE 확인 시도 ${attempts + 1}/30`);
-
-          // 여러 가능한 객체명 확인
-          const possibleNames = [
-            "AUTHNICE",
-            "authnice",
-            "NicePay",
-            "nicePay",
-            "NICEPAY",
-          ];
-          let foundObject = null;
-
-          for (const name of possibleNames) {
-            if (window[name] && typeof window[name] === "object") {
-              foundObject = window[name];
-              addDebugLog(`✅ ${name} 객체 발견`, {
-                타입: typeof foundObject,
-                메소드들: Object.keys(foundObject),
-                requestPay존재: typeof foundObject.requestPay === "function",
-              });
-
-              // AUTHNICE로 통일
-              if (name !== "AUTHNICE") {
-                window.AUTHNICE = foundObject;
-              }
-              break;
-            }
-          }
-
-          if (foundObject && typeof foundObject.requestPay === "function") {
-            addDebugLog("✅ requestPay 메소드 확인됨");
+          if (
+            window.AUTHNICE &&
+            typeof window.AUTHNICE.requestPay === "function"
+          ) {
             setSdkLoaded(true);
-            clearTimeout(timeoutId);
             resolve();
           } else if (attempts < 30) {
             setTimeout(() => checkAuthNice(attempts + 1), 200);
           } else {
-            addDebugLog("❌ AUTHNICE 객체 타임아웃");
-            clearTimeout(timeoutId);
-
-            // 재시도 로직
-            if (retryCount < maxRetries) {
-              retryCount++;
-              addDebugLog(`🔄 SDK 로딩 재시도 ${retryCount}/${maxRetries}`);
-              setTimeout(() => {
-                script.remove();
-                loadNicePayScript().then(resolve).catch(reject);
-              }, 1000 * retryCount);
-            } else {
-              reject(new Error("AUTHNICE 객체 로딩 최종 실패"));
-            }
+            reject(new Error("AUTHNICE 객체 로딩 실패"));
           }
         };
 
         script.onload = () => {
-          addDebugLog("✅ 스크립트 로드 완료", { src: mainSdkUrl });
-
-          // 로드 후 잠시 대기 후 체크 시작
           setTimeout(() => checkAuthNice(), 100);
         };
 
         script.onerror = (error) => {
-          addDebugLog("❌ 스크립트 로드 실패", {
-            src: mainSdkUrl,
-            error: error,
-            retryCount,
-          });
-
-          clearTimeout(timeoutId);
-
-          // 재시도 로직
-          if (retryCount < maxRetries) {
-            retryCount++;
-            addDebugLog(`🔄 SDK 로딩 재시도 ${retryCount}/${maxRetries}`);
-            setTimeout(() => {
-              script.remove();
-              loadNicePayScript().then(resolve).catch(reject);
-            }, 2000 * retryCount);
-          } else {
-            reject(new Error("스크립트 로딩 최종 실패"));
-          }
+          reject(new Error("스크립트 로딩 실패"));
         };
-
-        // 전체 타임아웃 (10초)
-        timeoutId = setTimeout(() => {
-          addDebugLog("❌ 전체 로딩 타임아웃");
-          script.remove();
-          reject(new Error("SDK 로딩 타임아웃"));
-        }, 10000);
 
         document.head.appendChild(script);
       });
@@ -251,11 +232,9 @@ export default function PayPage() {
     if (hasClientId) {
       loadNicePayScript()
         .then(() => {
-          addDebugLog("🎉 SDK 로드 최종 성공");
           setUiNote("");
         })
         .catch((error) => {
-          addDebugLog("❌ SDK 로드 최종 실패", error);
           setUiNote(`결제 모듈 로드 실패: ${error.message}`);
           setSdkLoaded(false);
         });
@@ -264,39 +243,13 @@ export default function PayPage() {
     }
   }, [hasClientId]);
 
-  // 페이지를 떠날 때 cleanup
-  useEffect(() => {
-    return () => {
-      const scripts = document.querySelectorAll(
-        'script[src*="nicepay"], script[src*="pay.nicepay"]'
-      );
-      scripts.forEach((script) => script.remove());
-    };
-  }, []);
-
   // NicePay 결제 요청
   const requestNicePayment = async () => {
-    if (!window.AUTHNICE) {
+    if (!window.AUTHNICE?.requestPay) {
       alert("결제 모듈이 로드되지 않았습니다.");
-      addDebugLog("❌ AUTHNICE 객체 없음");
+
       return;
     }
-
-    if (!window.AUTHNICE.requestPay) {
-      alert("결제 기능을 사용할 수 없습니다.");
-      addDebugLog("❌ requestPay 메소드 없음", {
-        AUTHNICE: window.AUTHNICE,
-        메소드들: Object.keys(window.AUTHNICE),
-      });
-      return;
-    }
-
-    addDebugLog("🔍 AUTHNICE 객체 확인", {
-      AUTHNICE존재: !!window.AUTHNICE,
-      타입: typeof window.AUTHNICE,
-      메소드들: Object.keys(window.AUTHNICE || {}),
-      requestPay타입: typeof window.AUTHNICE.requestPay,
-    });
 
     const orderName =
       paymentDoc.method || paymentDoc.service_type || paymentDoc.aircon_type
@@ -307,7 +260,6 @@ export default function PayPage() {
           } / ${requestId}`
         : `주문 ${requestId}`;
 
-    // 나이스페이 결제 수단 매핑
     const getNicePayMethod = (method) => {
       const methodMap = {
         card: "card",
@@ -319,125 +271,50 @@ export default function PayPage() {
       return methodMap[method] || "card";
     };
 
-    // 결제 요청 데이터 구성 - 수정된 부분
+    const mallReservedData = {
+      frontendOrigin: window.location.origin,
+      requestId: requestId,
+      paymentMethod: paymentMethod,
+    };
+
     const paymentRequestData = {
-      clientId: "S2_defdb5cbf69b4adc81e4b09e90c23bdb",
+      clientId: "R2_7e78b8ceb1c04a68bb1b3f991a153f99",
       method: getNicePayMethod(paymentMethod),
       orderId: requestId,
       amount: amountObj.value,
       goodsName: orderName,
       buyerName: paymentDoc.customer_name || "구매자",
       buyerTel: paymentDoc.customer_phone || "010-0000-0000",
-      buyerEmail: paymentDoc.customer_email || "test@test.com",
-      returnUrl: "https://api.coner.kr/payment/serverAuth",
-      // mallReserved를 간단하게 변경 (혹시 파싱 문제일 수 있음)
-      mallReserved: requestId, // 일단 간단하게 requestId만
+      buyerEmail: paymentDoc.customer_email || `${requestId}@coner.kr`,
+      returnUrl: NICEPAY_CONFIG.returnUrl,
+      mallReserved: JSON.stringify(mallReservedData),
+      useCheckout: true,
     };
 
-    addDebugLog("🚀 결제 요청 시작", {
-      paymentRequestData,
-      paymentDoc,
-      현재상태: statusNum,
-      상태메시지: STATUS_MESSAGES[statusNum],
-    });
+    addDebugLog("결제 요청 데이터", paymentRequestData);
 
     try {
       setPayBusy(true);
       setUiNote("결제창을 준비하고 있습니다...");
 
-      addDebugLog("🎯 AUTHNICE.requestPay 호출 직전", {
-        함수존재: typeof window.AUTHNICE.requestPay === "function",
-        파라미터: paymentRequestData,
-      });
+      const timeout = setTimeout(() => {
+        setPayBusy(false);
+        setUiNote("");
+        alert("결제 처리 시간이 초과되었습니다. 다시 시도해주세요.");
+      }, 30000);
+      setPaymentTimeout(timeout);
 
-      // NicePay에 전송되는 실제 파라미터 상세 로깅
-      const actualRequestParams = {
-        clientId: paymentRequestData.clientId,
-        method: paymentRequestData.method,
-        orderId: paymentRequestData.orderId,
-        amount: paymentRequestData.amount,
-        goodsName: paymentRequestData.goodsName,
-        buyerName: paymentRequestData.buyerName,
-        buyerTel: paymentRequestData.buyerTel,
-        buyerEmail: paymentRequestData.buyerEmail,
-        returnUrl: paymentRequestData.returnUrl,
-        mallReserved: paymentRequestData.mallReserved,
-      };
-
-      console.log("======= NICEPAY로 전송되는 모든 파라미터 =======");
-      console.log("전송 시간:", new Date().toISOString());
-      console.log("파라미터 개수:", Object.keys(actualRequestParams).length);
-      console.log("");
-
-      // 각 파라미터별 상세 정보
-      Object.entries(actualRequestParams).forEach(([key, value]) => {
-        console.log(`${key}:`, {
-          값: value,
-          타입: typeof value,
-          길이: typeof value === "string" ? value.length : "N/A",
-          비어있음: !value,
-        });
-      });
-
-      console.log("");
-      console.log("전체 파라미터 JSON:");
-      console.log(JSON.stringify(actualRequestParams, null, 2));
-      console.log("==============================================");
-
-      addDebugLog("📤 NicePay로 전송하는 전체 파라미터", actualRequestParams);
-
-      // NicePay 결제창 호출
-      const requestResult = window.AUTHNICE.requestPay({
-        clientId: paymentRequestData.clientId,
-        method: paymentRequestData.method,
-        orderId: paymentRequestData.orderId,
-        amount: paymentRequestData.amount,
-        goodsName: paymentRequestData.goodsName,
-        buyerName: paymentRequestData.buyerName,
-        buyerTel: paymentRequestData.buyerTel,
-        buyerEmail: paymentRequestData.buyerEmail,
-        returnUrl: paymentRequestData.returnUrl,
-        mallReserved: paymentRequestData.mallReserved,
-
-        // 성공 콜백 - 결제창에서 승인 완료 시 수정된 부분
+      window.AUTHNICE.requestPay({
+        ...paymentRequestData,
         fnSuccess: function (result) {
-          addDebugLog("🎉 fnSuccess 콜백 호출됨", result);
+          clearTimeout(timeout);
 
-          // tid 정보 확인 및 로깅
-          const tid = result.tid || result.TID || result.transactionId;
-          addDebugLog("🔍 tid 정보 확인", {
-            result: result,
-            tid: tid,
-            resultKeys: Object.keys(result),
-          });
-
-          if (tid) {
-            addDebugLog("✅ tid 발견됨", { tid });
-            // tid를 로컬 스토리지나 세션에 저장 (선택사항)
-            try {
-              sessionStorage.setItem(`payment_tid_${requestId}`, tid);
-              addDebugLog("💾 tid 세션 저장 완료", { requestId, tid });
-            } catch (e) {
-              addDebugLog("⚠️ tid 저장 실패", e);
-            }
-          } else {
-            addDebugLog("⚠️ tid를 찾을 수 없음", result);
-          }
-
-          addDebugLog("✅ 결제창 완료 - 중간 페이지에서 승인 처리됨");
-          setUiNote("결제 완료! 승인 처리 중입니다...");
-
-          // 결제 완료 후 추가 처리가 필요한 경우
-          // 예: 서버에 추가 정보 전송
-          if (tid) {
-            // 서버에 tid 정보를 별도로 전송할 수도 있음
-            addDebugLog("🌐 서버에 tid 정보 전송 고려", { tid, requestId });
-          }
+          setPayBusy(true);
+          setUiNote("결제 승인 처리 중입니다. 잠시만 기다려주세요...");
         },
 
-        // 에러 콜백 - 수정된 부분
         fnError: function (result) {
-          addDebugLog("❌ fnError 콜백 호출됨", result);
+          clearTimeout(timeout);
           setPayBusy(false);
           setUiNote("");
 
@@ -445,79 +322,33 @@ export default function PayPage() {
             result.ErrorMsg ||
             result.errorMsg ||
             result.message ||
-            "알 수 없는 오류가 발생했습니다";
-
+            "알 수 없는 오류";
           const errorCode = result.ErrorCode || result.errorCode || result.code;
+          if (errorMsg.includes("취소") || errorMsg.includes("cancel")) {
+            return;
+          }
 
-          alert(
-            `결제 오류: ${errorMsg}${errorCode ? ` (코드: ${errorCode})` : ""}`
-          );
-
-          // 에러 상세 정보 로깅 - 더 자세히
-          addDebugLog("❌ 결제 에러 상세", {
-            전체결과: result,
-            에러메시지: errorMsg,
-            에러코드: errorCode,
-            resultKeys: Object.keys(result),
-            tid: result.tid || result.TID,
-          });
+          alert(`결제 오류: ${errorMsg}`);
         },
 
-        // 결제창 닫힘 콜백 - 수정된 부분
         fnClose: function (result) {
-          addDebugLog("🚪 fnClose 콜백 호출됨", result);
+          clearTimeout(timeout);
           setPayBusy(false);
           setUiNote("");
-
-          // tid 확인
-          const tid = result?.tid || result?.TID;
-          if (tid) {
-            addDebugLog("ℹ️ 결제창 닫힘 - tid 포함", { tid, result });
-          } else {
-            addDebugLog("ℹ️ 결제창 닫힘 - tid 없음", result);
-          }
-
-          // 결제창이 닫혔지만 에러가 아닐 수 있음
-          if (result && (result.ErrorCode || result.errorCode)) {
-            addDebugLog("❌ 결제창 닫힘 - 에러 포함", result);
-          } else {
-            addDebugLog("ℹ️ 결제창 닫힘 - 사용자 취소");
-          }
-        },
-
-        // 결제 취소 콜백
-        fnCancel: function (result) {
-          addDebugLog("❌ fnCancel 콜백 호출됨", result);
-          setPayBusy(false);
-          setUiNote("");
-
-          addDebugLog("ℹ️ 사용자가 결제를 취소했습니다", result);
         },
       });
 
-      addDebugLog("✅ AUTHNICE.requestPay 호출 완료", {
-        반환값: requestResult,
-        반환타입: typeof requestResult,
-      });
-
-      // 결제창 호출 후 UI 메시지 설정
       setUiNote("결제창이 열렸습니다. 결제를 진행해주세요.");
     } catch (error) {
-      addDebugLog("❌ 결제 요청 예외 발생", {
-        message: error.message,
-        stack: error.stack,
-        name: error.name,
-      });
       console.error("결제 요청 오류:", error);
-      alert("결제 요청 중 오류가 발생했습니다: " + error.message);
+      alert(`결제 요청 중 오류가 발생했습니다: ${error.message}`);
       setPayBusy(false);
       setUiNote("");
     }
   };
 
-  // 결제 요청
   const onPay = async () => {
-    addDebugLog("🎯 결제 버튼 클릭", {
+    addDebugLog("결제 버튼 클릭", {
       payBusy,
       hasClientId,
       statusNum,
@@ -528,9 +359,14 @@ export default function PayPage() {
 
     if (payBusy) return;
 
+    if (paymentMethod === "bank_transfer") {
+      setShowAccountModal(true);
+      addDebugLog("계좌이체 선택 - 모달 열기");
+      return;
+    }
+
     if (!hasClientId) {
       alert("NicePay 설정이 올바르지 않습니다.");
-      addDebugLog("❌ NicePay 클라이언트 ID 없음");
       return;
     }
 
@@ -538,39 +374,22 @@ export default function PayPage() {
       alert(
         `현재 상태에서는 결제를 진행할 수 없습니다. (${STATUS_MESSAGES[statusNum]})`
       );
-      addDebugLog("❌ 결제 상태 불일치", {
-        현재상태: statusNum,
-        필요상태: STATUS.REQUESTED,
-      });
       return;
     }
 
     if (!amountObj.value || amountObj.value <= 0) {
       alert("결제 금액이 올바르지 않습니다.");
-      addDebugLog("❌ 결제 금액 오류", { amount: amountObj.value });
       return;
     }
 
-    if (!sdkLoaded) {
+    if (!sdkLoaded || !window.AUTHNICE) {
       alert("결제 모듈이 아직 로드되지 않았습니다. 잠시 후 다시 시도해주세요.");
-      addDebugLog("❌ SDK 미로드 상태");
       return;
     }
 
     await requestNicePayment();
   };
 
-  // 수동 SDK 재로드 버튼
-  const reloadSDK = () => {
-    addDebugLog("🔄 수동 SDK 재로드 시작");
-    setSdkLoaded(false);
-    setUiNote("SDK 재로드 중...");
-
-    // 컴포넌트 재마운트를 통한 SDK 재로드
-    window.location.reload();
-  };
-
-  // 결제 수단별 이름 매핑
   const getPaymentMethodName = (method) => {
     const methodNames = {
       card: "신용카드",
@@ -578,17 +397,41 @@ export default function PayPage() {
       naverpayCard: "네이버페이",
       samsungpayCard: "삼성페이",
       payco: "페이코",
+      bank_transfer: "계좌이체",
     };
     return methodNames[method] || method;
   };
 
-  // 결제 수단 변경
   const handlePaymentMethodChange = (method) => {
-    addDebugLog("💳 결제 수단 변경", { 이전: paymentMethod, 변경후: method });
     setPaymentMethod(method);
+
+    if (method === "bank_transfer") {
+      setShowAccountModal(true);
+    }
   };
 
-  // 버튼 상태 계산
+  const copyAccountNumber = async () => {
+    const accountInfo = "신한은행 100-038-137730 서진형";
+    try {
+      await navigator.clipboard.writeText(accountInfo);
+      alert("계좌번호가 복사되었습니다!");
+    } catch (err) {
+      const textArea = document.createElement("textarea");
+      textArea.value = accountInfo;
+      document.body.appendChild(textArea);
+      textArea.select();
+      try {
+        document.execCommand("copy");
+        alert("계좌번호가 복사되었습니다!");
+      } catch (fallbackErr) {
+        alert(`계좌번호: ${accountInfo}`);
+      }
+      document.body.removeChild(textArea);
+    }
+  };
+
+  const closeAccountModal = () => setShowAccountModal(false);
+
   const payEnabled =
     hasClientId &&
     statusNum === STATUS.REQUESTED &&
@@ -608,7 +451,6 @@ export default function PayPage() {
     ? "결제 진행 중"
     : "";
 
-  // 로딩 상태
   if (!requestId || docLoading) {
     return (
       <div style={styles.loading}>
@@ -618,7 +460,6 @@ export default function PayPage() {
     );
   }
 
-  // Firebase 에러 또는 결제 정보 없음
   if (firebaseError || !paymentDoc) {
     return (
       <div style={styles.loading}>
@@ -644,60 +485,12 @@ export default function PayPage() {
           <h1 style={styles.title}>Coner 결제</h1>
           <p style={styles.subTitle}>주문 ID: {requestId}</p>
 
-          {/* SDK 상태 표시 */}
-          <div
-            style={{
-              ...styles.statusBox,
-              ...(sdkLoaded ? styles.statusActive : styles.statusInactive),
-            }}
-          >
-            SDK 상태: {sdkLoaded ? "✅ 로드 완료" : "❌ 로드 중/실패"}
-            {!sdkLoaded && (
-              <button style={styles.reloadButton} onClick={reloadSDK}>
-                재로드
-              </button>
-            )}
-          </div>
-
-          {/* 디버깅 로그 표시 */}
-          <div style={styles.debugBox}>
-            <details>
-              <summary style={styles.debugSummary}>
-                🔍 디버깅 로그 ({debugLogs.length}개)
-              </summary>
-              <div style={styles.debugContent}>
-                {debugLogs.slice(-15).map((log, index) => (
-                  <div key={index} style={styles.debugLog}>
-                    <div>{log.message}</div>
-                    {log.data && (
-                      <pre style={styles.debugData}>
-                        {JSON.stringify(log.data, null, 2)}
-                      </pre>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </details>
-          </div>
-
-          {/* 결제 상태 표시 */}
-          <div
-            style={{
-              ...styles.statusBox,
-              ...(statusNum === STATUS.REQUESTED
-                ? styles.statusActive
-                : styles.statusInactive),
-            }}
-          >
-            상태: {STATUS_MESSAGES[statusNum] || "알 수 없음"}
-          </div>
-
           <div style={styles.amountBox}>
             <span>결제금액</span>
             <strong>{amountObj.value.toLocaleString()}원</strong>
           </div>
 
-          {/* 결제 정보 표시 */}
+          {/* 결제 정보 */}
           <div style={styles.infoBox}>
             {paymentDoc.customer_name && (
               <p>
@@ -714,21 +507,6 @@ export default function PayPage() {
                 <strong>서비스 시간:</strong> {paymentDoc.service_time}
               </p>
             )}
-            {paymentDoc.brand && (
-              <p>
-                <strong>브랜드:</strong> {paymentDoc.brand}
-              </p>
-            )}
-            {paymentDoc.aircon_type && (
-              <p>
-                <strong>에어컨 유형:</strong> {paymentDoc.aircon_type}
-              </p>
-            )}
-            {paymentDoc.service_type && (
-              <p>
-                <strong>서비스 유형:</strong> {paymentDoc.service_type}
-              </p>
-            )}
             {paymentDoc.customer_address && (
               <p>
                 <strong>주소:</strong> {paymentDoc.customer_address}
@@ -742,38 +520,22 @@ export default function PayPage() {
 
           {statusNum === STATUS.REQUESTED ? (
             <>
-              <div style={styles.infoNote}>
-                <strong>결제 안내 (테스트 모드)</strong>
-                <br />
-                · 현재 나이스페이 테스트 키를 사용 중입니다.
-                <br />
-                · 카카오페이, 네이버페이, 삼성페이, 페이코 등 간편결제 지원
-                <br />
-                · 테스트 결제는 23:30에 자동 취소됩니다.
-                <br />· 안전한 결제를 위해 NicePay 결제창이 새창으로 열립니다.
-              </div>
-
               <div style={styles.serviceNotice}>
                 <strong>⚠️ 결제 보안 안내</strong>
                 <br />
                 코너에서 제공하는 본 결제페이지와 정해진 계좌번호로 이체하는 것
                 외에는 결제하지 마시기 바랍니다.
                 <br />
-                기사님이나 제3자가 요청하는 다른 결제수단으로는 절대 결제하지
-                마세요.
-                <br />
                 <span style={{ fontWeight: "700", color: "#dc2626" }}>
                   안전한 결제를 위해 공식 결제창만 이용해 주시기 바랍니다.
                 </span>
               </div>
 
-              {/* NicePay 결제 수단 선택 */}
+              {/* 결제 수단 선택 */}
               <div style={styles.paymentMethodBox}>
                 <h3 style={styles.paymentMethodTitle}>결제 수단 선택</h3>
 
-                {/* 기본 결제 수단 */}
                 <div style={styles.paymentMethodSection}>
-                  <h4 style={styles.paymentMethodSectionTitle}>💳 일반 결제</h4>
                   <div style={styles.paymentMethods}>
                     <button
                       style={{
@@ -789,9 +551,23 @@ export default function PayPage() {
                   </div>
                 </div>
 
-                {/* 간편 결제 */}
                 <div style={styles.paymentMethodSection}>
-                  <h4 style={styles.paymentMethodSectionTitle}>📱 간편 결제</h4>
+                  <div style={styles.paymentMethods}>
+                    <button
+                      style={{
+                        ...styles.paymentMethodBtn,
+                        ...(paymentMethod === "bank_transfer"
+                          ? styles.paymentMethodActive
+                          : {}),
+                      }}
+                      onClick={() => handlePaymentMethodChange("bank_transfer")}
+                    >
+                      계좌이체
+                    </button>
+                  </div>
+                </div>
+
+                <div style={styles.paymentMethodSection}>
                   <div style={styles.paymentMethods}>
                     <button
                       style={{
@@ -865,11 +641,59 @@ export default function PayPage() {
             {payEnabled
               ? payBusy
                 ? "처리 중..."
+                : paymentMethod === "bank_transfer"
+                ? "계좌번호 확인하기"
                 : `${getPaymentMethodName(paymentMethod)}로 결제하기`
               : `결제불가 (${disabledReason})`}
           </button>
         </div>
       </div>
+
+      {/* 계좌번호 모달 */}
+      <Modal
+        open={showAccountModal}
+        onClose={closeAccountModal}
+        title="계좌이체 안내"
+        width={480}
+        containerId="rightbox-modal-root"
+        footer={
+          <button
+            onClick={closeAccountModal}
+            style={{
+              width: "100%",
+              height: "48px",
+              background: "#004FFF",
+              color: "white",
+              border: "none",
+              borderRadius: "12px",
+              fontSize: "16px",
+              fontWeight: "700",
+              cursor: "pointer",
+            }}
+          >
+            확인했습니다
+          </button>
+        }
+      >
+        <div style={styles.accountInfo}>
+          <div style={styles.accountLabel}>입금 계좌번호</div>
+          <div style={styles.accountDetails}>
+            <div style={styles.bankName}>신한은행</div>
+            <div style={styles.accountNumber}>100-038-137730</div>
+            <div style={styles.accountHolder}>서진형</div>
+          </div>
+          <button style={styles.copyBtn} onClick={copyAccountNumber}>
+            계좌번호 복사
+          </button>
+        </div>
+
+        <div style={styles.transferNotice}>
+          <h4 style={styles.noticeTitle}>⚠️ 이체 시 주의사항</h4>
+          <ul style={styles.noticeList}>
+            <li>입금자명에 전화번호뒷자리를 포함해주세요</li>
+          </ul>
+        </div>
+      </Modal>
 
       {/* 모바일 하단 고정 결제바 */}
       <div style={styles.stickyBar}>
@@ -892,7 +716,9 @@ export default function PayPage() {
           {payEnabled
             ? payBusy
               ? "처리 중..."
-              : `${getPaymentMethodName(paymentMethod).split(" ")[1]}로 결제`
+              : paymentMethod === "bank_transfer"
+              ? "계좌번호"
+              : `${getPaymentMethodName(paymentMethod).split(" ")[0]}결제`
             : "결제 불가"}
         </button>
       </div>
@@ -901,10 +727,7 @@ export default function PayPage() {
 }
 
 const styles = {
-  container: {
-    minHeight: "100vh",
-    background: "#fafcff",
-  },
+  container: { minHeight: "100vh", background: "#fafcff" },
   shell: {
     minHeight: "100vh",
     display: "flex",
@@ -938,10 +761,11 @@ const styles = {
     fontWeight: "500",
     color: "#495057",
   },
-  debugContent: {
-    padding: "8px 12px",
-    maxHeight: "200px",
-    overflowY: "auto",
+  debugContent: { padding: "8px 12px", maxHeight: "300px", overflowY: "auto" },
+  debugSection: {
+    marginBottom: "12px",
+    paddingBottom: "8px",
+    borderBottom: "1px solid #eee",
   },
   debugLog: {
     marginBottom: "8px",
@@ -956,46 +780,8 @@ const styles = {
     fontSize: "10px",
     overflow: "auto",
   },
-  title: {
-    margin: "0",
-    fontSize: "22px",
-    color: "#0f172a",
-    fontWeight: "800",
-  },
-  subTitle: {
-    margin: "4px 0 16px",
-    color: "#64748b",
-    fontSize: "14px",
-  },
-  statusBox: {
-    padding: "8px 12px",
-    borderRadius: "12px",
-    fontSize: "14px",
-    fontWeight: "600",
-    marginBottom: "16px",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  statusActive: {
-    background: "#ecfdf5",
-    color: "#166534",
-    border: "1px solid #86efac",
-  },
-  statusInactive: {
-    background: "#fef2f2",
-    color: "#991b1b",
-    border: "1px solid #fecaca",
-  },
-  reloadButton: {
-    padding: "4px 8px",
-    fontSize: "12px",
-    border: "1px solid #dc2626",
-    borderRadius: "4px",
-    background: "#fff",
-    color: "#dc2626",
-    cursor: "pointer",
-  },
+  title: { margin: "0", fontSize: "22px", color: "#0f172a", fontWeight: "800" },
+  subTitle: { margin: "4px 0 16px", color: "#64748b", fontSize: "14px" },
   amountBox: {
     display: "flex",
     alignItems: "center",
@@ -1027,16 +813,6 @@ const styles = {
     color: "#b91c1c",
     border: "1px solid #fecaca",
   },
-  infoNote: {
-    background: "#f8fbff",
-    color: "#0f172a",
-    border: "1px solid #e5eaf0",
-    padding: "12px",
-    borderRadius: "12px",
-    marginBottom: "14px",
-    fontSize: "14px",
-    textAlign: "left",
-  },
   serviceNotice: {
     background: "#fff7ed",
     color: "#9a3412",
@@ -1060,20 +836,8 @@ const styles = {
     margin: "0 0 16px 0",
     color: "#0f172a",
   },
-  paymentMethodSection: {
-    marginBottom: "16px",
-  },
-  paymentMethodSectionTitle: {
-    fontSize: "14px",
-    fontWeight: "500",
-    margin: "0 0 8px 0",
-    color: "#64748b",
-  },
-  paymentMethods: {
-    display: "flex",
-    gap: "8px",
-    flexWrap: "wrap",
-  },
+  paymentMethodSection: { marginBottom: "16px" },
+  paymentMethods: { display: "flex", gap: "8px", flexWrap: "wrap" },
   paymentMethodBtn: {
     flex: "1",
     minWidth: "100px",
@@ -1112,7 +876,7 @@ const styles = {
     transition: "all 0.2s",
   },
   buttonEnabled: {
-    background: "linear-gradient(90deg,#2F80ED,#56CCF2)",
+    background: "#004FFF",
     color: "#fff",
     boxShadow: "0 4px 12px rgba(47,128,237,0.3)",
   },
@@ -1140,14 +904,8 @@ const styles = {
     animation: "spin 1s linear infinite",
     margin: "0 auto 16px",
   },
-  errorIcon: {
-    fontSize: "48px",
-    marginBottom: "16px",
-  },
-  errorText: {
-    color: "#dc2626",
-    marginBottom: "20px",
-  },
+  errorIcon: { fontSize: "48px", marginBottom: "16px" },
+  errorText: { color: "#dc2626", marginBottom: "20px" },
   retryButton: {
     padding: "12px 24px",
     background: "#3b82f6",
@@ -1171,17 +929,9 @@ const styles = {
     boxShadow: "0 -4px 16px rgba(15, 23, 42, 0.06)",
     zIndex: "50",
   },
-  stickyInfo: {
-    display: "flex",
-    flexDirection: "column",
-  },
-  stickyLabel: {
-    fontSize: "12px",
-    color: "#64748b",
-  },
-  stickyAmount: {
-    fontSize: "18px",
-  },
+  stickyInfo: { display: "flex", flexDirection: "column" },
+  stickyLabel: { fontSize: "12px", color: "#64748b" },
+  stickyAmount: { fontSize: "18px" },
   stickyBtn: {
     marginLeft: "auto",
     height: "46px",
@@ -1192,12 +942,72 @@ const styles = {
   },
   stickyBtnEnabled: {
     color: "#fff",
-    background: "linear-gradient(180deg, #2f80ed 0%, #4fa1ff 100%)",
+    background: "#004FFF",
     boxShadow: "0 6px 14px rgba(47, 128, 237, 0.25)",
   },
   stickyBtnDisabled: {
     color: "#475569",
     background: "linear-gradient(180deg, #bfd8ff, #a7c9ff)",
     cursor: "not-allowed",
+  },
+  accountInfo: {
+    background: "#f8fafc",
+    border: "1px solid #e2e8f0",
+    borderRadius: "12px",
+    padding: "20px",
+    marginBottom: "20px",
+    textAlign: "center",
+  },
+  accountLabel: {
+    fontSize: "14px",
+    color: "#64748b",
+    marginBottom: "12px",
+    fontWeight: "500",
+  },
+  accountDetails: { marginBottom: "16px" },
+  bankName: {
+    fontSize: "14px",
+    fontWeight: "600",
+    color: "#0f172a",
+    marginBottom: "4px",
+  },
+  accountNumber: {
+    fontSize: "18px",
+    fontWeight: "800",
+    color: "#004FFF",
+    marginBottom: "4px",
+    letterSpacing: "1px",
+  },
+  accountHolder: { fontSize: "16px", color: "#475569", fontWeight: "500" },
+  copyBtn: {
+    background: "#004FFF",
+    color: "white",
+    border: "none",
+    borderRadius: "8px",
+    padding: "10px 16px",
+    fontSize: "14px",
+    fontWeight: "600",
+    cursor: "pointer",
+    transition: "all 0.2s",
+  },
+  transferNotice: {
+    background: "#fff7ed",
+    border: "1px solid #fed7aa",
+    borderRadius: "12px",
+    padding: "16px",
+    marginBottom: "16px",
+  },
+  noticeTitle: {
+    margin: "0 0 12px 0",
+    fontSize: "15px",
+    fontWeight: "600",
+    color: "#9a3412",
+  },
+  noticeList: {
+    margin: 0,
+    paddingLeft: "20px",
+    fontSize: "14px",
+    color: "#9a3412",
+    lineHeight: "1.6",
   },
 };

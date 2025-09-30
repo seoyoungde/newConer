@@ -30,6 +30,10 @@ export const inputSizes = {
       font-size: ${({ theme }) => theme.font.size.body};
     }
   `,
+  stepsize: css`
+    padding: 14px 14px;
+    font-size: 16px;
+  `,
 };
 
 /** 컨트롤(테두리 박스) 높이/밀도 */
@@ -66,6 +70,11 @@ export const labelSizes = {
   reviewsize: css`
     font-size: ${({ theme }) => theme.font.size.bodySmall};
     line-height: ${({ theme }) => theme.font.lineHeight.small};
+  `,
+  stepsize: css`
+    font-weight: 500;
+    font-size: 12px;
+    color: ${({ theme }) => theme.colors.subtext};
   `,
 };
 
