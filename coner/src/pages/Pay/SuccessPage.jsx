@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
-import { doc, getDoc, onSnapshot } from "firebase/firestore";
+import { doc, getDoc, onSnapshot, updateDoc } from "firebase/firestore";
 import styled, { keyframes } from "styled-components";
 import { db } from "../../lib/firebase";
 
@@ -348,196 +348,61 @@ const MessageIcon = () => (
 
 export default function SuccessPage() {
   const { requestId } = useParams();
-  const [searchParams] = useSearchParams();
-
-  // URL 파라미터에서 기본 정보만 추출 (보안상 민감한 정보는 제외)
-  const status = searchParams.get("status");
-  const message = searchParams.get("message");
-  const errorCode = searchParams.get("errorCode");
 
   const [state, setState] = useState({
     loading: true,
-    success: false,
-    error: "",
     paymentData: null,
   });
 
-  // 디버깅용 (개발 환경에서만)
-  const [debugLogs, setDebugLogs] = useState([]);
-
-  const addDebugLog = (message, data = null) => {
-    const timestamp = new Date().toLocaleTimeString();
-    const logEntry = { message, data, timestamp };
-    console.log(`[${timestamp}] ${message}`, data);
-    setDebugLogs((prev) => [...prev, logEntry]);
-  };
-
   useEffect(() => {
-    const loadPaymentResult = async () => {
-      addDebugLog("결제 결과 페이지 로드 시작", {
-        requestId,
-        status,
-        message,
-        errorCode,
-      });
-
-      // URL에서 받은 상태 검증
+    const loadPaymentInfo = async () => {
       if (!requestId) {
-        addDebugLog("requestId 누락");
-        setState({
-          loading: false,
-          success: false,
-          error: "주문 정보를 찾을 수 없습니다.",
-          paymentData: null,
-        });
+        setState({ loading: false, paymentData: null });
         return;
       }
 
-      // 에러 상태 처리
-      if (status === "error") {
-        addDebugLog("결제 실패 상태 확인됨", { message, errorCode });
-        setState({
-          loading: false,
-          success: false,
-          error: message || "결제 처리 중 오류가 발생했습니다.",
-          paymentData: null,
-        });
-        return;
-      }
-
-      // 성공 상태가 아닌 경우
-      if (status !== "success") {
-        addDebugLog("알 수 없는 상태", { status });
-        setState({
-          loading: false,
-          success: false,
-          error: "결제 상태를 확인할 수 없습니다.",
-          paymentData: null,
-        });
-        return;
-      }
-
-      // Firebase에서 결제 정보 조회
       try {
-        addDebugLog("Firebase 결제 정보 조회 시작", { requestId });
-
         const paymentDocRef = doc(db, "Payment", requestId);
+        const docSnapshot = await getDoc(paymentDocRef);
 
-        // 실시간 구독으로 최신 데이터 가져오기
-        const unsubscribe = onSnapshot(
-          paymentDocRef,
-          (docSnapshot) => {
-            if (docSnapshot.exists()) {
-              const paymentData = docSnapshot.data();
-              addDebugLog("Firebase 결제 정보 조회 성공", paymentData);
+        if (docSnapshot.exists()) {
+          const data = docSnapshot.data();
 
-              // 결제 상태 확인
-              const paymentStatus = Number(paymentData.status);
-              const isPaymentComplete = paymentStatus >= 2; // PAID(2) 이상
-
-              if (isPaymentComplete) {
-                setState({
-                  loading: false,
-                  success: true,
-                  error: "",
-                  paymentData,
-                });
-              } else {
-                // 아직 결제가 완료되지 않은 상태 - 잠시 더 기다림
-                addDebugLog("결제 처리 중 상태", {
-                  currentStatus: paymentStatus,
-                  statusName: getStatusName(paymentStatus),
-                });
-                // 로딩 상태 유지하고 계속 구독
-              }
-            } else {
-              addDebugLog("Firebase에서 결제 정보를 찾을 수 없음");
-              setState({
-                loading: false,
-                success: false,
-                error: "결제 정보를 찾을 수 없습니다.",
-                paymentData: null,
-              });
-            }
-          },
-          (error) => {
-            addDebugLog("Firebase 조회 오류", { error: error.message });
-            setState({
-              loading: false,
-              success: false,
-              error: "결제 정보 조회 중 오류가 발생했습니다.",
-              paymentData: null,
-            });
-          }
-        );
-
-        // 10초 후 타임아웃
-        const timeout = setTimeout(() => {
-          addDebugLog("결제 상태 확인 타임아웃");
-          unsubscribe();
-          setState((prevState) => {
-            if (prevState.loading) {
-              return {
-                loading: false,
-                success: false,
-                error:
-                  "결제 처리 시간이 초과되었습니다. 고객센터로 문의해주세요.",
-                paymentData: null,
-              };
-            }
-            return prevState;
+          setState({
+            loading: false,
+            paymentData: data,
           });
-        }, 10000);
 
-        // cleanup function
-        return () => {
-          clearTimeout(timeout);
-          unsubscribe();
-        };
+          // status를 숫자로 명확하게 비교
+          const currentStatus = Number(data.status);
+
+          if (currentStatus === 1) {
+            try {
+              // Payment status를 3으로 변경
+              await updateDoc(paymentDocRef, {
+                status: 2,
+                updated_at: new Date().toISOString(),
+              });
+
+              // Request status를 4로 변경
+              const requestDocRef = doc(db, "Request", requestId);
+              await updateDoc(requestDocRef, {
+                status: 4,
+                updated_at: new Date().toISOString(),
+              });
+            } catch (updateError) {}
+          } else {
+          }
+        } else {
+          setState({ loading: false, paymentData: null });
+        }
       } catch (error) {
-        addDebugLog("예외 발생", { error: error.message });
-        setState({
-          loading: false,
-          success: false,
-          error: "예기치 않은 오류가 발생했습니다.",
-          paymentData: null,
-        });
+        setState({ loading: false, paymentData: null });
       }
     };
 
-    loadPaymentResult();
-  }, [requestId, status, message]);
-
-  // 결제 상태 이름 변환
-  const getStatusName = (statusNum) => {
-    const statusNames = {
-      0: "취소됨",
-      1: "요청됨",
-      2: "결제완료",
-      3: "수수료 처리중",
-      4: "처리완료",
-    };
-    return statusNames[statusNum] || `알 수 없음(${statusNum})`;
-  };
-
-  // 결제 수단 이름 변환
-  const getPaymentMethodName = (method) => {
-    const methodNames = {
-      card: "신용카드",
-      CARD: "신용카드",
-      kakaopay: "카카오페이",
-      KAKAOPAY: "카카오페이",
-      naverpay: "네이버페이",
-      NAVERPAY: "네이버페이",
-      naverpayCard: "네이버페이",
-      samsungpay: "삼성페이",
-      SAMSUNGPAY: "삼성페이",
-      samsungpayCard: "삼성페이",
-      payco: "페이코",
-      PAYCO: "페이코",
-    };
-    return methodNames[method] || method || "신용카드";
-  };
+    loadPaymentInfo();
+  }, [requestId]);
 
   // 금액 파싱
   const parseAmount = (amountStr) => {
@@ -547,6 +412,7 @@ export default function SuccessPage() {
     return Number.isFinite(amount) ? amount : 0;
   };
 
+  // 로딩 중
   if (state.loading) {
     return (
       <Container>
@@ -568,219 +434,118 @@ export default function SuccessPage() {
             <SecondarySpinner />
           </LoadingSpinner>
 
-          <Title $loading={true}>결제 처리 중</Title>
-          <Subtitle $loading={true}>
-            결제가 정상적으로 처리되고 있는지 확인 중입니다
-          </Subtitle>
+          <Title $loading={true}>결제 정보 확인 중</Title>
+          <Subtitle $loading={true}>잠시만 기다려주세요</Subtitle>
 
           <LoadingDots>
             <LoadingDot $delay={0} />
             <LoadingDot $delay={0.1} />
             <LoadingDot $delay={0.2} />
           </LoadingDots>
-
-          {/* 개발 환경에서만 디버깅 로그 표시 */}
-          {process.env.NODE_ENV === "development" && debugLogs.length > 0 && (
-            <DebugBox style={{ marginTop: "1rem", textAlign: "left" }}>
-              <details>
-                <DebugSummary>디버깅 로그 ({debugLogs.length}개)</DebugSummary>
-                <DebugContent>
-                  {debugLogs.slice(-3).map((log, index) => (
-                    <div key={index} style={{ marginBottom: "8px" }}>
-                      <div>
-                        [{log.timestamp}] {log.message}
-                      </div>
-                      {log.data && (
-                        <DebugData>
-                          {JSON.stringify(log.data, null, 2)}
-                        </DebugData>
-                      )}
-                    </div>
-                  ))}
-                </DebugContent>
-              </details>
-            </DebugBox>
-          )}
         </LoadingCard>
       </Container>
     );
   }
 
+  // 데이터가 없는 경우
+  if (!state.paymentData) {
+    return (
+      <Container>
+        <Card>
+          <Header $error>
+            <IconContainer>
+              <ErrorIcon />
+            </IconContainer>
+            <Title>결제 정보를 찾을 수 없습니다</Title>
+          </Header>
+          <Content>
+            <ButtonGroup>
+              <PrimaryButton onClick={() => (window.location.href = "/")}>
+                홈으로 돌아가기
+              </PrimaryButton>
+            </ButtonGroup>
+          </Content>
+        </Card>
+      </Container>
+    );
+  }
+
+  // 결제 완료 화면
   return (
     <Container>
       <Card>
-        {state.success ? (
-          <>
-            <Header>
-              <IconContainer>
-                <CheckIcon />
-              </IconContainer>
-              <Title>결제 완료!</Title>
-              <Subtitle>
-                {state.paymentData?.service_type || "서비스"} 예약이
-                완료되었습니다
-              </Subtitle>
-            </Header>
+        <Header>
+          <IconContainer>
+            <CheckIcon />
+          </IconContainer>
+          <Title>결제 완료!</Title>
+          <Subtitle>
+            {state.paymentData.service_type || "서비스"} 예약이 완료되었습니다
+          </Subtitle>
+        </Header>
 
-            <Content>
-              <AmountSection>
-                <AmountValue>
-                  {parseAmount(state.paymentData?.amount).toLocaleString()}원
-                </AmountValue>
-                <AmountLabel>결제 완료</AmountLabel>
-              </AmountSection>
+        <Content>
+          <AmountSection>
+            <AmountValue>
+              {parseAmount(state.paymentData.amount).toLocaleString()}원
+            </AmountValue>
+            <AmountLabel>결제 완료</AmountLabel>
+          </AmountSection>
 
-              <InfoGrid>
-                <InfoRow>
-                  <InfoLabel>주문번호</InfoLabel>
-                  <InfoValue $mono $small>
-                    {requestId}
-                  </InfoValue>
-                </InfoRow>
+          <InfoGrid>
+            <InfoRow>
+              <InfoLabel>주문번호</InfoLabel>
+              <InfoValue $mono $small>
+                {requestId}
+              </InfoValue>
+            </InfoRow>
 
-                <InfoRow>
-                  <InfoLabel>고객명</InfoLabel>
-                  <InfoValue>
-                    {state.paymentData?.customer_name || "구매자"}
-                  </InfoValue>
-                </InfoRow>
+            {state.paymentData.service_date && (
+              <InfoRow>
+                <InfoLabel>서비스 날짜</InfoLabel>
+                <InfoValue>{state.paymentData.service_date}</InfoValue>
+              </InfoRow>
+            )}
 
-                {state.paymentData?.service_date && (
-                  <InfoRow>
-                    <InfoLabel>서비스 날짜</InfoLabel>
-                    <InfoValue>{state.paymentData.service_date}</InfoValue>
-                  </InfoRow>
-                )}
+            {state.paymentData.service_time && (
+              <InfoRow>
+                <InfoLabel>서비스 시간</InfoLabel>
+                <InfoValue>{state.paymentData.service_time}</InfoValue>
+              </InfoRow>
+            )}
 
-                {state.paymentData?.service_time && (
-                  <InfoRow>
-                    <InfoLabel>서비스 시간</InfoLabel>
-                    <InfoValue>{state.paymentData.service_time}</InfoValue>
-                  </InfoRow>
-                )}
+            {state.paymentData.customer_address && (
+              <InfoRow>
+                <InfoLabel>서비스 주소</InfoLabel>
+                <InfoValue>{state.paymentData.customer_address}</InfoValue>
+              </InfoRow>
+            )}
+          </InfoGrid>
 
-                {state.paymentData?.customer_address && (
-                  <InfoRow>
-                    <InfoLabel>서비스 주소</InfoLabel>
-                    <InfoValue>{state.paymentData.customer_address}</InfoValue>
-                  </InfoRow>
-                )}
+          <NoticeBox>
+            <NoticeIcon>
+              <CheckIcon />
+            </NoticeIcon>
+            <NoticeContent>
+              <NoticeTitle>결제 완료</NoticeTitle>
+              <NoticeText>서비스 결제가 정상적으로 완료되었습니다.</NoticeText>
+            </NoticeContent>
+          </NoticeBox>
 
-                <InfoRow>
-                  <InfoLabel>결제 상태</InfoLabel>
-                  <InfoValue>
-                    {getStatusName(Number(state.paymentData?.status))}
-                  </InfoValue>
-                </InfoRow>
-              </InfoGrid>
+          <ButtonGroup>
+            <PrimaryButton onClick={() => (window.location.href = "/")}>
+              홈으로 돌아가기
+            </PrimaryButton>
 
-              <NoticeBox>
-                <NoticeIcon>
-                  <CheckIcon />
-                </NoticeIcon>
-                <NoticeContent>
-                  <NoticeTitle>예약 완료</NoticeTitle>
-                  <NoticeText>
-                    서비스 예약이 정상적으로 완료되었습니다. 서비스 날짜에
-                    기사님이 방문할 예정입니다.
-                    {state.paymentData?.customer_phone && (
-                      <> 연락처: {state.paymentData.customer_phone}</>
-                    )}
-                  </NoticeText>
-                </NoticeContent>
-              </NoticeBox>
-
-              <ButtonGroup>
-                <PrimaryButton onClick={() => (window.location.href = "/")}>
-                  홈으로 돌아가기
-                </PrimaryButton>
-
-                <ButtonRow>
-                  <SecondaryButton
-                    onClick={() =>
-                      alert("고객센터: 070-8648-3327, 070-8648-3326")
-                    }
-                  >
-                    고객센터
-                  </SecondaryButton>
-                  <SecondaryButton
-                    $accent
-                    onClick={() =>
-                      alert("예약 내역은 홈페이지에서 확인하실 수 있습니다.")
-                    }
-                  >
-                    예약 확인
-                  </SecondaryButton>
-                </ButtonRow>
-              </ButtonGroup>
-            </Content>
-          </>
-        ) : (
-          <>
-            <Header $error>
-              <IconContainer>
-                <ErrorIcon />
-              </IconContainer>
-              <Title>결제 실패</Title>
-              <Subtitle>죄송합니다. 결제 처리에 실패했습니다</Subtitle>
-            </Header>
-
-            <Content>
-              <NoticeBox $error>
-                <NoticeIcon $error>
-                  <MessageIcon />
-                </NoticeIcon>
-                <NoticeContent>
-                  <NoticeTitle $error>실패 사유</NoticeTitle>
-                  <NoticeText $error>{state.error}</NoticeText>
-                </NoticeContent>
-              </NoticeBox>
-
-              <ButtonGroup>
-                <PrimaryButton onClick={() => (window.location.href = "/")}>
-                  다시 시도하기
-                </PrimaryButton>
-
-                <ButtonRow>
-                  <SecondaryButton
-                    onClick={() =>
-                      alert("고객센터: 070-8648-3327, 070-8648-3326")
-                    }
-                  >
-                    고객센터 문의
-                  </SecondaryButton>
-                </ButtonRow>
-              </ButtonGroup>
-            </Content>
-          </>
-        )}
-
-        {/* 개발 환경에서만 디버깅 정보 표시 */}
-        {process.env.NODE_ENV === "development" && debugLogs.length > 0 && (
-          <Content>
-            <DebugBox>
-              <details>
-                <DebugSummary>
-                  개발자 디버깅 로그 ({debugLogs.length}개)
-                </DebugSummary>
-                <DebugContent>
-                  {debugLogs.map((log, index) => (
-                    <div key={index} style={{ marginBottom: "8px" }}>
-                      <div>
-                        [{log.timestamp}] {log.message}
-                      </div>
-                      {log.data && (
-                        <DebugData>
-                          {JSON.stringify(log.data, null, 2)}
-                        </DebugData>
-                      )}
-                    </div>
-                  ))}
-                </DebugContent>
-              </details>
-            </DebugBox>
-          </Content>
-        )}
+            <ButtonRow>
+              <SecondaryButton
+                onClick={() => alert("고객센터: 070-8648-3327, 070-8648-3326")}
+              >
+                고객센터
+              </SecondaryButton>
+            </ButtonRow>
+          </ButtonGroup>
+        </Content>
       </Card>
     </Container>
   );

@@ -1,24 +1,15 @@
-import { lazy, Suspense } from "react";
+import { lazy } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Layout from "./Layout.jsx";
 import Home from "./pages/Home/Home.jsx";
-import Step1Page from "./pages/Request/Step1Page.jsx";
-import Step2Page from "./pages/Request/Step2Page.jsx";
-import Step3Page from "./pages/Request/Step3Page.jsx";
 import LoginPage from "./pages/Auth/LoginPage.jsx";
 import SignupPage from "./pages/Auth/SignupPage.jsx";
 import NoHeaderLayout from "./NOHeaderLayout.jsx";
 import AuthAddressPage from "./pages/Auth/AuthAddressPage.jsx";
 import PricingPage from "./pages/Price/PricePage.jsx";
-import RequestPricePage from "./pages/Price/RequestPricePage.jsx";
-import InstallpurchasePage from "./pages/Request/InstallPurchasePage.jsx";
 import RequestSearchPage from "./pages/Search/RequestSearchPage.jsx";
 import InquiryPage from "./pages/Search/InquiryPage.jsx";
 import PartnerListPage from "./pages/partner/PartnerListPage.jsx";
-import PartnerStep1Page from "./pages/partner/PartnerStep1Page.jsx";
-import PartnerStep2Page from "./pages/partner/PartnerStep2Page.jsx";
-import PartnerStep3Page from "./pages/partner/PartnerStep3Page.jsx";
-import PartnerPricePage from "./pages/Price/PartnerPricePage.jsx";
 import MyPage from "./pages/Mypage/MyPage.jsx";
 import MypageInquiryPage from "./pages/Mypage/MypageInquiryPage.jsx";
 import ModifyPage from "./pages/Mypage/ModifyPage.jsx";
@@ -28,7 +19,23 @@ import PayPage from "./pages/Pay/PayPage.jsx";
 import SuccessPage from "./pages/Pay/SuccessPage.jsx";
 import PartnerApply from "./pages/partner/PartnerApply.jsx";
 import SmsRequestPage from "./pages/Search/SmsRequestPage.jsx";
-import PaymentProcessingPage from "./pages/Pay/PaymentProcessingPage.jsx";
+
+// 단계 리뉴얼 디자인
+import Step0 from "./pages/Request/Steps/Step0.jsx";
+import Step1 from "./pages/Request/Steps/Step1.jsx";
+import StepLayout from "./StepLayout.jsx";
+import Step2 from "./pages/Request/Steps/Step2.jsx";
+import Step3 from "./pages/Request/Steps/Step3.jsx";
+import Step4 from "./pages/Request/Steps/Step4.jsx";
+import Step5 from "./pages/Request/Steps/Step5.jsx";
+import Step6 from "./pages/Request/Steps/Step6.jsx";
+
+import PartnerStep1 from "./pages/partner/Steps/PartnerStep1.jsx";
+import PartnerStep2 from "./pages/partner/Steps/PartnerStep2.jsx";
+import PartnerStep3 from "./pages/partner/Steps/PartnerStep3.jsx";
+import PartnerStep4 from "./pages/partner/Steps/PartnerStep4.jsx";
+import PartnerStep5 from "./pages/partner/Steps/PartnerStep5.jsx";
+import PartnerStep6 from "./pages/partner/Steps/PartnerStep6.jsx";
 
 const FailPage = lazy(() => import("./pages/Pay/FailPage.jsx"));
 const WithdrawPage = lazy(() => import("./pages/Mypage/WithdrawPage.jsx"));
@@ -63,41 +70,15 @@ export default function App() {
         <Route element={<NoHeaderLayout />}>
           <Route path="/signup" element={<SignupPage />} />
           <Route path="/price" element={<PricingPage />} />
-          <Route
-            path="/request/install-purchase"
-            element={<InstallpurchasePage />}
-          />
-          <Route path="/request/step1" element={<Step1Page />} />
 
           <Route path="/login" element={<LoginPage />} />
           <Route path="/auth/addressmodal" element={<AuthAddressPage />} />
 
-          <Route path="/request/step2" element={<Step2Page />} />
-          <Route path="/request/step3" element={<Step3Page />} />
-
-          <Route path="/request/price" element={<RequestPricePage />} />
           <Route path="/search/request" element={<RequestSearchPage />} />
           <Route path="/search/inquiry" element={<InquiryPage />} />
           <Route path="/search/sms/:requestId" element={<SmsRequestPage />} />
 
           <Route path="/partner/list" element={<PartnerListPage />} />
-          <Route
-            path="/partner/step1/:partnerId"
-            element={<PartnerStep1Page />}
-          />
-          <Route
-            path="/partner/step2/:partnerId"
-            element={<PartnerStep2Page />}
-          />
-          <Route
-            path="/partner/step3/:partnerId"
-            element={<PartnerStep3Page />}
-          />
-
-          <Route
-            path="/partner/price/:partnerId"
-            element={<PartnerPricePage />}
-          />
 
           <Route path="/partner/apply" element={<PartnerApply />} />
 
@@ -112,14 +93,28 @@ export default function App() {
             element={<PartnerModifyPage />}
           />
           <Route path="/pay/:requestId" element={<PayPage />} />
-          <Route
-            path="/payment/processing/:requestId"
-            element={<PaymentProcessingPage />}
-          />
+
           <Route path="/pay/success/:requestId" element={<SuccessPage />} />
           <Route path="/pay/fail/:requestId" element={<FailPage />} />
           <Route path="/reviewform/:requestId" element={<ReviewPage />} />
           <Route path="/cancelform/:requestId" element={<CancelReviewPage />} />
+        </Route>
+        <Route element={<StepLayout />}>
+          {/* 단계리뉴얼디자인 */}
+          <Route path="/request/step0" element={<Step0 />} />
+          <Route path="/request/step1" element={<Step1 />} />
+          <Route path="/request/step2" element={<Step2 />} />
+          <Route path="/request/step3" element={<Step3 />} />
+          <Route path="/request/step4" element={<Step4 />} />
+          <Route path="/request/step5" element={<Step5 />} />
+          <Route path="/request/step6" element={<Step6 />} />
+          {/* 파트너의뢰서신청단계 */}
+          <Route path="/partner/step1/:partnerId" element={<PartnerStep1 />} />
+          <Route path="/partner/step2/:partnerId" element={<PartnerStep2 />} />
+          <Route path="/partner/step3/:partnerId" element={<PartnerStep3 />} />
+          <Route path="/partner/step4/:partnerId" element={<PartnerStep4 />} />
+          <Route path="/partner/step5/:partnerId" element={<PartnerStep5 />} />
+          <Route path="/partner/step6/:partnerId" element={<PartnerStep6 />} />
         </Route>
       </Routes>
       <RequestDraftResetter />
