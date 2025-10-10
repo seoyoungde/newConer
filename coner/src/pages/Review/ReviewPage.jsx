@@ -482,7 +482,7 @@ const SnsSection = styled.div`
 `;
 
 const SectionLabel = styled.p`
-  font-size: ${({ theme }) => theme.font?.size?.bodySmall || "14px"};
+  font-size: 14px;
   font-weight: 600;
   margin-bottom: 15px;
 `;

@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import styled from "styled-components";
 import StepHeader from "../../../components/common/Header/StepHeader";
 import { useNavigate, useParams } from "react-router-dom";
-import Button from "../../../components/ui/Button";
 import { useRequest } from "../../../context/context";
 import { useFunnelStep } from "../../../analytics/useFunnelStep";
 
@@ -52,6 +51,11 @@ const PartnerStep3 = () => {
   const handleTypeSelect = (typeId) => {
     setSelectedType(typeId);
     updateRequestData("aircon_type", typeId);
+    updateRequestData("service_type", selectedServiceType);
+
+    // 에어컨 종류 선택 즉시 다음 페이지로 이동
+    onAdvance(4);
+    navigate(`/partner/step4/${partnerId}`);
   };
 
   const handleServiceTypeSelect = (typeId) => {
@@ -59,25 +63,8 @@ const PartnerStep3 = () => {
     updateRequestData("service_type", typeId);
   };
 
-  const handleHelpClick = () => {
-    window.open("http://pf.kakao.com/_jyhxmn/chat");
-  };
-
-  const handleNext = () => {
-    if (!selectedType) {
-      alert("에어컨 종류를 선택해주세요.");
-      return;
-    }
-
-    updateRequestData("aircon_type", selectedType);
-    updateRequestData("service_type", selectedServiceType);
-
-    onAdvance(4);
-    navigate(`/partner/step4/${partnerId}`);
-  };
-
-  // 에어컨 종류 선택하면 7, 아니면 6
-  const currentStep = selectedType ? 7 : selectedServiceType ? 6 : 5;
+  // 서비스 유형 선택하면 6, 아니면 5
+  const currentStep = selectedServiceType ? 6 : 5;
 
   // 선택 단계에 따라 타이틀 변경
   let title = "서비스 유형을 선택해주세요.";
@@ -135,29 +122,6 @@ const PartnerStep3 = () => {
           )}
         </ContentSection>
       </ScrollableContent>
-
-      {/* 하단 고정 버튼 영역 - 서비스 유형과 에어컨 종류 모두 선택 시 표시 */}
-      {selectedServiceType && selectedType && (
-        <FixedButtonArea>
-          <Button fullWidth size="stepsize" onClick={handleNext}>
-            확인
-          </Button>
-          <CSButtonContainer>
-            <CSButton onClick={handleHelpClick}>
-              <CSButtonText>도움이 필요해요</CSButtonText>
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="8"
-                height="14"
-                viewBox="0 0 8 14"
-                fill="none"
-              >
-                <path d="M0.999999 13L7 7L1 1" stroke="#A0A0A0" />
-              </svg>
-            </CSButton>
-          </CSButtonContainer>
-        </FixedButtonArea>
-      )}
     </PageContainer>
   );
 };
@@ -195,16 +159,6 @@ const ContentSection = styled.div`
   }
 `;
 
-const FixedButtonArea = styled.div`
-  flex-shrink: 0;
-  background: white;
-  padding: 16px 24px;
-
-  @media (max-width: ${({ theme }) => theme.font.breakpoints.mobile}) {
-    padding: 15px;
-  }
-`;
-
 const PageTitle = styled.h1`
   font-size: ${({ theme }) => theme.font.size.h1};
   font-weight: ${({ theme }) => theme.font.weight.bold};
@@ -224,28 +178,6 @@ const Label = styled.p`
   font-size: ${({ theme }) => theme.font.size.body};
   font-weight: ${({ theme }) => theme.font.weight.medium};
   color: ${({ theme }) => theme.colors.subtext};
-`;
-
-const CSButtonContainer = styled.div`
-  display: flex;
-  justify-content: center;
-  margin-top: 20px;
-`;
-
-const CSButton = styled.button`
-  color: ${({ theme }) => theme.colors.text};
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background: none;
-  border: none;
-  cursor: pointer;
-`;
-
-const CSButtonText = styled.p`
-  margin: 0;
-  font-size: ${({ theme }) => theme.font.size.body};
-  color: #a0a0a0;
 `;
 
 const TypeContainer = styled.div`
