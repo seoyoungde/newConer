@@ -254,6 +254,7 @@ const ServiceType = styled.button`
   width: 87px;
   height: 60px;
   border-radius: 10px;
+  margin-bottom: 8px;
 
   border: 1px solid
     ${({ $isSelected, theme }) =>
