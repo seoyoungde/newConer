@@ -61,7 +61,7 @@ export default function PayPage() {
 
   // 환경별 설정
   const NICEPAY_CONFIG = {
-    clientId: "R2_7e78b8ceb1c04a68bb1b3f991a153f99",
+    clientId: import.meta.env.VITE_NICEPAY_CLIENT_ID,
     returnUrl: "https://api.coner.kr/payment/serverAuth",
     sdkUrl: "https://pay.nicepay.co.kr/v1/js/",
   };
@@ -567,7 +567,7 @@ export default function PayPage() {
                   </div>
                 </div>
 
-                <div style={styles.paymentMethodSection}>
+                {/* <div style={styles.paymentMethodSection}>
                   <div style={styles.paymentMethods}>
                     <button
                       style={{
@@ -615,8 +615,8 @@ export default function PayPage() {
                     >
                       페이코
                     </button>
-                  </div>
-                </div>
+                  </div> */}
+                {/* </div> */}
               </div>
             </>
           ) : (
@@ -680,7 +680,7 @@ export default function PayPage() {
           <div style={styles.accountDetails}>
             <div style={styles.bankName}>신한은행</div>
             <div style={styles.accountNumber}>100-038-137730</div>
-            <div style={styles.accountHolder}>서진형</div>
+            <div style={styles.accountHolder}>(주)코너플랫폼 </div>
           </div>
           <button style={styles.copyBtn} onClick={copyAccountNumber}>
             계좌번호 복사
@@ -1009,5 +1009,6 @@ const styles = {
     fontSize: "14px",
     color: "#9a3412",
     lineHeight: "1.6",
+    fontWeight: "800",
   },
 };

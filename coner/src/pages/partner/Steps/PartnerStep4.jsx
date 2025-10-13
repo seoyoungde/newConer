@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import styled from "styled-components";
 import StepHeader from "../../../components/common/Header/StepHeader";
 import { useNavigate, useParams } from "react-router-dom";
-import Button from "../../../components/ui/Button";
 import { useRequest } from "../../../context/context";
 import { useFunnelStep } from "../../../analytics/useFunnelStep";
 
@@ -33,32 +32,18 @@ const PartnerStep4 = () => {
   const handleBrandSelect = (brandId) => {
     setSelectedBrand(brandId);
     updateRequestData("brand", brandId);
-  };
 
-  const handleHelpClick = () => {
-    window.open("http://pf.kakao.com/_jyhxmn/chat");
-  };
-
-  const handleNext = () => {
-    if (!selectedBrand) {
-      alert("에어컨 브랜드를 선택해주세요.");
-      return;
-    }
-
-    updateRequestData("brand", selectedBrand);
-
+    // 선택 즉시 다음 페이지로 이동
     onAdvance(5);
     navigate(`/partner/step5/${partnerId}`);
   };
-
-  const currentStep = selectedBrand ? 8 : 7;
 
   return (
     <PageContainer>
       <ScrollableContent>
         <StepHeader
           to={`/partner/step3/${partnerId}`}
-          currentStep={currentStep}
+          currentStep={7}
           totalSteps={10}
         />
         <ContentSection>
@@ -95,32 +80,6 @@ const PartnerStep4 = () => {
           </BrandList>
         </ContentSection>
       </ScrollableContent>
-
-      {/* 하단 고정 버튼 영역 - 조건부 렌더링 */}
-      {selectedBrand && (
-        <FixedButtonArea>
-          <Button fullWidth size="stepsize" onClick={handleNext}>
-            확인
-          </Button>
-          <HelpButton onClick={handleHelpClick}>
-            <HelpText>도움이 필요해요</HelpText>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="6"
-              height="10"
-              viewBox="0 0 6 10"
-              fill="none"
-            >
-              <path
-                d="M1 1L5 5L1 9"
-                stroke="#A0A0A0"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </HelpButton>
-        </FixedButtonArea>
-      )}
     </PageContainer>
   );
 };
@@ -155,16 +114,6 @@ const ContentSection = styled.div`
 
   @media (max-width: ${({ theme }) => theme.font.breakpoints.mobile}) {
     padding: 24px 15px 24px 15px;
-  }
-`;
-
-const FixedButtonArea = styled.div`
-  flex-shrink: 0;
-  background: ${({ theme }) => theme.colors.bg};
-  padding: 16px 24px;
-
-  @media (max-width: ${({ theme }) => theme.font.breakpoints.mobile}) {
-    padding: 15px;
   }
 `;
 
@@ -212,26 +161,4 @@ const CheckIcon = styled.div`
   justify-content: center;
   transition: all 0.2s ease;
   flex-shrink: 0;
-`;
-
-const HelpButton = styled.button`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  background: none;
-  border: none;
-  cursor: pointer;
-  margin: 20px auto 0 auto;
-  padding: 8px;
-
-  &:hover {
-    background-color: #f8f9fa;
-    border-radius: 4px;
-  }
-`;
-
-const HelpText = styled.span`
-  font-size: ${({ theme }) => theme.font.size.bodyLarge};
-  color: #a0a0a0;
 `;

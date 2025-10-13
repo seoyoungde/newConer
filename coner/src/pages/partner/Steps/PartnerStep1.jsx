@@ -161,10 +161,10 @@ const PartnerStep1 = () => {
     title = "주소를 입력해주세요.";
   } else if (isPhoneComplete && isAddressComplete && !isCustomerTypeComplete) {
     currentStep = 2;
-    title = "사업자이신가요?";
+    title = "개인이신가요? 사업이신가요?";
   } else if (isPhoneComplete && isAddressComplete && isCustomerTypeComplete) {
     currentStep = 3;
-    title = "사업자이신가요?";
+    title = "확인버튼을 눌러주세요";
   }
 
   return (
@@ -343,7 +343,7 @@ const PageTitle = styled.h1`
 
 const Label = styled.p`
   margin-bottom: 6px;
-  font-size: ${({ theme }) => theme.font.size.body};
+  font-size: ${({ theme }) => theme.font.size.bodySmall};
   font-weight: ${({ theme }) => theme.font.weight.medium};
   color: ${({ theme }) => theme.colors.subtext};
 `;
