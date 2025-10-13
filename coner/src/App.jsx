@@ -9,7 +9,6 @@ import AuthAddressPage from "./pages/Auth/AuthAddressPage.jsx";
 import PricingPage from "./pages/Price/PricePage.jsx";
 import RequestSearchPage from "./pages/Search/RequestSearchPage.jsx";
 import InquiryPage from "./pages/Search/InquiryPage.jsx";
-import PartnerListPage from "./pages/partner/PartnerListPage.jsx";
 import MyPage from "./pages/Mypage/MyPage.jsx";
 import MypageInquiryPage from "./pages/Mypage/MypageInquiryPage.jsx";
 import ModifyPage from "./pages/Mypage/ModifyPage.jsx";
@@ -77,8 +76,6 @@ export default function App() {
           <Route path="/search/request" element={<RequestSearchPage />} />
           <Route path="/search/inquiry" element={<InquiryPage />} />
           <Route path="/search/sms/:requestId" element={<SmsRequestPage />} />
-
-          <Route path="/partner/list" element={<PartnerListPage />} />
 
           <Route path="/partner/apply" element={<PartnerApply />} />
 

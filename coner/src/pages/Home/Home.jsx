@@ -1,9 +1,10 @@
 import ServiceGrid from "./sections/ServiceGrid";
 import styled from "styled-components";
-import PartnerSelect from "./sections/PartnerSelect";
-import ServiceType from "./sections/ServiceType";
 import Footer from "../../components/common/Footer";
 import mianbannerIcon from "../../assets/images/mainbanner.png";
+import PartnerSection from "./sections/PartnerSection";
+import ReviewSection from "./sections/ReviewSection";
+import BlogSection from "./sections/BlogSection";
 
 const Home = () => {
   return (
@@ -15,10 +16,11 @@ const Home = () => {
         width={604}
         height={302}
       />
+      <ServiceGrid />
       <MainContent>
-        <ServiceGrid />
-        <PartnerSelect />
-        {/* <ServiceType /> */}
+        <PartnerSection />
+        {/* <ReviewSection /> */}
+        <BlogSection />
         <Footer />
       </MainContent>
     </div>
@@ -28,7 +30,7 @@ export default Home;
 const MainContent = styled.div`
   display: flex;
   flex-direction: column;
-  padding: 34px 34px;
+  padding: 0px 34px;
   @media (max-width: ${({ theme }) => theme.font.breakpoints.mobile}) {
     padding: 34px 15px;
   }

@@ -123,7 +123,8 @@ const ServiceGrid = () => {
 export default ServiceGrid;
 const ServiceContainer = styled.section`
   width: 100%;
-  padding-bottom: 60px;
+  padding-bottom: 34px;
+  margin-top: 34px;
 `;
 
 const ServiceList = styled.ul`
@@ -146,8 +147,8 @@ const ServiceItem = styled.li`
   }
 
   img {
-    width: 80px;
-    height: 80px;
+    width: 85px;
+    height: 85px;
     object-fit: contain;
     @media (max-width: ${({ theme }) => theme.font.breakpoints.mobile}) {
       width: 70px;
