@@ -66,8 +66,7 @@ const RequestReceived = ({
       return;
     }
 
-    // navigate(`/pay/${id}`);
-    navigate("/");
+    navigate(`/pay/${id}`);
   };
   const handleEditClick = (requestId) => {
     setEditingRequestId(requestId);
