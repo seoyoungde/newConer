@@ -145,6 +145,7 @@ const Section = styled.section`
   width: 100%;
   color: ${({ theme }) => theme.colors.text};
   font-family: inherit;
+  margin-bottom: 15px;
 `;
 
 const ButtonRow = styled.div`
