@@ -1,294 +1,368 @@
-import React, { useState, useEffect } from "react";
-import styled from "styled-components";
+import React, { useState, useRef, useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import StepHeader from "../../../components/common/Header/StepHeader";
-import TextField from "../../../components/ui/formControls/TextField";
-import StepSegmentedToggle from "../../../components/ui/StepSegementedToggle";
+import styled from "styled-components";
 import Button from "../../../components/ui/Button";
-import AddressModal, {
-  SERVICE_AREAS,
-} from "../../../components/common/Modal/AddressModal";
-import Modal from "../../../components/common/Modal/Modal";
-import {
-  useNavigate,
-  useLocation,
-  useSearchParams,
-  useParams,
-} from "react-router-dom";
 import { useRequest } from "../../../context/context";
 import { useFunnelStep } from "../../../analytics/useFunnelStep";
-import { useAuth } from "../../../context/AuthProvider";
+import CalendarPicker from "../../../components/request/CalendarPicker";
+import Modal from "../../../components/common/Modal/Modal";
+
+const CustomTimeDropdown = ({ value, onChange, options, placeholder }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("touchstart", handleClickOutside);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("touchstart", handleClickOutside);
+    };
+  }, []);
+
+  const handleSelect = (option) => {
+    onChange({ target: { value: option } });
+    setIsOpen(false);
+  };
+
+  const displayValue = value || placeholder;
+
+  return (
+    <DropdownContainer ref={dropdownRef}>
+      <DropdownButton onClick={() => setIsOpen(!isOpen)} $hasValue={!!value}>
+        <span>{displayValue}</span>
+        <ArrowIcon $isOpen={isOpen}>
+          <svg width="12" height="8" viewBox="0 0 12 8" fill="none">
+            <path
+              d="M1 1L6 6L11 1"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        </ArrowIcon>
+      </DropdownButton>
+
+      {isOpen && (
+        <DropdownMenu>
+          {options.map((option) => (
+            <DropdownItem
+              key={option}
+              onClick={() => handleSelect(option)}
+              $isSelected={value === option}
+            >
+              {option}
+            </DropdownItem>
+          ))}
+        </DropdownMenu>
+      )}
+    </DropdownContainer>
+  );
+};
 
 const PartnerStep1 = () => {
   const navigate = useNavigate();
   const { partnerId } = useParams();
-  const location = useLocation();
-  const [searchParams] = useSearchParams();
-  const { requestData, updateRequestData, updateRequestDataMany } =
-    useRequest();
-  const { currentUser, userInfo } = useAuth();
-  const isLoggedIn = !!currentUser;
-  const isReadOnly = isLoggedIn && !!userInfo;
+  const { requestData, updateRequestData } = useRequest();
 
   // 퍼널: 1단계
   const { onAdvance } = useFunnelStep({ step: 1 });
 
-  const [phone, setPhone] = useState(requestData.customer_phone || "");
-  const [address, setAddress] = useState(requestData.customer_address || "");
-  const [detailaddress, setDetailaddress] = useState(
-    requestData.customer_address_detail || ""
-  );
-  const [customerType, setCustomerType] = useState(
-    requestData.customer_type || ""
-  );
-  const [isAddressOpen, setIsAddressOpen] = useState(false);
-
-  // 로그인 사용자 정보 자동 입력
-  useEffect(() => {
-    if (!userInfo || !isReadOnly) return;
-
-    const formattedPhone = formatPhoneNumber(userInfo.phone || "");
-    setPhone(formattedPhone);
-    setAddress(userInfo.address || "");
-    setDetailaddress(userInfo.address_detail || "");
-    setCustomerType(userInfo.job || "");
-
-    updateRequestDataMany({
-      customer_phone: formattedPhone,
-      customer_address: userInfo.address || "",
-      customer_address_detail: userInfo.address_detail || "",
-      customer_type: userInfo.job || "",
-    });
-  }, [userInfo, isReadOnly]);
+  const [selectedTime, setSelectedTime] = useState("");
+  const [selectedDate, setSelectedDate] = useState(null);
+  const [isCalendarModalOpen, setIsCalendarModalOpen] = useState(false);
 
   useEffect(() => {
-    const restoredService =
-      location.state?.selectedService || searchParams.get("service_type");
-    if (restoredService && !requestData.service_type) {
-      updateRequestData("service_type", restoredService);
+    if (requestData.service_time) {
+      setSelectedTime(requestData.service_time);
     }
-  }, [
-    location.state,
-    searchParams,
-    requestData.service_type,
-    updateRequestData,
-  ]);
+    if (requestData.service_date && requestData.service_date !== "최대한빨리") {
+      // "YYYY년 MM월 DD일" 형식에서 Date 객체로 변환
+      const match = requestData.service_date.match(
+        /(\d{4})년\s*(\d{2})월\s*(\d{2})일/
+      );
+      if (match) {
+        setSelectedDate(new Date(+match[1], +match[2] - 1, +match[3]));
+      }
+    }
+  }, []);
+
+  const timeOptions = [
+    "오전9시 ~ 오전12시",
+    "오후1시 ~ 오후4시",
+    "오후5시 ~ 오후8시",
+  ];
+
+  const formatDate = (date) => {
+    if (!(date instanceof Date) || isNaN(date)) return "";
+    const y = date.getFullYear();
+    const m = `${date.getMonth() + 1}`.padStart(2, "0");
+    const d = `${date.getDate()}`.padStart(2, "0");
+    return `${y}년 ${m}월 ${d}일`;
+  };
+
+  const getTimeOptionStartHour = (timeOption) => {
+    if (timeOption === "오전9시 ~ 오전12시") return 9;
+    if (timeOption === "오후1시 ~ 오후4시") return 13;
+    if (timeOption === "오후5시 ~ 오후8시") return 17;
+    return 0;
+  };
+
+  const isDateToday = (date) => {
+    const today = new Date();
+    return (
+      date.getDate() === today.getDate() &&
+      date.getMonth() === today.getMonth() &&
+      date.getFullYear() === today.getFullYear()
+    );
+  };
+
+  const getAvailableTimeOptions = () => {
+    const now = new Date();
+    const currentHour = now.getHours();
+
+    if (!selectedDate || !isDateToday(selectedDate)) {
+      return timeOptions;
+    }
+
+    return timeOptions.filter((timeOption) => {
+      const startHour = getTimeOptionStartHour(timeOption);
+      return currentHour < startHour;
+    });
+  };
+
+  const getDateButtons = () => {
+    const today = new Date();
+    const buttons = [];
+
+    for (let i = 0; i < 20; i++) {
+      const date = new Date(today);
+      date.setDate(today.getDate() + i);
+
+      const dayNames = ["일", "월", "화", "수", "목", "금", "토"];
+      const dayName = dayNames[date.getDay()];
+
+      buttons.push({
+        date: date,
+        day: date.getDate(),
+        dayName: i === 0 ? "오늘" : dayName,
+        isToday: i === 0,
+      });
+    }
+
+    return buttons;
+  };
+
+  const formatSelectedDate = (date) => {
+    if (!date) return "";
+    const month = date.getMonth() + 1;
+    const day = date.getDate();
+    const dayNames = ["일", "월", "화", "수", "목", "금", "토"];
+    const dayName = dayNames[date.getDay()];
+
+    if (isDateToday(date)) {
+      return `${month}월 ${day}일 오늘`;
+    }
+
+    return `${month}월 ${day}일 ${dayName}요일`;
+  };
+
+  const handleDateSelect = (date) => {
+    setSelectedDate(date);
+    setSelectedTime("");
+    updateRequestData("service_date", formatDate(date));
+    updateRequestData("service_time", "");
+  };
+
+  const handleTimeChange = (e) => {
+    const time = e.target.value;
+    setSelectedTime(time);
+
+    updateRequestData("service_time", time);
+  };
 
   const handleHelpClick = () => {
-    window.open("http://pf.kakao.com/_jyhxmn/chat");
+    window.open("http://pf.kakao.com/_jyhxmn/chat", "_blank");
+  };
+
+  const handleCalendarClick = () => {
+    setIsCalendarModalOpen(true);
+  };
+
+  const handleCalendarModalClose = () => {
+    setIsCalendarModalOpen(false);
+  };
+
+  const handleCalendarDateSelect = (date) => {
+    setSelectedDate(date);
+    setSelectedTime("");
+    updateRequestData("service_date", formatDate(date));
+    updateRequestData("service_time", "");
+    setIsCalendarModalOpen(false);
   };
 
   const handleNext = () => {
-    if (!phone || !address || !detailaddress || !customerType) {
-      alert("모든 정보를 입력해주세요.");
+    if (!selectedDate) {
+      alert("희망 날짜를 선택해주세요.");
       return;
     }
 
-    const phoneNumbers = phone.replace(/[^\d]/g, "");
-    if (phoneNumbers.length !== 11) {
-      alert("올바른 휴대폰 번호를 입력해주세요.");
+    if (!selectedTime) {
+      alert("희망 시간을 선택해주세요.");
       return;
     }
 
-    updateRequestDataMany({
-      customer_phone: phoneNumbers,
-      customer_address: address,
-      customer_address_detail: detailaddress,
-      customer_type: customerType,
-    });
+    updateRequestData("service_date", formatDate(selectedDate));
+    updateRequestData("service_time", selectedTime);
 
     onAdvance(2);
     navigate(`/partner/step2/${partnerId}`);
   };
 
-  // 휴대폰 번호 포맷팅 (000-0000-0000)
-  const formatPhoneNumber = (value) => {
-    const numbers = value.replace(/[^\d]/g, "");
-    if (numbers.length <= 3) return numbers;
-    if (numbers.length <= 7)
-      return `${numbers.slice(0, 3)}-${numbers.slice(3)}`;
-    return `${numbers.slice(0, 3)}-${numbers.slice(3, 7)}-${numbers.slice(
-      7,
-      11
-    )}`;
-  };
-
-  const handlePhoneChange = (e) => {
-    if (isReadOnly) return;
-    const value = e.target ? e.target.value : e;
-    const formatted = formatPhoneNumber(value);
-    setPhone(formatted);
-    const phoneNumbers = formatted.replace(/[^\d]/g, "");
-    updateRequestData("customer_phone", phoneNumbers);
-  };
-
-  const handleDetailAddressChange = (e) => {
-    if (isReadOnly) return;
-    const value = e.target ? e.target.value : e;
-    setDetailaddress(value);
-    updateRequestData("customer_address_detail", value);
-  };
-
-  const handleAddressClick = () => {
-    if (!isReadOnly) {
-      setIsAddressOpen(true);
+  const getTitle = () => {
+    if (!selectedDate) {
+      return "희망하시는 날짜를 선택해주세요.";
+    } else if (
+      !selectedTime ||
+      !getAvailableTimeOptions().includes(selectedTime)
+    ) {
+      return "희망하시는 시간을 선택해주세요.";
+    } else {
+      return "희망하시는 시간을 선택해주세요.";
     }
   };
 
-  const handleAddressSelect = (addr) => {
-    setAddress(addr);
-    updateRequestData("customer_address", addr);
-    setIsAddressOpen(false);
-  };
-
-  const handleCustomerTypeChange = (value) => {
-    if (!isReadOnly) {
-      setCustomerType(value);
-      updateRequestData("customer_type", value);
-    }
-  };
-
-  const phoneNumbers = phone.replace(/[^\d]/g, "");
-  const isPhoneComplete = phoneNumbers.length === 11;
-  const isAddressComplete =
-    address.trim().length > 0 && detailaddress.trim().length > 0;
-  const isCustomerTypeComplete = customerType.trim().length > 0;
-
-  let currentStep = 0;
-  let title = "휴대폰 번호를 입력해주세요.";
-
-  if (isPhoneComplete && !isAddressComplete) {
-    currentStep = 1;
-    title = "주소를 입력해주세요.";
-  } else if (isPhoneComplete && isAddressComplete && !isCustomerTypeComplete) {
-    currentStep = 2;
-    title = "개인이신가요? 사업이신가요?";
-  } else if (isPhoneComplete && isAddressComplete && isCustomerTypeComplete) {
-    currentStep = 3;
-    title = "확인버튼을 눌러주세요";
-  }
+  const currentStep = !selectedDate ? 0 : !selectedTime ? 1 : 2;
+  const availableTimeOptions = getAvailableTimeOptions();
 
   return (
     <PageContainer>
       <ScrollableContent>
         <StepHeader to="/" currentStep={currentStep} totalSteps={10} />
         <ContentSection>
-          <PageTitle>{title}</PageTitle>
+          <PageTitle>{getTitle()}</PageTitle>
 
-          {/* 로그인 사용자 정보 수정 링크 */}
-          {isReadOnly && (
-            <ModifyLink
-              onClick={() =>
-                navigate(`/partner/modify/${partnerId}`, {
-                  state: { from: "step1" },
-                })
-              }
-            >
-              내 정보 (주소 / 고객유형) 수정하러가기
-            </ModifyLink>
+          {/* 날짜가 선택된 후 시간 선택 (위쪽에 표시) */}
+          {selectedDate && (
+            <SectionContainer>
+              <SectionLabel>희망 시간</SectionLabel>
+              <CustomTimeDropdown
+                value={selectedTime}
+                onChange={handleTimeChange}
+                options={availableTimeOptions}
+                placeholder="시간을 선택해주세요"
+              />
+              {availableTimeOptions.length === 0 && (
+                <NoTimeAvailable>
+                  오늘은 선택 가능한 시간이 없습니다.
+                </NoTimeAvailable>
+              )}
+            </SectionContainer>
           )}
 
-          {/* 3단계: 의뢰인 유형 */}
-          {currentStep >= 2 && (
-            <FormGroup>
-              <Label>의뢰인 유형</Label>
-              <StepSegmentedToggle
-                value={customerType}
-                onChange={handleCustomerTypeChange}
-                options={[
-                  { label: "사업장(기업/매장)", value: "사업장(기업/매장)" },
-                  { label: "개인(가정)", value: "개인(가정)" },
-                ]}
-                disabled={isReadOnly}
-              />
-            </FormGroup>
-          )}
+          {/* 희망 날짜 선택 (항상 표시) */}
+          <SectionContainer>
+            <SectionLabel style={{ marginBottom: "2px" }}>
+              희망 날짜
+            </SectionLabel>
+            <DateHeader>
+              <SelectedDateText>
+                {formatSelectedDate(selectedDate) || "날짜를 선택해주세요"}
+              </SelectedDateText>
+              <CalendarIconButton onClick={handleCalendarClick}>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="18"
+                  height="20"
+                  viewBox="0 0 18 20"
+                  fill="none"
+                >
+                  <path
+                    d="M16 2H15V0H13V2H5V0H3V2H2C0.89 2 0.00999999 2.9 0.00999999 4L0 18C0 18.5304 0.210714 19.0391 0.585786 19.4142C0.960859 19.7893 1.46957 20 2 20H16C17.1 20 18 19.1 18 18V4C18 2.9 17.1 2 16 2ZM16 18H2V8H16V18ZM6 12H4V10H6V12ZM10 12H8V10H10V12ZM14 12H12V10H14V12ZM6 16H4V14H6V16ZM10 16H8V14H10V16ZM14 16H12V14H14V16Z"
+                    fill="#A0A0A0"
+                  />
+                </svg>
+              </CalendarIconButton>
+            </DateHeader>
 
-          {/* 2단계: 주소 */}
-          {currentStep >= 1 && (
-            <FormGroup>
-              <ClickableTextField
-                label="주소"
-                size="stepsize"
-                value={address}
-                placeholder="주소를 입력해주세요"
-                onClick={handleAddressClick}
-                readOnly
-              />
-              <p style={{ marginBottom: "5px" }}></p>
-              <TextField
-                size="stepsize"
-                value={detailaddress}
-                onChange={handleDetailAddressChange}
-                placeholder="상세주소를 입력해주세요"
-                readOnly={isReadOnly}
-              />
-              {/* 서울 지역 제한 안내 */}
-              <HelperText>서울 지역으로만 제한되어 있습니다.</HelperText>
-            </FormGroup>
-          )}
+            <DateButtonsContainer>
+              {getDateButtons().map((item, index) => (
+                <DateButton
+                  key={index}
+                  $isSelected={
+                    selectedDate &&
+                    selectedDate.getDate() === item.day &&
+                    selectedDate.getMonth() === item.date.getMonth()
+                  }
+                  $isToday={item.isToday}
+                  onClick={() => handleDateSelect(item.date)}
+                >
+                  <DateNumber>{item.day}</DateNumber>
+                  <DayName>{item.dayName}</DayName>
+                </DateButton>
+              ))}
+            </DateButtonsContainer>
 
-          {/* 1단계: 휴대폰 번호 (항상 표시) */}
-          <FormGroup>
-            <TextField
-              label="휴대폰 번호"
-              size="stepsize"
-              value={phone}
-              onChange={handlePhoneChange}
-              placeholder="000-0000-0000"
-              maxLength={13}
-              readOnly={isReadOnly}
-            />
-          </FormGroup>
+            {/* 당일 신청 안내 문구 */}
+            <NoticeText>
+              당일신청시 기사님과 일정조율이 필요할 수 있습니다.
+            </NoticeText>
+          </SectionContainer>
         </ContentSection>
       </ScrollableContent>
 
-      {/* 하단 고정 버튼 - 조건부 렌더링 */}
-      {currentStep === 3 && (
-        <FixedButtonArea>
-          <Button fullWidth size="stepsize" onClick={handleNext}>
-            확인
-          </Button>
-          <CSButtonContainer>
-            <CSButton onClick={handleHelpClick}>
-              <CSButtonText>도움이 필요해요</CSButtonText>
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="8"
-                height="14"
-                viewBox="0 0 8 14"
-                fill="none"
-              >
-                <path d="M0.999999 13L7 7L1 1" stroke="#A0A0A0" />
-              </svg>
-            </CSButton>
-          </CSButtonContainer>
-        </FixedButtonArea>
-      )}
+      {/* 하단 고정 버튼 영역 - 조건부 렌더링 */}
+      {selectedDate &&
+        selectedTime &&
+        availableTimeOptions.includes(selectedTime) && (
+          <FixedButtonArea>
+            <Button fullWidth size="stepsize" onClick={handleNext}>
+              확인
+            </Button>
+            <CSButtonContainer>
+              <CSButton onClick={handleHelpClick}>
+                <CSButtonText>도움이 필요해요</CSButtonText>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="8"
+                  height="14"
+                  viewBox="0 0 8 14"
+                  fill="none"
+                >
+                  <path d="M0.999999 13L7 7L1 1" stroke="#A0A0A0" />
+                </svg>
+              </CSButton>
+            </CSButtonContainer>
+          </FixedButtonArea>
+        )}
 
-      {/* 주소 검색 모달 */}
-      {isAddressOpen && (
-        <Modal
-          open={isAddressOpen}
-          onClose={() => setIsAddressOpen(false)}
-          title="주소 검색"
-          width={420}
-          containerId="rightbox-modal-root"
-        >
-          <div style={{ width: "100%", height: "70vh" }}>
-            <AddressModal
-              onSelect={handleAddressSelect}
-              onClose={() => setIsAddressOpen(false)}
-              serviceAreas={SERVICE_AREAS}
-            />
-          </div>
-        </Modal>
-      )}
+      {/* 캘린더 모달 */}
+      <Modal
+        open={isCalendarModalOpen}
+        onClose={handleCalendarModalClose}
+        title="날짜 선택"
+        width={400}
+        containerId="rightbox-modal-root"
+      >
+        <CalendarPicker
+          selectedDate={selectedDate}
+          setSelectedDate={handleCalendarDateSelect}
+        />
+      </Modal>
     </PageContainer>
   );
 };
 
 export default PartnerStep1;
-
 const PageContainer = styled.div`
   display: flex;
   flex-direction: column;
@@ -335,47 +409,201 @@ const PageTitle = styled.h1`
   font-weight: ${({ theme }) => theme.font.weight.bold};
   color: ${({ theme }) => theme.colors.text};
   margin-bottom: 36px;
-
   @media (max-width: ${({ theme }) => theme.font.breakpoints.smobile}) {
     font-size: ${({ theme }) => theme.font.size.h2};
   }
 `;
 
-const Label = styled.p`
-  margin-bottom: 6px;
+const SectionContainer = styled.div`
+  margin-bottom: 32px;
+`;
+
+const SectionLabel = styled.p`
   font-size: ${({ theme }) => theme.font.size.bodySmall};
   font-weight: ${({ theme }) => theme.font.weight.medium};
   color: ${({ theme }) => theme.colors.subtext};
-`;
-
-const FormGroup = styled.div`
-  margin-bottom: 24px;
-`;
-
-const ClickableTextField = styled(TextField)`
-  cursor: pointer;
-  input {
-    cursor: pointer;
-  }
-`;
-
-const HelperText = styled.p`
-  color: ${({ theme }) => theme.colors.subtext};
-  font-weight: ${({ theme }) => theme.font.weight.regular};
-  font-size: ${({ theme }) => theme.font.size.bodySmall};
-  padding: 5px 0 0 0;
+  margin-bottom: 8px;
   margin: 0;
 `;
 
-const ModifyLink = styled.a`
-  font-size: ${({ theme }) => theme.font.size.bodySmall};
-  font-weight: ${({ theme }) => theme.font.weight.bold};
-  text-decoration: underline;
-  color: ${({ theme }) => theme.colors.subtext};
-  padding: 10px;
+const DropdownContainer = styled.div`
+  position: relative;
+  width: 100%;
+  margin-top: 8px;
+`;
+
+const DropdownButton = styled.button`
+  width: 100%;
+  padding: 16px;
+  border: 1px solid #d6d6d6;
+  border-radius: 8px;
+  background: ${({ theme }) => theme.colors.bg};
+  color: ${({ $hasValue }) => ($hasValue ? "#333" : "#999")};
+  font-size: ${({ theme }) => theme.font.size.body};
+  text-align: left;
   cursor: pointer;
-  display: block;
-  margin-bottom: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  &:hover {
+    border-color: #007bff;
+  }
+
+  &:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+  }
+`;
+
+const ArrowIcon = styled.div`
+  color: #666;
+  transition: transform 0.2s ease;
+  transform: ${({ $isOpen }) => ($isOpen ? "rotate(180deg)" : "rotate(0deg)")};
+  display: flex;
+  align-items: center;
+`;
+
+const DropdownMenu = styled.div`
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: white;
+  border: 1px solid #d6d6d6;
+  border-top: none;
+  border-radius: 0 0 8px 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  max-height: 200px;
+  overflow-y: auto;
+
+  @media (max-width: ${({ theme }) => theme.font.breakpoints.mobile}) {
+    -webkit-overflow-scrolling: touch;
+  }
+`;
+
+const DropdownItem = styled.div`
+  padding: 12px 16px;
+  cursor: pointer;
+  color: ${({ theme }) => theme.colors.text};
+  background-color: ${({ $isSelected }) => ($isSelected ? "#f8f9fa" : "white")};
+  font-weight: ${({ $isSelected }) => ($isSelected ? "600" : "400")};
+
+  &:hover {
+    background-color: #f8f9fa;
+  }
+
+  &:last-child {
+    border-radius: 0 0 8px 8px;
+  }
+`;
+
+const NoTimeAvailable = styled.p`
+  font-size: ${({ theme }) => theme.font.size.body};
+  color: #ff6b6b;
+  margin-top: 8px;
+  margin-bottom: 0;
+  text-align: center;
+`;
+
+const DateHeader = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+`;
+
+const SelectedDateText = styled.span`
+  font-size: ${({ theme }) => theme.font.size.bodyLarge};
+  font-weight: ${({ theme }) => theme.font.weight.bold};
+  color: ${({ theme }) => theme.colors.text};
+`;
+
+const DateButtonsContainer = styled.div`
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  padding: 4px 0 8px 0;
+  -webkit-overflow-scrolling: touch;
+
+  &::-webkit-scrollbar {
+    height: 4px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 2px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 2px;
+  }
+
+  &::-webkit-scrollbar-thumb:hover {
+    background: #a1a1a1;
+  }
+
+  scrollbar-width: thin;
+  scrollbar-color: #c1c1c1 #f1f1f1;
+
+  @media (max-width: ${({ theme }) => theme.font.breakpoints.mobile}) {
+    width: 360px;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
+    scrollbar-width: none;
+    gap: 8px;
+  }
+
+  @media (max-width: ${({ theme }) => theme.font.breakpoints.smobile}) {
+    width: 280px;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
+    scrollbar-width: none;
+    gap: 8px;
+  }
+`;
+
+const DateButton = styled.button`
+  flex: none;
+  min-width: 70px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 16px 12px;
+  border: 1px solid
+    ${({ $isSelected, $isToday, theme }) =>
+      $isSelected ? "#007BFF" : $isToday ? theme.colors.primary : "#d6d6d6"};
+  border-radius: 8px;
+  background-color: ${({ $isSelected }) => ($isSelected ? "#004FFF" : "white")};
+  color: ${({ $isSelected }) => ($isSelected ? "white" : "#333")};
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+
+  &:hover {
+    border-color: #007bff;
+  }
+  @media (max-width: ${({ theme }) => theme.font.breakpoints.mobile}) {
+    padding: 12px 10px;
+    min-width: 50px;
+  }
+`;
+
+const DateNumber = styled.span`
+  font-size: ${({ theme }) => theme.font.size.body};
+  font-weight: ${({ theme }) => theme.font.weight.bold};
+  margin-bottom: 4px;
+`;
+
+const DayName = styled.span`
+  font-size: ${({ theme }) => theme.font.size.bodySmall};
 `;
 
 const CSButtonContainer = styled.div`
@@ -398,4 +626,36 @@ const CSButtonText = styled.p`
   margin: 0;
   font-size: ${({ theme }) => theme.font.size.bodyLarge};
   color: #a0a0a0;
+`;
+
+const NoticeText = styled.p`
+  font-size: ${({ theme }) => theme.font.size.bodySmall};
+  color: #888;
+  margin-top: 8px;
+  margin-bottom: 0;
+  text-align: center;
+  line-height: 1.4;
+`;
+
+const CalendarIconButton = styled.button`
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+
+  &:hover {
+    background-color: #f5f5f5;
+  }
+
+  &:active {
+    background-color: #e0e0e0;
+  }
+
+  svg {
+    pointer-events: none;
+  }
 `;
