@@ -5,11 +5,6 @@ import { useNavigate } from "react-router-dom";
 import { useRequest } from "../../../context/context";
 import { useFunnelStep } from "../../../analytics/useFunnelStep";
 
-import Type1Icon from "../../../assets/servicetype/servicesType_1.png";
-import Type3Icon from "../../../assets/servicetype/servicesType_3.png";
-import Type4Icon from "../../../assets/servicetype/servicesType_4.png";
-import Type5Icon from "../../../assets/servicetype/servicesType_5.png";
-
 const Step3 = () => {
   const navigate = useNavigate();
   const { requestData, updateRequestData } = useRequest();
@@ -17,60 +12,67 @@ const Step3 = () => {
   // 퍼널: 3단계
   const { onAdvance } = useFunnelStep({ step: 3 });
 
-  const [selectedType, setSelectedType] = useState(
-    requestData.aircon_type || ""
-  );
+  const [selectedBrand, setSelectedBrand] = useState(requestData.brand || "");
 
-  const airconTypes = [
-    { id: "스탠드형", name: "스탠드형", icon: Type4Icon },
-    { id: "벽걸이형", name: "벽걸이형", icon: Type1Icon },
-    { id: "천장형", name: "천장형", icon: Type3Icon },
-    { id: "항온항습기", name: "항온항습기", icon: Type5Icon },
+  const brands = [
+    { id: "삼성전자", name: "삼성전자" },
+    { id: "LG전자", name: "LG전자" },
+    { id: "캐리어", name: "캐리어" },
+    { id: "센추리", name: "센추리 에어컨" },
+    { id: "기타", name: "기타" },
   ];
 
   useEffect(() => {
-    if (requestData.aircon_type && requestData.aircon_type !== selectedType) {
-      setSelectedType(requestData.aircon_type);
+    if (requestData.brand && requestData.brand !== selectedBrand) {
+      setSelectedBrand(requestData.brand);
     }
-  }, [requestData.aircon_type, selectedType]);
+  }, [requestData.brand, selectedBrand]);
 
-  const handleTypeSelect = (typeId) => {
-    setSelectedType(typeId);
-    updateRequestData("aircon_type", typeId);
+  const handleBrandSelect = (brandId) => {
+    setSelectedBrand(brandId);
+    updateRequestData("brand", brandId);
 
     // 선택 즉시 다음 페이지로 이동
     onAdvance(4);
     navigate("/request/step4");
   };
 
-  const title = "에어컨 종류를 선택해주세요.";
-
   return (
     <PageContainer>
       <ScrollableContent>
-        <StepHeader to="/request/step2" currentStep={5} totalSteps={9} />
+        <StepHeader to="/request/step2" currentStep={3} totalSteps={9} />
         <ContentSection>
-          <PageTitle>{title}</PageTitle>
+          <PageTitle>에어컨 브랜드를 선택해주세요.</PageTitle>
 
-          <FormGroup>
-            <Label>에어컨 종류</Label>
-            <TypeContainer>
-              {airconTypes.map((type) => (
-                <Type
-                  key={type.id}
-                  $isSelected={selectedType === type.id}
-                  onClick={() => handleTypeSelect(type.id)}
-                >
-                  <TypeImg
-                    src={type.icon}
-                    alt={type.name}
-                    $isSelected={selectedType === type.id}
-                  />
-                  {type.name}
-                </Type>
-              ))}
-            </TypeContainer>
-          </FormGroup>
+          <BrandList>
+            {brands.map((brand) => (
+              <BrandItem
+                key={brand.id}
+                onClick={() => handleBrandSelect(brand.id)}
+              >
+                <BrandName>{brand.name}</BrandName>
+                <CheckIcon $isSelected={selectedBrand === brand.id}>
+                  {selectedBrand === brand.id && (
+                    <svg
+                      width="14"
+                      height="10"
+                      viewBox="0 0 14 10"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M1 5L5 9L13 1"
+                        stroke="white"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  )}
+                </CheckIcon>
+              </BrandItem>
+            ))}
+          </BrandList>
         </ContentSection>
       </ScrollableContent>
     </PageContainer>
@@ -115,87 +117,43 @@ const PageTitle = styled.h1`
   font-weight: ${({ theme }) => theme.font.weight.bold};
   color: ${({ theme }) => theme.colors.text};
   margin-bottom: 36px;
+
   @media (max-width: ${({ theme }) => theme.font.breakpoints.smobile}) {
     font-size: ${({ theme }) => theme.font.size.h2};
   }
 `;
 
-const FormGroup = styled.div`
-  margin-bottom: 24px;
-`;
-
-const Label = styled.p`
-  margin-bottom: 6px;
-  font-size: ${({ theme }) => theme.font.size.body};
-  font-weight: ${({ theme }) => theme.font.weight.medium};
-  color: ${({ theme }) => theme.colors.subtext};
-`;
-
-const TypeContainer = styled.div`
-  display: flex;
-  justify-content: space-between;
-  gap: 8px;
-
-  @media (max-width: ${({ theme }) => theme.font.breakpoints.mobile}) {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    grid-template-rows: 1fr 1fr;
-    gap: 12px;
-    justify-items: center;
-  }
-`;
-
-const Type = styled.button`
+const BrandList = styled.div`
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  width: 133px;
-  height: 133px;
-  border-radius: 10px;
-  border: 1px solid
-    ${({ $isSelected, theme }) =>
-      $isSelected ? theme.colors.primary || "#007BFF" : "#a0a0a0"};
-  background: ${({ $isSelected, theme }) =>
-    $isSelected ? theme.colors.primary || "#007BFF" : "#fff"};
-  color: ${({ $isSelected }) => ($isSelected ? "white" : "#333")};
-  cursor: pointer;
-  transition: all 0.2s ease;
-  font-size: ${({ theme }) => theme.font.size.body};
-  font-weight: ${({ $isSelected }) => ($isSelected ? "800" : "600")};
-
-  &:hover {
-    border-color: ${({ theme }) => theme.colors.primary || "#007BFF"};
-  }
-
-  @media (max-width: ${({ theme }) => theme.font.breakpoints.mobile}) {
-    width: 180px;
-    height: 180px;
-    gap: 6px;
-    font-size: ${({ theme }) => theme.font.size.body};
-  }
-
-  @media (max-width: ${({ theme }) => theme.font.breakpoints.smobile}) {
-    width: 140px;
-    height: 140px;
-    gap: 4px;
-    font-size: ${({ theme }) => theme.font.size.bodySmall};
-  }
+  gap: 0;
 `;
 
-const TypeImg = styled.img`
-  width: 88px;
-  height: 88px;
-  transition: filter 0.2s ease;
+const BrandItem = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 0;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+`;
 
-  @media (max-width: ${({ theme }) => theme.font.breakpoints.mobile}) {
-    width: 104px;
-    height: 104px;
-  }
+const BrandName = styled.span`
+  font-size: ${({ theme }) => theme.font.size.bodyLarge};
+  font-weight: ${({ theme }) => theme.font.weight.bold};
+  color: ${({ theme }) => theme.colors.text};
+`;
 
-  @media (max-width: ${({ theme }) => theme.font.breakpoints.smobile}) {
-    width: 78px;
-    height: 78px;
-  }
+const CheckIcon = styled.div`
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 2px solid
+    ${({ $isSelected }) => ($isSelected ? "#004FFF" : "#D6D6D6")};
+  background-color: ${({ $isSelected }) => ($isSelected ? "#004FFF" : "white")};
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
 `;

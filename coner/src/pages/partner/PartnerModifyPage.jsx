@@ -9,7 +9,7 @@ const PartnerModifyPage = () => {
 
   return (
     <Container>
-      <NavHeader to={`/partner/step1/${partnerId}`} title="내 정보 수정" />
+      <NavHeader to={`/partner/step5/${partnerId}`} title="내 정보 수정" />
       <Modify />
     </Container>
   );

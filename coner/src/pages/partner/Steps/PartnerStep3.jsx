@@ -5,11 +5,6 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useRequest } from "../../../context/context";
 import { useFunnelStep } from "../../../analytics/useFunnelStep";
 
-import Type1Icon from "../../../assets/servicetype/servicesType_1.png";
-import Type3Icon from "../../../assets/servicetype/servicesType_3.png";
-import Type4Icon from "../../../assets/servicetype/servicesType_4.png";
-import Type5Icon from "../../../assets/servicetype/servicesType_5.png";
-
 const PartnerStep3 = () => {
   const navigate = useNavigate();
   const { partnerId } = useParams();
@@ -18,108 +13,71 @@ const PartnerStep3 = () => {
   // 퍼널: 3단계
   const { onAdvance } = useFunnelStep({ step: 3 });
 
-  const [selectedType, setSelectedType] = useState(
-    requestData.aircon_type || ""
-  );
+  const [selectedBrand, setSelectedBrand] = useState(requestData.brand || "");
 
-  const [selectedServiceType, setSelectedServiceType] = useState(
-    requestData.service_type || ""
-  );
-
-  const airconTypes = [
-    { id: "스탠드형", name: "스탠드형", icon: Type4Icon },
-    { id: "벽걸이형", name: "벽걸이형", icon: Type1Icon },
-    { id: "천장형", name: "천장형", icon: Type3Icon },
-    { id: "항온항습기", name: "항온항습기", icon: Type5Icon },
-  ];
-
-  const serviceTypes = [
-    { id: "설치", name: "설치" },
-    { id: "냉매충전", name: "냉매충전" },
-    { id: "수리", name: "수리" },
-    { id: "설치 및 구매", name: "설치 및 구매" },
-    { id: "이전설치", name: "이전설치" },
-    { id: "청소", name: "청소" },
+  const brands = [
+    { id: "삼성전자", name: "삼성전자" },
+    { id: "LG전자", name: "LG전자" },
+    { id: "캐리어", name: "캐리어" },
+    { id: "센추리", name: "센추리 에어컨" },
+    { id: "기타", name: "기타" },
   ];
 
   useEffect(() => {
-    if (requestData.aircon_type && requestData.aircon_type !== selectedType) {
-      setSelectedType(requestData.aircon_type);
+    if (requestData.brand && requestData.brand !== selectedBrand) {
+      setSelectedBrand(requestData.brand);
     }
-  }, [requestData.aircon_type, selectedType]);
+  }, [requestData.brand, selectedBrand]);
 
-  const handleTypeSelect = (typeId) => {
-    setSelectedType(typeId);
-    updateRequestData("aircon_type", typeId);
-    updateRequestData("service_type", selectedServiceType);
+  const handleBrandSelect = (brandId) => {
+    setSelectedBrand(brandId);
+    updateRequestData("brand", brandId);
 
-    // 에어컨 종류 선택 즉시 다음 페이지로 이동
+    // 선택 즉시 다음 페이지로 이동
     onAdvance(4);
     navigate(`/partner/step4/${partnerId}`);
   };
-
-  const handleServiceTypeSelect = (typeId) => {
-    setSelectedServiceType(typeId);
-    updateRequestData("service_type", typeId);
-  };
-
-  // 서비스 유형 선택하면 6, 아니면 5
-  const currentStep = selectedServiceType ? 6 : 5;
-
-  // 선택 단계에 따라 타이틀 변경
-  let title = "서비스 유형을 선택해주세요.";
-  if (selectedServiceType) {
-    title = "에어컨 종류를 선택해주세요.";
-  }
 
   return (
     <PageContainer>
       <ScrollableContent>
         <StepHeader
           to={`/partner/step2/${partnerId}`}
-          currentStep={currentStep}
+          currentStep={4}
           totalSteps={10}
         />
         <ContentSection>
-          <PageTitle>{title}</PageTitle>
+          <PageTitle>에어컨 브랜드를 선택해주세요.</PageTitle>
 
-          <FormGroup>
-            <Label>서비스 유형</Label>
-            <ServiceTypeContainer>
-              {serviceTypes.map((type) => (
-                <ServiceType
-                  key={type.id}
-                  $isSelected={selectedServiceType === type.id}
-                  onClick={() => handleServiceTypeSelect(type.id)}
-                >
-                  {type.name}
-                </ServiceType>
-              ))}
-            </ServiceTypeContainer>
-          </FormGroup>
-
-          {/* 서비스 유형 선택 후에만 에어컨 종류 표시 */}
-          {selectedServiceType && (
-            <FormGroup>
-              <Label>에어컨 종류</Label>
-              <TypeContainer>
-                {airconTypes.map((type) => (
-                  <Type
-                    key={type.id}
-                    $isSelected={selectedType === type.id}
-                    onClick={() => handleTypeSelect(type.id)}
-                  >
-                    <TypeImg
-                      src={type.icon}
-                      alt={type.name}
-                      $isSelected={selectedType === type.id}
-                    />
-                    {type.name}
-                  </Type>
-                ))}
-              </TypeContainer>
-            </FormGroup>
-          )}
+          <BrandList>
+            {brands.map((brand) => (
+              <BrandItem
+                key={brand.id}
+                onClick={() => handleBrandSelect(brand.id)}
+              >
+                <BrandName>{brand.name}</BrandName>
+                <CheckIcon $isSelected={selectedBrand === brand.id}>
+                  {selectedBrand === brand.id && (
+                    <svg
+                      width="14"
+                      height="10"
+                      viewBox="0 0 14 10"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M1 5L5 9L13 1"
+                        stroke="white"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  )}
+                </CheckIcon>
+              </BrandItem>
+            ))}
+          </BrandList>
         </ContentSection>
       </ScrollableContent>
     </PageContainer>
@@ -164,138 +122,43 @@ const PageTitle = styled.h1`
   font-weight: ${({ theme }) => theme.font.weight.bold};
   color: ${({ theme }) => theme.colors.text};
   margin-bottom: 36px;
+
   @media (max-width: ${({ theme }) => theme.font.breakpoints.smobile}) {
     font-size: ${({ theme }) => theme.font.size.h2};
   }
 `;
 
-const FormGroup = styled.div`
-  margin-bottom: 24px;
-`;
-
-const Label = styled.p`
-  margin-bottom: 6px;
-  font-size: ${({ theme }) => theme.font.size.body};
-  font-weight: ${({ theme }) => theme.font.weight.medium};
-  color: ${({ theme }) => theme.colors.subtext};
-`;
-
-const TypeContainer = styled.div`
-  display: flex;
-  justify-content: space-between;
-  gap: 8px;
-
-  @media (max-width: ${({ theme }) => theme.font.breakpoints.mobile}) {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    grid-template-rows: 1fr 1fr;
-    gap: 12px;
-    justify-items: center;
-  }
-`;
-
-const Type = styled.button`
+const BrandList = styled.div`
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  width: 133px;
-  height: 133px;
-  border-radius: 10px;
-  border: 1px solid
-    ${({ $isSelected, theme }) =>
-      $isSelected ? theme.colors.primary || "#007BFF" : "#a0a0a0"};
-  background: ${({ $isSelected, theme }) =>
-    $isSelected ? theme.colors.primary || "#007BFF" : "#fff"};
-  color: ${({ $isSelected }) => ($isSelected ? "white" : "#333")};
-  cursor: pointer;
-  transition: all 0.2s ease;
-  font-size: ${({ theme }) => theme.font.size.body};
-  font-weight: ${({ $isSelected }) => ($isSelected ? "800" : "600")};
-
-  &:hover {
-    border-color: ${({ theme }) => theme.colors.primary || "#007BFF"};
-  }
-
-  @media (max-width: ${({ theme }) => theme.font.breakpoints.mobile}) {
-    width: 165px;
-    height: 165px;
-    gap: 6px;
-    font-size: ${({ theme }) => theme.font.size.body};
-  }
-
-  @media (max-width: ${({ theme }) => theme.font.breakpoints.smobile}) {
-    width: 135px;
-    height: 135px;
-    gap: 4px;
-    font-size: ${({ theme }) => theme.font.size.bodySmall};
-  }
+  gap: 0;
 `;
 
-const ServiceTypeContainer = styled.div`
+const BrandItem = styled.div`
   display: flex;
   justify-content: space-between;
-
-  flex-wrap: wrap;
-  @media (max-width: ${({ theme }) => theme.font.breakpoints.mobile}) {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    justify-items: center;
-  }
+  align-items: center;
+  padding: 16px 0;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
 `;
 
-const ServiceType = styled.button`
+const BrandName = styled.span`
+  font-size: ${({ theme }) => theme.font.size.bodyLarge};
+  font-weight: ${({ theme }) => theme.font.weight.bold};
+  color: ${({ theme }) => theme.colors.text};
+`;
+
+const CheckIcon = styled.div`
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 2px solid
+    ${({ $isSelected }) => ($isSelected ? "#004FFF" : "#D6D6D6")};
+  background-color: ${({ $isSelected }) => ($isSelected ? "#004FFF" : "white")};
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  width: 87px;
-  height: 60px;
-  border-radius: 10px;
-  margin-bottom: 8px;
-
-  border: 1px solid
-    ${({ $isSelected, theme }) =>
-      $isSelected ? theme.colors.primary || "#007BFF" : "#a0a0a0"};
-  background: ${({ $isSelected, theme }) =>
-    $isSelected ? theme.colors.primary || "#007BFF" : "#fff"};
-  color: ${({ $isSelected }) => ($isSelected ? "white" : "#333")};
-  cursor: pointer;
   transition: all 0.2s ease;
-  font-size: ${({ theme }) => theme.font.size.body};
-  font-weight: ${({ $isSelected }) => ($isSelected ? "700" : "500")};
-
-  &:hover {
-    border-color: ${({ theme }) => theme.colors.primary || "#007BFF"};
-  }
-
-  @media (max-width: ${({ theme }) => theme.font.breakpoints.mobile}) {
-    width: 108px;
-    height: 50px;
-    font-size: ${({ theme }) => theme.font.size.body};
-  }
-
-  @media (max-width: ${({ theme }) => theme.font.breakpoints.smobile}) {
-    width: 89px;
-    height: 40px;
-    font-size: ${({ theme }) => theme.font.size.bodySmall};
-  }
-`;
-
-const TypeImg = styled.img`
-  width: 88px;
-  height: 88px;
-  transition: filter 0.2s ease;
-
-  @media (max-width: ${({ theme }) => theme.font.breakpoints.mobile}) {
-    width: 104px;
-    height: 104px;
-  }
-
-  @media (max-width: ${({ theme }) => theme.font.breakpoints.smobile}) {
-    width: 78px;
-    height: 78px;
-  }
+  flex-shrink: 0;
 `;

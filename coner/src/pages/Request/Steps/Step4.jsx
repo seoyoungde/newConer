@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import styled from "styled-components";
 import StepHeader from "../../../components/common/Header/StepHeader";
 import { useNavigate } from "react-router-dom";
+import Button from "../../../components/ui/Button";
 import { useRequest } from "../../../context/context";
 import { useFunnelStep } from "../../../analytics/useFunnelStep";
 
@@ -9,72 +10,102 @@ const Step4 = () => {
   const navigate = useNavigate();
   const { requestData, updateRequestData } = useRequest();
 
-  // 퍼널: 4단계
   const { onAdvance } = useFunnelStep({ step: 4 });
 
-  const [selectedBrand, setSelectedBrand] = useState(requestData.brand || "");
+  const [additionalRequest, setAdditionalRequest] = useState("");
 
-  const brands = [
-    { id: "삼성전자", name: "삼성전자" },
-    { id: "LG전자", name: "LG전자" },
-    { id: "캐리어", name: "캐리어" },
-    { id: "센추리", name: "센추리 에어컨" },
-    { id: "기타", name: "기타" },
-  ];
+  const handleTextChange = (e) => {
+    const value = e.target.value;
+    setAdditionalRequest(value);
+  };
+  const handleHelpClick = () => {
+    window.open("http://pf.kakao.com/_jyhxmn/chat");
+  };
 
   useEffect(() => {
-    if (requestData.brand && requestData.brand !== selectedBrand) {
-      setSelectedBrand(requestData.brand);
+    if (requestData.detailInfo) {
+      const lines = requestData.detailInfo.split("\n");
+      const additionalLines = lines.filter(
+        (line) =>
+          !line.includes("중고에어컨으로 원해요") &&
+          !line.includes("신규에어컨으로 원해요")
+      );
+      setAdditionalRequest(additionalLines.join("\n"));
     }
-  }, [requestData.brand, selectedBrand]);
+  }, [requestData.detailInfo]);
 
-  const handleBrandSelect = (brandId) => {
-    setSelectedBrand(brandId);
-    updateRequestData("brand", brandId);
+  const handleNext = () => {
+    const existingDetail = requestData.detailInfo || "";
 
-    // 선택 즉시 다음 페이지로 이동
+    const purchaseTypeLines = existingDetail
+      .split("\n")
+      .filter(
+        (line) =>
+          line.includes("중고에어컨으로 원해요") ||
+          line.includes("신규에어컨으로 원해요")
+      );
+
+    const additionalText = additionalRequest.trim();
+    const newDetail =
+      purchaseTypeLines.length > 0
+        ? additionalText
+          ? `${purchaseTypeLines.join("\n")}\n${additionalText}`
+          : purchaseTypeLines.join("\n")
+        : additionalText;
+
+    updateRequestData("detailInfo", newDetail);
+
     onAdvance(5);
     navigate("/request/step5");
   };
 
+  const currentStep = additionalRequest.trim() ? 5 : 4;
+
   return (
     <PageContainer>
       <ScrollableContent>
-        <StepHeader to="/request/step3" currentStep={6} totalSteps={9} />
+        <StepHeader
+          to="/request/step3"
+          currentStep={currentStep}
+          totalSteps={9}
+        />
         <ContentSection>
-          <PageTitle>에어컨 브랜드를 선택해주세요.</PageTitle>
+          <PageTitle>추가 요청사항이 있으신가요?</PageTitle>
 
-          <BrandList>
-            {brands.map((brand) => (
-              <BrandItem
-                key={brand.id}
-                onClick={() => handleBrandSelect(brand.id)}
-              >
-                <BrandName>{brand.name}</BrandName>
-                <CheckIcon $isSelected={selectedBrand === brand.id}>
-                  {selectedBrand === brand.id && (
-                    <svg
-                      width="14"
-                      height="10"
-                      viewBox="0 0 14 10"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path
-                        d="M1 5L5 9L13 1"
-                        stroke="white"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                  )}
-                </CheckIcon>
-              </BrandItem>
-            ))}
-          </BrandList>
+          <FormGroup>
+            <Label>추가 요청사항</Label>
+            <TextArea
+              value={additionalRequest}
+              onChange={handleTextChange}
+              placeholder="추가 요청사항을 입력해주세요 (선택사항)"
+              rows={6}
+            />
+          </FormGroup>
         </ContentSection>
       </ScrollableContent>
+
+      <FixedButtonArea>
+        <Button fullWidth size="stepsize" onClick={handleNext}>
+          확인
+        </Button>
+        <HelpButton onClick={handleHelpClick}>
+          <HelpText>도움이 필요해요</HelpText>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="6"
+            height="10"
+            viewBox="0 0 6 10"
+            fill="none"
+          >
+            <path
+              d="M1 1L5 5L1 9"
+              stroke="#A0A0A0"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        </HelpButton>
+      </FixedButtonArea>
     </PageContainer>
   );
 };
@@ -112,6 +143,16 @@ const ContentSection = styled.div`
   }
 `;
 
+const FixedButtonArea = styled.div`
+  flex-shrink: 0;
+  background: ${({ theme }) => theme.colors.bg};
+  padding: 16px 24px;
+
+  @media (max-width: ${({ theme }) => theme.font.breakpoints.mobile}) {
+    padding: 15px;
+  }
+`;
+
 const PageTitle = styled.h1`
   font-size: ${({ theme }) => theme.font.size.h1};
   font-weight: ${({ theme }) => theme.font.weight.bold};
@@ -123,37 +164,81 @@ const PageTitle = styled.h1`
   }
 `;
 
-const BrandList = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 0;
+const FormGroup = styled.div`
+  margin-bottom: 24px;
 `;
 
-const BrandItem = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 16px 0;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
+const Label = styled.p`
+  margin-bottom: 8px;
+  font-size: ${({ theme }) => theme.font.size.body};
+  font-weight: ${({ theme }) => theme.font.weight.medium};
+  color: ${({ theme }) => theme.colors.subtext};
 `;
 
-const BrandName = styled.span`
+const TextArea = styled.textarea`
+  width: 100%;
+  min-height: 120px;
+  padding: 16px;
+  border: 1px solid #d6d6d6;
+  border-radius: 8px;
   font-size: ${({ theme }) => theme.font.size.bodyLarge};
-  font-weight: ${({ theme }) => theme.font.weight.bold};
+  font-family: inherit;
   color: ${({ theme }) => theme.colors.text};
+  background: ${({ theme }) => theme.colors.bg};
+  resize: vertical;
+  line-height: 1.5;
+
+  @media (max-width: ${({ theme }) => theme.font.breakpoints.mobile}) {
+    min-height: 100px;
+  }
+
+  &::placeholder {
+    color: #999;
+  }
+
+  &:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+  }
+
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 3px;
+  }
+
+  &::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+  }
 `;
 
-const CheckIcon = styled.div`
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  border: 2px solid
-    ${({ $isSelected }) => ($isSelected ? "#004FFF" : "#D6D6D6")};
-  background-color: ${({ $isSelected }) => ($isSelected ? "#004FFF" : "white")};
+const HelpButton = styled.button`
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s ease;
-  flex-shrink: 0;
+  gap: 6px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  margin: 20px auto 0 auto;
+  padding: 8px;
+
+  &:hover {
+    background-color: #f8f9fa;
+    border-radius: 4px;
+  }
+`;
+
+const HelpText = styled.span`
+  font-size: ${({ theme }) => theme.font.size.bodyLarge};
+  color: #a0a0a0;
 `;

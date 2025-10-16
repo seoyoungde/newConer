@@ -129,10 +129,10 @@ const Modify = () => {
       }
 
       alert("정보가 수정되었습니다");
-      if (location.state?.from === "addressform") {
-        navigate("/request/step3", { replace: true });
-      } else if (location.state?.from === "partnermodify") {
-        navigate(`/partner/step3/${partnerId}`);
+      if (location.state?.from === "step5") {
+        navigate("/request/step5", { replace: true });
+      } else if (location.state?.from === "partnerstep5") {
+        navigate(`/partner/step5/${partnerId}`);
       } else {
         navigate("/mypage", { replace: true });
       }
@@ -150,7 +150,7 @@ const Modify = () => {
         <FormGroup>
           <TextField
             label="이름"
-            name="이름"
+            name="name"
             size="sm"
             placeholder="이름을 입력하세요"
             value={formData.name}
@@ -237,7 +237,7 @@ const Modify = () => {
         <FormGroup>
           <TextField
             label="이메일"
-            name="이메일"
+            name="email"
             size="sm"
             placeholder="이메일입력은 선택사항입니다"
             type="email"

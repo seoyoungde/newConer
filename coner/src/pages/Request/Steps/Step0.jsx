@@ -2,12 +2,13 @@ import React, { useState } from "react";
 import styled from "styled-components";
 import StepHeader from "../../../components/common/Header/StepHeader";
 import { useNavigate } from "react-router-dom";
-import Button from "../../../components/ui/Button";
 import { useRequest } from "../../../context/context";
+import { useFunnelStep } from "../../../analytics/useFunnelStep";
 
 const Step0 = () => {
   const navigate = useNavigate();
   const { requestData, updateRequestData } = useRequest();
+  const { onAdvance } = useFunnelStep({ step: 0 });
 
   const [hasAircon, setHasAircon] = useState("");
 
@@ -35,18 +36,7 @@ const Step0 = () => {
         : purchaseInfo;
 
     updateRequestData("detailInfo", newDetail);
-  };
-
-  const handleHelpClick = () => {
-    window.open("http://pf.kakao.com/_jyhxmn/chat");
-  };
-
-  const handleNext = () => {
-    if (!hasAircon) {
-      alert("구매 유형을 선택해주세요.");
-      return;
-    }
-
+    onAdvance(1);
     navigate("/request/step1");
   };
 
@@ -90,31 +80,6 @@ const Step0 = () => {
           </OptionList>
         </ContentSection>
       </ScrollableContent>
-
-      {hasAircon && (
-        <FixedButtonArea>
-          <Button fullWidth size="stepsize" onClick={handleNext}>
-            확인
-          </Button>
-          <HelpButton onClick={handleHelpClick}>
-            <HelpText>도움이 필요해요</HelpText>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="6"
-              height="10"
-              viewBox="0 0 6 10"
-              fill="none"
-            >
-              <path
-                d="M1 1L5 5L1 9"
-                stroke="#A0A0A0"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </HelpButton>
-        </FixedButtonArea>
-      )}
     </PageContainer>
   );
 };

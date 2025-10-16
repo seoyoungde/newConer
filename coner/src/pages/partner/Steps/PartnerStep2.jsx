@@ -1,73 +1,14 @@
-import React, { useState, useRef, useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
-import StepHeader from "../../../components/common/Header/StepHeader";
+import React, { useState, useEffect } from "react";
 import styled from "styled-components";
-import Button from "../../../components/ui/Button";
+import StepHeader from "../../../components/common/Header/StepHeader";
+import { useNavigate, useParams } from "react-router-dom";
 import { useRequest } from "../../../context/context";
 import { useFunnelStep } from "../../../analytics/useFunnelStep";
-import CalendarPicker from "../../../components/request/CalendarPicker";
-import Modal from "../../../components/common/Modal/Modal";
 
-const CustomTimeDropdown = ({ value, onChange, options, placeholder }) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const dropdownRef = useRef(null);
-
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setIsOpen(false);
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    document.addEventListener("touchstart", handleClickOutside);
-
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-      document.removeEventListener("touchstart", handleClickOutside);
-    };
-  }, []);
-
-  const handleSelect = (option) => {
-    onChange({ target: { value: option } });
-    setIsOpen(false);
-  };
-
-  const displayValue = value || placeholder;
-
-  return (
-    <DropdownContainer ref={dropdownRef}>
-      <DropdownButton onClick={() => setIsOpen(!isOpen)} $hasValue={!!value}>
-        <span>{displayValue}</span>
-        <ArrowIcon $isOpen={isOpen}>
-          <svg width="12" height="8" viewBox="0 0 12 8" fill="none">
-            <path
-              d="M1 1L6 6L11 1"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-        </ArrowIcon>
-      </DropdownButton>
-
-      {isOpen && (
-        <DropdownMenu>
-          {options.map((option) => (
-            <DropdownItem
-              key={option}
-              onClick={() => handleSelect(option)}
-              $isSelected={value === option}
-            >
-              {option}
-            </DropdownItem>
-          ))}
-        </DropdownMenu>
-      )}
-    </DropdownContainer>
-  );
-};
+import Type1Icon from "../../../assets/servicetype/servicesType_1.png";
+import Type3Icon from "../../../assets/servicetype/servicesType_3.png";
+import Type4Icon from "../../../assets/servicetype/servicesType_4.png";
+import Type5Icon from "../../../assets/servicetype/servicesType_5.png";
 
 const PartnerStep2 = () => {
   const navigate = useNavigate();
@@ -77,172 +18,59 @@ const PartnerStep2 = () => {
   // 퍼널: 2단계
   const { onAdvance } = useFunnelStep({ step: 2 });
 
-  const [selectedTime, setSelectedTime] = useState("");
-  const [selectedDate, setSelectedDate] = useState(null);
-  const [isCalendarModalOpen, setIsCalendarModalOpen] = useState(false);
+  const [selectedType, setSelectedType] = useState(
+    requestData.aircon_type || ""
+  );
 
-  useEffect(() => {
-    if (requestData.service_time) {
-      setSelectedTime(requestData.service_time);
-    }
-    if (requestData.service_date && requestData.service_date !== "최대한빨리") {
-      // "YYYY년 MM월 DD일" 형식에서 Date 객체로 변환
-      const match = requestData.service_date.match(
-        /(\d{4})년\s*(\d{2})월\s*(\d{2})일/
-      );
-      if (match) {
-        setSelectedDate(new Date(+match[1], +match[2] - 1, +match[3]));
-      }
-    }
-  }, []);
+  const [selectedServiceType, setSelectedServiceType] = useState(
+    requestData.service_type || ""
+  );
 
-  const timeOptions = [
-    "오전9시 ~ 오전12시",
-    "오후1시 ~ 오후4시",
-    "오후5시 ~ 오후8시",
+  const airconTypes = [
+    { id: "스탠드형", name: "스탠드형", icon: Type4Icon },
+    { id: "벽걸이형", name: "벽걸이형", icon: Type1Icon },
+    { id: "천장형", name: "천장형", icon: Type3Icon },
+    { id: "항온항습기", name: "항온항습기", icon: Type5Icon },
   ];
 
-  const formatDate = (date) => {
-    if (!(date instanceof Date) || isNaN(date)) return "";
-    const y = date.getFullYear();
-    const m = `${date.getMonth() + 1}`.padStart(2, "0");
-    const d = `${date.getDate()}`.padStart(2, "0");
-    return `${y}년 ${m}월 ${d}일`;
-  };
+  const serviceTypes = [
+    { id: "설치", name: "설치" },
+    { id: "냉매충전", name: "냉매충전" },
+    { id: "수리", name: "수리" },
+    { id: "설치 및 구매", name: "설치 및 구매" },
+    { id: "이전설치", name: "이전설치" },
+    { id: "청소", name: "청소" },
+  ];
 
-  const getTimeOptionStartHour = (timeOption) => {
-    if (timeOption === "오전9시 ~ 오전12시") return 9;
-    if (timeOption === "오후1시 ~ 오후4시") return 13;
-    if (timeOption === "오후5시 ~ 오후8시") return 17;
-    return 0;
-  };
-
-  const isDateToday = (date) => {
-    const today = new Date();
-    return (
-      date.getDate() === today.getDate() &&
-      date.getMonth() === today.getMonth() &&
-      date.getFullYear() === today.getFullYear()
-    );
-  };
-
-  const getAvailableTimeOptions = () => {
-    const now = new Date();
-    const currentHour = now.getHours();
-
-    if (!selectedDate || !isDateToday(selectedDate)) {
-      return timeOptions;
+  useEffect(() => {
+    if (requestData.aircon_type && requestData.aircon_type !== selectedType) {
+      setSelectedType(requestData.aircon_type);
     }
+  }, [requestData.aircon_type, selectedType]);
 
-    return timeOptions.filter((timeOption) => {
-      const startHour = getTimeOptionStartHour(timeOption);
-      return currentHour < startHour;
-    });
-  };
+  const handleTypeSelect = (typeId) => {
+    setSelectedType(typeId);
+    updateRequestData("aircon_type", typeId);
+    updateRequestData("service_type", selectedServiceType);
 
-  const getDateButtons = () => {
-    const today = new Date();
-    const buttons = [];
-
-    for (let i = 0; i < 20; i++) {
-      const date = new Date(today);
-      date.setDate(today.getDate() + i);
-
-      const dayNames = ["일", "월", "화", "수", "목", "금", "토"];
-      const dayName = dayNames[date.getDay()];
-
-      buttons.push({
-        date: date,
-        day: date.getDate(),
-        dayName: i === 0 ? "오늘" : dayName,
-        isToday: i === 0,
-      });
-    }
-
-    return buttons;
-  };
-
-  const formatSelectedDate = (date) => {
-    if (!date) return "";
-    const month = date.getMonth() + 1;
-    const day = date.getDate();
-    const dayNames = ["일", "월", "화", "수", "목", "금", "토"];
-    const dayName = dayNames[date.getDay()];
-
-    if (isDateToday(date)) {
-      return `${month}월 ${day}일 오늘`;
-    }
-
-    return `${month}월 ${day}일 ${dayName}요일`;
-  };
-
-  const handleDateSelect = (date) => {
-    setSelectedDate(date);
-    setSelectedTime("");
-    updateRequestData("service_date", formatDate(date));
-    updateRequestData("service_time", "");
-  };
-
-  const handleTimeChange = (e) => {
-    const time = e.target.value;
-    setSelectedTime(time);
-
-    updateRequestData("service_time", time);
-  };
-
-  const handleHelpClick = () => {
-    window.open("http://pf.kakao.com/_jyhxmn/chat", "_blank");
-  };
-
-  const handleCalendarClick = () => {
-    setIsCalendarModalOpen(true);
-  };
-
-  const handleCalendarModalClose = () => {
-    setIsCalendarModalOpen(false);
-  };
-
-  const handleCalendarDateSelect = (date) => {
-    setSelectedDate(date);
-    setSelectedTime("");
-    updateRequestData("service_date", formatDate(date));
-    updateRequestData("service_time", "");
-    setIsCalendarModalOpen(false);
-  };
-
-  const handleNext = () => {
-    if (!selectedDate) {
-      alert("희망 날짜를 선택해주세요.");
-      return;
-    }
-
-    if (!selectedTime) {
-      alert("희망 시간을 선택해주세요.");
-      return;
-    }
-
-    updateRequestData("service_date", formatDate(selectedDate));
-    updateRequestData("service_time", selectedTime);
-
+    // 에어컨 종류 선택 즉시 다음 페이지로 이동
     onAdvance(3);
     navigate(`/partner/step3/${partnerId}`);
   };
 
-  const getTitle = () => {
-    if (!selectedDate) {
-      return "희망하시는 날짜를 선택해주세요.";
-    } else if (
-      !selectedTime ||
-      !getAvailableTimeOptions().includes(selectedTime)
-    ) {
-      return "희망하시는 시간을 선택해주세요.";
-    } else {
-      return "희망하시는 시간을 선택해주세요.";
-    }
+  const handleServiceTypeSelect = (typeId) => {
+    setSelectedServiceType(typeId);
+    updateRequestData("service_type", typeId);
   };
 
-  const currentStep = !selectedDate ? 3 : !selectedTime ? 4 : 5;
-  const availableTimeOptions = getAvailableTimeOptions();
+  // 서비스 유형 선택하면 6, 아니면 5
+  const currentStep = selectedServiceType ? 3 : 2;
+
+  // 선택 단계에 따라 타이틀 변경
+  let title = "서비스 유형을 선택해주세요.";
+  if (selectedServiceType) {
+    title = "에어컨 종류를 선택해주세요.";
+  }
 
   return (
     <PageContainer>
@@ -253,120 +81,53 @@ const PartnerStep2 = () => {
           totalSteps={10}
         />
         <ContentSection>
-          <PageTitle>{getTitle()}</PageTitle>
+          <PageTitle>{title}</PageTitle>
 
-          {/* 날짜가 선택된 후 시간 선택 (위쪽에 표시) */}
-          {selectedDate && (
-            <SectionContainer>
-              <SectionLabel>희망 시간</SectionLabel>
-              <CustomTimeDropdown
-                value={selectedTime}
-                onChange={handleTimeChange}
-                options={availableTimeOptions}
-                placeholder="시간을 선택해주세요"
-              />
-              {availableTimeOptions.length === 0 && (
-                <NoTimeAvailable>
-                  오늘은 선택 가능한 시간이 없습니다.
-                </NoTimeAvailable>
-              )}
-            </SectionContainer>
-          )}
-
-          {/* 희망 날짜 선택 (항상 표시) */}
-          <SectionContainer>
-            <SectionLabel style={{ marginBottom: "2px" }}>
-              희망 날짜
-            </SectionLabel>
-            <DateHeader>
-              <SelectedDateText>
-                {formatSelectedDate(selectedDate) || "날짜를 선택해주세요"}
-              </SelectedDateText>
-              <CalendarIconButton onClick={handleCalendarClick}>
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="18"
-                  height="20"
-                  viewBox="0 0 18 20"
-                  fill="none"
+          <FormGroup>
+            <Label>서비스 유형</Label>
+            <ServiceTypeContainer>
+              {serviceTypes.map((type) => (
+                <ServiceType
+                  key={type.id}
+                  $isSelected={selectedServiceType === type.id}
+                  onClick={() => handleServiceTypeSelect(type.id)}
                 >
-                  <path
-                    d="M16 2H15V0H13V2H5V0H3V2H2C0.89 2 0.00999999 2.9 0.00999999 4L0 18C0 18.5304 0.210714 19.0391 0.585786 19.4142C0.960859 19.7893 1.46957 20 2 20H16C17.1 20 18 19.1 18 18V4C18 2.9 17.1 2 16 2ZM16 18H2V8H16V18ZM6 12H4V10H6V12ZM10 12H8V10H10V12ZM14 12H12V10H14V12ZM6 16H4V14H6V16ZM10 16H8V14H10V16ZM14 16H12V14H14V16Z"
-                    fill="#A0A0A0"
-                  />
-                </svg>
-              </CalendarIconButton>
-            </DateHeader>
-
-            <DateButtonsContainer>
-              {getDateButtons().map((item, index) => (
-                <DateButton
-                  key={index}
-                  $isSelected={
-                    selectedDate &&
-                    selectedDate.getDate() === item.day &&
-                    selectedDate.getMonth() === item.date.getMonth()
-                  }
-                  $isToday={item.isToday}
-                  onClick={() => handleDateSelect(item.date)}
-                >
-                  <DateNumber>{item.day}</DateNumber>
-                  <DayName>{item.dayName}</DayName>
-                </DateButton>
+                  {type.name}
+                </ServiceType>
               ))}
-            </DateButtonsContainer>
+            </ServiceTypeContainer>
+          </FormGroup>
 
-            {/* 당일 신청 안내 문구 */}
-            <NoticeText>
-              당일신청시 기사님과 일정조율이 필요할 수 있습니다.
-            </NoticeText>
-          </SectionContainer>
+          {/* 서비스 유형 선택 후에만 에어컨 종류 표시 */}
+          {selectedServiceType && (
+            <FormGroup>
+              <Label>에어컨 종류</Label>
+              <TypeContainer>
+                {airconTypes.map((type) => (
+                  <Type
+                    key={type.id}
+                    $isSelected={selectedType === type.id}
+                    onClick={() => handleTypeSelect(type.id)}
+                  >
+                    <TypeImg
+                      src={type.icon}
+                      alt={type.name}
+                      $isSelected={selectedType === type.id}
+                    />
+                    {type.name}
+                  </Type>
+                ))}
+              </TypeContainer>
+            </FormGroup>
+          )}
         </ContentSection>
       </ScrollableContent>
-
-      {/* 하단 고정 버튼 영역 - 조건부 렌더링 */}
-      {selectedDate &&
-        selectedTime &&
-        availableTimeOptions.includes(selectedTime) && (
-          <FixedButtonArea>
-            <Button fullWidth size="stepsize" onClick={handleNext}>
-              확인
-            </Button>
-            <CSButtonContainer>
-              <CSButton onClick={handleHelpClick}>
-                <CSButtonText>도움이 필요해요</CSButtonText>
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="8"
-                  height="14"
-                  viewBox="0 0 8 14"
-                  fill="none"
-                >
-                  <path d="M0.999999 13L7 7L1 1" stroke="#A0A0A0" />
-                </svg>
-              </CSButton>
-            </CSButtonContainer>
-          </FixedButtonArea>
-        )}
-
-      {/* 캘린더 모달 */}
-      <Modal
-        open={isCalendarModalOpen}
-        onClose={handleCalendarModalClose}
-        title="날짜 선택"
-        width={400}
-        containerId="rightbox-modal-root"
-      >
-        <CalendarPicker
-          selectedDate={selectedDate}
-          setSelectedDate={handleCalendarDateSelect}
-        />
-      </Modal>
     </PageContainer>
   );
 };
 
 export default PartnerStep2;
+
 const PageContainer = styled.div`
   display: flex;
   flex-direction: column;
@@ -398,16 +159,6 @@ const ContentSection = styled.div`
   }
 `;
 
-const FixedButtonArea = styled.div`
-  flex-shrink: 0;
-  background: ${({ theme }) => theme.colors.bg};
-  padding: 16px 24px;
-
-  @media (max-width: ${({ theme }) => theme.font.breakpoints.mobile}) {
-    padding: 15px;
-  }
-`;
-
 const PageTitle = styled.h1`
   font-size: ${({ theme }) => theme.font.size.h1};
   font-weight: ${({ theme }) => theme.font.weight.bold};
@@ -418,248 +169,133 @@ const PageTitle = styled.h1`
   }
 `;
 
-const SectionContainer = styled.div`
-  margin-bottom: 32px;
+const FormGroup = styled.div`
+  margin-bottom: 24px;
 `;
 
-const SectionLabel = styled.p`
-  font-size: ${({ theme }) => theme.font.size.bodySmall};
+const Label = styled.p`
+  margin-bottom: 6px;
+  font-size: ${({ theme }) => theme.font.size.body};
   font-weight: ${({ theme }) => theme.font.weight.medium};
   color: ${({ theme }) => theme.colors.subtext};
-  margin-bottom: 8px;
-  margin: 0;
 `;
 
-const DropdownContainer = styled.div`
-  position: relative;
-  width: 100%;
-  margin-top: 8px;
-`;
-
-const DropdownButton = styled.button`
-  width: 100%;
-  padding: 16px;
-  border: 1px solid #d6d6d6;
-  border-radius: 8px;
-  background: ${({ theme }) => theme.colors.bg};
-  color: ${({ $hasValue }) => ($hasValue ? "#333" : "#999")};
-  font-size: ${({ theme }) => theme.font.size.body};
-  text-align: left;
-  cursor: pointer;
+const TypeContainer = styled.div`
   display: flex;
   justify-content: space-between;
-  align-items: center;
-
-  &:hover {
-    border-color: #007bff;
-  }
-
-  &:focus {
-    outline: none;
-    border-color: #007bff;
-    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
-  }
-`;
-
-const ArrowIcon = styled.div`
-  color: #666;
-  transition: transform 0.2s ease;
-  transform: ${({ $isOpen }) => ($isOpen ? "rotate(180deg)" : "rotate(0deg)")};
-  display: flex;
-  align-items: center;
-`;
-
-const DropdownMenu = styled.div`
-  position: absolute;
-  top: 100%;
-  left: 0;
-  right: 0;
-  background: white;
-  border: 1px solid #d6d6d6;
-  border-top: none;
-  border-radius: 0 0 8px 8px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  z-index: 1000;
-  max-height: 200px;
-  overflow-y: auto;
+  gap: 8px;
 
   @media (max-width: ${({ theme }) => theme.font.breakpoints.mobile}) {
-    -webkit-overflow-scrolling: touch;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    gap: 12px;
+    justify-items: center;
   }
 `;
 
-const DropdownItem = styled.div`
-  padding: 12px 16px;
-  cursor: pointer;
-  color: ${({ theme }) => theme.colors.text};
-  background-color: ${({ $isSelected }) => ($isSelected ? "#f8f9fa" : "white")};
-  font-weight: ${({ $isSelected }) => ($isSelected ? "600" : "400")};
-
-  &:hover {
-    background-color: #f8f9fa;
-  }
-
-  &:last-child {
-    border-radius: 0 0 8px 8px;
-  }
-`;
-
-const NoTimeAvailable = styled.p`
-  font-size: ${({ theme }) => theme.font.size.body};
-  color: #ff6b6b;
-  margin-top: 8px;
-  margin-bottom: 0;
-  text-align: center;
-`;
-
-const DateHeader = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 8px;
-`;
-
-const SelectedDateText = styled.span`
-  font-size: ${({ theme }) => theme.font.size.bodyLarge};
-  font-weight: ${({ theme }) => theme.font.weight.bold};
-  color: ${({ theme }) => theme.colors.text};
-`;
-
-const DateButtonsContainer = styled.div`
-  display: flex;
-  gap: 12px;
-  overflow-x: auto;
-  padding: 4px 0 8px 0;
-  -webkit-overflow-scrolling: touch;
-
-  &::-webkit-scrollbar {
-    height: 4px;
-  }
-
-  &::-webkit-scrollbar-track {
-    background: #f1f1f1;
-    border-radius: 2px;
-  }
-
-  &::-webkit-scrollbar-thumb {
-    background: #c1c1c1;
-    border-radius: 2px;
-  }
-
-  &::-webkit-scrollbar-thumb:hover {
-    background: #a1a1a1;
-  }
-
-  scrollbar-width: thin;
-  scrollbar-color: #c1c1c1 #f1f1f1;
-
-  @media (max-width: ${({ theme }) => theme.font.breakpoints.mobile}) {
-    width: 360px;
-
-    &::-webkit-scrollbar {
-      display: none;
-    }
-    scrollbar-width: none;
-    gap: 8px;
-  }
-
-  @media (max-width: ${({ theme }) => theme.font.breakpoints.smobile}) {
-    width: 280px;
-
-    &::-webkit-scrollbar {
-      display: none;
-    }
-    scrollbar-width: none;
-    gap: 8px;
-  }
-`;
-
-const DateButton = styled.button`
-  flex: none;
-  min-width: 70px;
+const Type = styled.button`
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 16px 12px;
+  justify-content: center;
+  gap: 8px;
+  width: 133px;
+  height: 133px;
+  border-radius: 10px;
   border: 1px solid
-    ${({ $isSelected, $isToday, theme }) =>
-      $isSelected ? "#007BFF" : $isToday ? theme.colors.primary : "#d6d6d6"};
-  border-radius: 8px;
-  background-color: ${({ $isSelected }) => ($isSelected ? "#004FFF" : "white")};
+    ${({ $isSelected, theme }) =>
+      $isSelected ? theme.colors.primary || "#007BFF" : "#a0a0a0"};
+  background: ${({ $isSelected, theme }) =>
+    $isSelected ? theme.colors.primary || "#007BFF" : "#fff"};
   color: ${({ $isSelected }) => ($isSelected ? "white" : "#333")};
   cursor: pointer;
   transition: all 0.2s ease;
-  white-space: nowrap;
-
-  &:hover {
-    border-color: #007bff;
-  }
-  @media (max-width: ${({ theme }) => theme.font.breakpoints.mobile}) {
-    padding: 12px 10px;
-    min-width: 50px;
-  }
-`;
-
-const DateNumber = styled.span`
   font-size: ${({ theme }) => theme.font.size.body};
-  font-weight: ${({ theme }) => theme.font.weight.bold};
-  margin-bottom: 4px;
-`;
-
-const DayName = styled.span`
-  font-size: ${({ theme }) => theme.font.size.bodySmall};
-`;
-
-const CSButtonContainer = styled.div`
-  display: flex;
-  justify-content: center;
-  margin-top: 20px;
-`;
-
-const CSButton = styled.button`
-  color: ${({ theme }) => theme.colors.text};
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background: none;
-  border: none;
-  cursor: pointer;
-`;
-
-const CSButtonText = styled.p`
-  margin: 0;
-  font-size: ${({ theme }) => theme.font.size.bodyLarge};
-  color: #a0a0a0;
-`;
-
-const NoticeText = styled.p`
-  font-size: ${({ theme }) => theme.font.size.bodySmall};
-  color: #888;
-  margin-top: 8px;
-  margin-bottom: 0;
-  text-align: center;
-  line-height: 1.4;
-`;
-
-const CalendarIconButton = styled.button`
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 4px;
+  font-weight: ${({ $isSelected }) => ($isSelected ? "800" : "600")};
 
   &:hover {
-    background-color: #f5f5f5;
+    border-color: ${({ theme }) => theme.colors.primary || "#007BFF"};
   }
 
-  &:active {
-    background-color: #e0e0e0;
+  @media (max-width: ${({ theme }) => theme.font.breakpoints.mobile}) {
+    width: 165px;
+    height: 165px;
+    gap: 6px;
+    font-size: ${({ theme }) => theme.font.size.body};
   }
 
-  svg {
-    pointer-events: none;
+  @media (max-width: ${({ theme }) => theme.font.breakpoints.smobile}) {
+    width: 135px;
+    height: 135px;
+    gap: 4px;
+    font-size: ${({ theme }) => theme.font.size.bodySmall};
+  }
+`;
+
+const ServiceTypeContainer = styled.div`
+  display: flex;
+  justify-content: space-between;
+
+  flex-wrap: wrap;
+  @media (max-width: ${({ theme }) => theme.font.breakpoints.mobile}) {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    justify-items: center;
+  }
+`;
+
+const ServiceType = styled.button`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 87px;
+  height: 60px;
+  border-radius: 10px;
+  margin-bottom: 8px;
+
+  border: 1px solid
+    ${({ $isSelected, theme }) =>
+      $isSelected ? theme.colors.primary || "#007BFF" : "#a0a0a0"};
+  background: ${({ $isSelected, theme }) =>
+    $isSelected ? theme.colors.primary || "#007BFF" : "#fff"};
+  color: ${({ $isSelected }) => ($isSelected ? "white" : "#333")};
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: ${({ theme }) => theme.font.size.body};
+  font-weight: ${({ $isSelected }) => ($isSelected ? "700" : "500")};
+
+  &:hover {
+    border-color: ${({ theme }) => theme.colors.primary || "#007BFF"};
+  }
+
+  @media (max-width: ${({ theme }) => theme.font.breakpoints.mobile}) {
+    width: 108px;
+    height: 50px;
+    font-size: ${({ theme }) => theme.font.size.body};
+  }
+
+  @media (max-width: ${({ theme }) => theme.font.breakpoints.smobile}) {
+    width: 89px;
+    height: 40px;
+    font-size: ${({ theme }) => theme.font.size.bodySmall};
+  }
+`;
+
+const TypeImg = styled.img`
+  width: 88px;
+  height: 88px;
+  transition: filter 0.2s ease;
+
+  @media (max-width: ${({ theme }) => theme.font.breakpoints.mobile}) {
+    width: 104px;
+    height: 104px;
+  }
+
+  @media (max-width: ${({ theme }) => theme.font.breakpoints.smobile}) {
+    width: 78px;
+    height: 78px;
   }
 `;

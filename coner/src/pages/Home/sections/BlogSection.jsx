@@ -105,7 +105,7 @@ const BlogSection = () => {
 
   return (
     <BlogContainer>
-      <Title>블로그</Title>
+      <Title>코너의 이야기</Title>
 
       <ScrollContainer
         ref={scrollRef}
