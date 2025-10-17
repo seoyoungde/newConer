@@ -4,8 +4,7 @@ import styled from "styled-components";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "../../lib/firebase";
 import RequestReceived from "./RequestReceived";
-import CompletedRequests from "../../components/search/CompletedRequests";
-import NavHeader from "../../components/common/Header/NavHeader";
+import RequestHeader from "../../components/common/Header/RequestHeader";
 
 const SmsRequestPage = () => {
   const { requestId } = useParams(); // URL에서 requestId 가져오기
@@ -55,7 +54,7 @@ const SmsRequestPage = () => {
   if (loading) {
     return (
       <Container>
-        <NavHeader to="/" title="의뢰서 조회" />
+        <RequestHeader showPrevButton={false} userName="고객님의 " to={"/"} />
         <CenteredContent>로딩 중...</CenteredContent>
       </Container>
     );
@@ -64,7 +63,7 @@ const SmsRequestPage = () => {
   if (error || !requestData) {
     return (
       <Container>
-        <NavHeader to="/" title="의뢰서 조회" />
+        <RequestHeader showPrevButton={false} userName="고객님의 " to={"/"} />
         <CenteredContent>
           {error || "의뢰서를 찾을 수 없습니다."}
         </CenteredContent>
@@ -77,18 +76,14 @@ const SmsRequestPage = () => {
 
   return (
     <Container>
-      <NavHeader to="/" title="의뢰서 조회" />
-      <Content>
-        {isCompleted ? (
-          <CompletedRequests requestData={requestData} />
-        ) : (
-          <RequestReceived
-            requestData={requestData}
-            onRealtimeUpdate={handleRealtimeUpdate}
-            onDeleteRequest={handleDeleteRequest}
-          />
-        )}
-      </Content>
+      <RequestHeader showPrevButton={false} userName="고객님의 " to={"/"} />
+      <RequestSection>
+        <RequestReceived
+          requestData={requestData}
+          onRealtimeUpdate={handleRealtimeUpdate}
+          onDeleteRequest={handleDeleteRequest}
+        />
+      </RequestSection>
     </Container>
   );
 };
@@ -99,13 +94,6 @@ const Container = styled.div`
   width: 100%;
 `;
 
-const Content = styled.div`
-  margin-top: 20px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-`;
-
 const CenteredContent = styled.div`
   display: flex;
   justify-content: center;
@@ -113,4 +101,11 @@ const CenteredContent = styled.div`
   height: 200px;
   font-size: ${({ theme }) => theme.font.size.bodyLarge};
   font-weight: ${({ theme }) => theme.font.weight.bold};
+`;
+const RequestSection = styled.section`
+  width: 100%;
+  padding: 0 24px;
+  @media (max-width: ${({ theme }) => theme.font.breakpoints.mobile}) {
+    padding: 0 15px;
+  }
 `;

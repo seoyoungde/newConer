@@ -9,12 +9,11 @@ import {
   doc,
   getDoc,
 } from "firebase/firestore";
-import CompletedRequests from "../../components/search/CompletedRequests";
 import RequestReceived from "../Search/RequestReceived";
 import { db, auth } from "../../lib/firebase";
 import { useAuth } from "../../context/AuthProvider";
 import { onAuthStateChanged } from "firebase/auth";
-import NavHeader from "../../components/common/Header/NavHeader";
+import RequestHeader from "../../components/common/Header/RequestHeader";
 
 const MypageInquiryPage = () => {
   const navigate = useNavigate();
@@ -116,7 +115,7 @@ const MypageInquiryPage = () => {
     setRequestDataList((prev) => prev.filter((r) => r.id !== id));
   }, []);
 
-  const { inProgressRequests, completedRequests } = useMemo(() => {
+  const { inProgressRequests } = useMemo(() => {
     const inProg = [];
     const done = [];
     for (const r of requestDataList) {
@@ -124,51 +123,35 @@ const MypageInquiryPage = () => {
       if (s >= 4) done.push(r);
       else if (s > 0 && s < 4) inProg.push(r);
     }
-    return { inProgressRequests: inProg, completedRequests: done };
+    return { inProgressRequests: inProg };
   }, [requestDataList]);
 
   return (
     <Container>
-      <NavHeader to="/mypage" title="의뢰서 조회" />
-      <TabHeader>
-        <Tab
-          $isActive={activeTab === "progress"}
-          onClick={() => setActiveTab("progress")}
-        >
-          진행 중
-        </Tab>
-        <Tab
-          $isActive={activeTab === "completed"}
-          onClick={() => setActiveTab("completed")}
-        >
-          완료된
-        </Tab>
-      </TabHeader>
-
-      <TabContent>
-        {loading ? (
-          <CenteredContent>로딩 중...</CenteredContent>
-        ) : activeTab === "progress" ? (
-          inProgressRequests.length > 0 ? (
-            inProgressRequests.map((req) => (
-              <RequestReceived
-                key={req.id}
-                requestData={req}
-                onRealtimeUpdate={handleRealtimeUpdate}
-                onDeleteRequest={handleDeleteRequest}
-              />
-            ))
-          ) : (
-            <CenteredContent>아직 진행 중인 의뢰가 없습니다.</CenteredContent>
-          )
-        ) : completedRequests.length > 0 ? (
-          completedRequests.map((req) => (
-            <CompletedRequests key={req.id} requestData={req} />
+      <RequestHeader
+        showPrevButton={true}
+        userName="고객님의 "
+        to={"/mypage"}
+        prevRequestTo="/search/completed"
+        prevRequestState={{
+          customer_uid: customer_uid,
+          customer_phone: customer_phone,
+        }}
+      />
+      <RequestSection>
+        {inProgressRequests.length > 0 ? (
+          inProgressRequests.map((req) => (
+            <RequestReceived
+              key={req.id}
+              requestData={req}
+              onRealtimeUpdate={handleRealtimeUpdate}
+              onDeleteRequest={handleDeleteRequest}
+            />
           ))
         ) : (
-          <CenteredContent>아직 완료된 의뢰가 없습니다.</CenteredContent>
+          <CenteredContent>아직 진행 중인 의뢰가 없습니다.</CenteredContent>
         )}
-      </TabContent>
+      </RequestSection>
     </Container>
   );
 };
@@ -178,48 +161,17 @@ export default MypageInquiryPage;
 const Container = styled.div`
   width: 100%;
 `;
-
-const TabHeader = styled.div`
-  display: flex;
-  justify-content: space-between;
-  border-bottom: 1px solid #ddd;
-  background: ${({ theme }) => theme.colors.bg};
-`;
-
-const Tab = styled.button`
-  flex: 1;
-  padding: 15px 0;
-  font-size: ${({ theme }) => theme.font.size.bodyLarge};
-  font-weight: ${({ $isActive }) => ($isActive ? "bold" : "normal")};
-  color: ${({ $isActive }) => ($isActive ? "#0080FF" : "#333")};
-  text-align: center;
-  position: relative;
-  border: none;
-  background: none;
-  cursor: pointer;
-
-  &:after {
-    content: "";
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: ${({ $isActive }) => ($isActive ? "100%" : "0")};
-    height: 2px;
-    background-color: ${({ $isActive }) =>
-      $isActive ? "#0080FF" : "transparent"};
-    transition: width 0.3s ease;
-  }
-`;
-
-const TabContent = styled.div`
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin-top: 20px;
-`;
-
 const CenteredContent = styled.div`
   font-size: ${({ theme }) => theme.font.size.bodyLarge};
   font-weight: ${({ theme }) => theme.font.weight.bold};
+  text-align: center;
+  padding: 60px 20px;
+  color: #999;
+`;
+const RequestSection = styled.section`
+  width: 100%;
+  padding: 0 24px;
+  @media (max-width: ${({ theme }) => theme.font.breakpoints.mobile}) {
+    padding: 0 15px;
+  }
 `;

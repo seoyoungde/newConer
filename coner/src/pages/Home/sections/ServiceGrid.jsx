@@ -20,7 +20,7 @@ const serviceData = [
   },
   {
     id: 2,
-    title: "설치",
+    title: "보유기기 설치",
     icon: installIcon,
     path: "/install",
   },

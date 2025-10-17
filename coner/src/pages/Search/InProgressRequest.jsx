@@ -9,14 +9,13 @@ import {
   doc,
   getDoc,
 } from "firebase/firestore";
-import CompletedRequests from "../../components/search/CompletedRequests";
 import RequestReceived from "./RequestReceived";
 import { onAuthStateChanged } from "firebase/auth";
 import { db, auth } from "../../lib/firebase";
 import { useAuth } from "../../context/AuthProvider";
-import NavHeader from "../../components/common/Header/NavHeader";
+import RequestHeader from "../../components/common/Header/RequestHeader";
 
-const InquiryPage = () => {
+const InProgressRequest = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -24,16 +23,12 @@ const InquiryPage = () => {
   const [customer_uid, setCustomerUid] = useState(
     location.state?.customer_uid || null
   );
-  // const [clientName, setClientName] = useState(
-  //   location.state?.clientName || null
-  // );
+
   const customer_phone = location.state?.customer_phone;
   const statusFilter = location.state?.status || null;
   const { currentUser } = useAuth();
 
   const [requestDataList, setRequestDataList] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState("progress");
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (u) => {
@@ -45,7 +40,6 @@ const InquiryPage = () => {
   }, [customer_uid]);
 
   const fetchRequestByClient = useCallback(async () => {
-    setLoading(true);
     const requests = new Map();
 
     try {
@@ -69,16 +63,12 @@ const InquiryPage = () => {
       }
 
       // 전화번호 + 이름이 모두 있을 때만 “둘 다 일치” 검색
-      if (
-        customer_phone
-        // && clientName
-      ) {
+      if (customer_phone) {
         tasks.push(
           getDocs(
             query(
               collection(db, "Request"),
               where("customer_phone", "==", customer_phone)
-              // where("clientName", "==", clientName)
             )
           )
         );
@@ -104,14 +94,8 @@ const InquiryPage = () => {
       console.error("Firestore에서 데이터 조회 중 오류 발생:", error);
     } finally {
       setRequestDataList(Array.from(requests.values()));
-      setLoading(false);
     }
-  }, [
-    customer_phone,
-    customer_uid,
-    // clientName,
-    requestId,
-  ]);
+  }, [customer_phone, customer_uid, requestId]);
 
   useEffect(() => {
     fetchRequestByClient();
@@ -131,7 +115,7 @@ const InquiryPage = () => {
     setRequestDataList((prev) => prev.filter((r) => r.id !== id));
   }, []);
 
-  const { inProgressRequests, completedRequests } = useMemo(() => {
+  const { inProgressRequests } = useMemo(() => {
     const inProg = [];
     const done = [];
     for (const r of requestDataList) {
@@ -139,109 +123,57 @@ const InquiryPage = () => {
       if (s >= 4) done.push(r);
       else if (s > 0 && s < 4) inProg.push(r);
     }
-    return { inProgressRequests: inProg, completedRequests: done };
+    return { inProgressRequests: inProg };
   }, [requestDataList]);
-
-  // 전화번호만 전달되고 이름이 없으면 결과가 비어 있게 됨 (요구사항 충족)
-  // const noResultByPhoneAndName =
-  //   !loading && customer_phone && !clientName && requestDataList.length === 0;
 
   return (
     <Container>
-      <NavHeader
+      <RequestHeader
+        showPrevButton={true}
+        userName="고객님의 "
         to={currentUser ? "/" : "/search/request"}
-        title="의뢰서 조회"
+        prevRequestTo="/search/completed"
+        prevRequestState={{
+          customer_uid: customer_uid,
+          customer_phone: customer_phone,
+        }}
       />
-      <TabHeader>
-        <Tab
-          $isActive={activeTab === "progress"}
-          onClick={() => setActiveTab("progress")}
-        >
-          진행 중
-        </Tab>
-        <Tab
-          $isActive={activeTab === "completed"}
-          onClick={() => setActiveTab("completed")}
-        >
-          완료된
-        </Tab>
-      </TabHeader>
 
-      <TabContent>
-        {loading ? (
-          <CenteredContent>로딩 중...</CenteredContent>
-        ) : activeTab === "progress" ? (
-          inProgressRequests.length > 0 ? (
-            inProgressRequests.map((req) => (
-              <RequestReceived
-                key={req.id}
-                requestData={req}
-                onRealtimeUpdate={handleRealtimeUpdate}
-                onDeleteRequest={handleDeleteRequest}
-              />
-            ))
-          ) : (
-            <CenteredContent>아직 진행 중인 의뢰가 없습니다.</CenteredContent>
-          )
-        ) : completedRequests.length > 0 ? (
-          completedRequests.map((req) => (
-            <CompletedRequests key={req.id} requestData={req} />
+      <RequestSection>
+        {inProgressRequests.length > 0 ? (
+          inProgressRequests.map((req) => (
+            <RequestReceived
+              key={req.id}
+              requestData={req}
+              onRealtimeUpdate={handleRealtimeUpdate}
+              onDeleteRequest={handleDeleteRequest}
+            />
           ))
         ) : (
-          <CenteredContent>아직 완료된 의뢰가 없습니다.</CenteredContent>
+          <CenteredContent>아직 진행 중인 의뢰가 없습니다.</CenteredContent>
         )}
-      </TabContent>
+      </RequestSection>
     </Container>
   );
 };
 
-export default InquiryPage;
+export default InProgressRequest;
 
 const Container = styled.div`
   width: 100%;
 `;
 
-const TabHeader = styled.div`
-  display: flex;
-  justify-content: space-between;
-  border-bottom: 1px solid #ddd;
-  background: ${({ theme }) => theme.colors.bg};
-`;
-
-const Tab = styled.button`
-  flex: 1;
-  padding: 15px 0;
-  font-size: ${({ theme }) => theme.font.size.bodyLarge};
-  font-weight: ${({ $isActive }) => ($isActive ? "bold" : "normal")};
-  color: ${({ $isActive }) => ($isActive ? "#0080FF" : "#333")};
-  text-align: center;
-  position: relative;
-  border: none;
-  background: none;
-  cursor: pointer;
-
-  &:after {
-    content: "";
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: ${({ $isActive }) => ($isActive ? "100%" : "0")};
-    height: 2px;
-    background-color: ${({ $isActive }) =>
-      $isActive ? "#0080FF" : "transparent"};
-    transition: width 0.3s ease;
-  }
-`;
-
-const TabContent = styled.div`
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin-top: 20px;
-`;
-
 const CenteredContent = styled.div`
   font-size: ${({ theme }) => theme.font.size.bodyLarge};
   font-weight: ${({ theme }) => theme.font.weight.bold};
+  text-align: center;
+  padding: 60px 20px;
+  color: #999;
+`;
+const RequestSection = styled.section`
+  width: 100%;
+  padding: 0 24px;
+  @media (max-width: ${({ theme }) => theme.font.breakpoints.mobile}) {
+    padding: 0 15px;
+  }
 `;

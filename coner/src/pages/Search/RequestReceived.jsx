@@ -3,16 +3,100 @@ import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import { useRequest } from "../../context/context";
 import CalendarPicker from "../../components/request/CalendarPicker";
-import TimeSlotPicker from "../../components/request/TimeSlotPicker";
 import { doc, updateDoc, getDoc } from "firebase/firestore";
-import DropdownSelector from "./DropdownSelector";
-import AdditionalDropSelected from "../../components/request/AdditionalDropSelected";
-import RequestDetails from "../../components/request/RequestDetails";
-import { GrApps, GrUserSettings, GrBookmark } from "react-icons/gr";
+
 import { MdRefresh } from "react-icons/md";
+import { IoCall, IoCheckmarkCircle } from "react-icons/io5";
 import { db } from "../../lib/firebase";
 import Button from "../../components/ui/Button";
 import Modal from "../../components/common/Modal/Modal";
+import AddressModal, {
+  SERVICE_AREAS,
+} from "../../components/common/Modal/AddressModal";
+import TextField from "../../components/ui/formControls/TextField";
+
+const isMobileDevice = () => {
+  if (typeof navigator === "undefined") return false;
+  return /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+};
+
+const phoneNumbers = "070-8648-3327";
+
+const handlePhoneSelect = (phoneNumber) => {
+  if (isMobileDevice()) {
+    window.location.href = `tel:${phoneNumber}`;
+  } else {
+  }
+};
+
+const SelectBox = ({ value, options, onChange, placeholder }) => {
+  const [isOpen, setIsOpen] = useState(false);
+
+  const handleSelect = (option) => {
+    onChange(option);
+    setIsOpen(false);
+  };
+
+  return (
+    <SelectBoxContainer>
+      <SelectBoxButton onClick={() => setIsOpen(!isOpen)}>
+        <SelectBoxValue>{value || placeholder}</SelectBoxValue>
+        <SelectBoxArrow $isOpen={isOpen}>▼</SelectBoxArrow>
+      </SelectBoxButton>
+      {isOpen && (
+        <SelectBoxDropdown>
+          {options.map((option, index) => (
+            <SelectBoxOption
+              key={index}
+              onClick={() => handleSelect(option)}
+              $isSelected={option === value}
+            >
+              {option}
+            </SelectBoxOption>
+          ))}
+        </SelectBoxDropdown>
+      )}
+    </SelectBoxContainer>
+  );
+};
+
+// 시간 선택 SelectBox 컴포넌트
+const TimeSelectBox = ({ value, onChange }) => {
+  const [isOpen, setIsOpen] = useState(false);
+
+  const timeOptions = [
+    "오전9시 ~ 오전12시",
+    "오후1시 ~ 오후4시",
+    "오후5시 ~ 오후8시",
+  ];
+
+  const handleSelect = (time) => {
+    onChange(time);
+    setIsOpen(false);
+  };
+
+  return (
+    <SelectBoxContainer>
+      <SelectBoxButton onClick={() => setIsOpen(!isOpen)}>
+        <SelectBoxValue>{value || "시간 선택"}</SelectBoxValue>
+        <SelectBoxArrow $isOpen={isOpen}>▼</SelectBoxArrow>
+      </SelectBoxButton>
+      {isOpen && (
+        <SelectBoxDropdown>
+          {timeOptions.map((time, index) => (
+            <SelectBoxOption
+              key={index}
+              onClick={() => handleSelect(time)}
+              $isSelected={time === value}
+            >
+              {time}
+            </SelectBoxOption>
+          ))}
+        </SelectBoxDropdown>
+      )}
+    </SelectBoxContainer>
+  );
+};
 
 const RequestReceived = ({
   requestData,
@@ -42,23 +126,30 @@ const RequestReceived = ({
     requestData.aircon_type
   );
 
-  const [isServiceOpen, setIsServiceOpen] = useState(true);
   const [isCancelPopupOpen, setIsCancelPopupOpen] = useState(false);
-  const [isTypeOpen, setIsTypeOpen] = useState(true);
-  const [isBrandOpen, setIsBrandOpen] = useState(true);
   const [cancelRequestId, setCancelRequestId] = useState(null);
   const [additionalInfo, setAdditionalInfo] = useState(
     requestData.detailInfo || ""
   );
-  const [selectedDropdownOption, setSelectedDropdownOption] = useState("");
-  const [selectedairconditionerform, setSelectedAirconditionerform] =
-    useState("");
+
+  const [selectedCustomer_type, setSelectedCustomer_type] = useState(
+    requestData.customer_type || "개인"
+  );
+  const [selectedCustomer_address_detail, setSelectedCustomer_address_detail] =
+    useState(requestData.customer_address_detail || "");
+  const [address, setAddress] = useState(requestData.customer_address || "");
+
+  // 날짜 선택을 위한 state
+  const [selectedDate, setSelectedDate] = useState(null);
+  const [isAddressOpen, setIsAddressOpen] = useState(false);
+  const [isCalendarModalOpen, setIsCalendarModalOpen] = useState(false);
 
   const steps = [
-    { label: "접수 완료", content: "접수가 완료되었습니다." },
-    { label: "기사님 배정 완료", content: "기사님이 배정되었습니다." },
-    { label: "결제요청", content: "결제 url 전송예정" },
+    { label: "접수 완료" },
+    { label: "기사님 배정 완료" },
+    { label: "결제 단계" },
   ];
+
   const handleGoToPayment = () => {
     const id = localRequestData?.id || requestData?.id;
 
@@ -68,31 +159,59 @@ const RequestReceived = ({
 
     navigate(`/pay/${id}`);
   };
+
+  const handleAddressClick = () => {
+    setIsAddressOpen(true);
+  };
+
+  const handleAddressSelect = (addr) => {
+    setAddress(addr);
+    setIsAddressOpen(false);
+  };
+
   const handleEditClick = (requestId) => {
     setEditingRequestId(requestId);
-    setSelectedService_date(requestData.service_date ?? "");
-    setSelectedService_time(requestData.service_time ?? "");
-    setSelectedBrand(requestData.brand ?? "");
-    setSelectedService_type(requestData.service_type ?? "");
-    setSelectedAircon_type(requestData.aircon_type ?? "");
+    setSelectedService_date(localRequestData.service_date ?? "");
+    setSelectedService_time(localRequestData.service_time ?? "");
+    setSelectedBrand(localRequestData.brand ?? "");
+    setSelectedService_type(localRequestData.service_type ?? "");
+    setSelectedAircon_type(localRequestData.aircon_type ?? "");
+    setSelectedCustomer_type(localRequestData.customer_type ?? "개인");
+    setAddress(localRequestData.customer_address ?? "");
+    setSelectedCustomer_address_detail(
+      localRequestData.customer_address_detail ?? ""
+    );
 
-    setSelectedDropdownOption(requestData.selectedDropdownOption ?? "");
-    setSelectedAirconditionerform(requestData.selectedairconditionerform ?? "");
-    setAdditionalInfo(requestData.detailInfo ?? "");
+    setAdditionalInfo(localRequestData.detailInfo ?? "");
 
-    initialServiceTypeRef.current = requestData.service_type ?? "";
+    initialServiceTypeRef.current = localRequestData.service_type ?? "";
+
+    // 날짜 파싱
+    if (localRequestData.service_date) {
+      const match = localRequestData.service_date.match(
+        /(\d{4})년\s*(\d{2})월\s*(\d{2})일/
+      );
+      if (match) {
+        setSelectedDate(new Date(+match[1], +match[2] - 1, +match[3]));
+      }
+    }
   };
 
   const handleCancelClick = () => {
     setEditingRequestId(null);
-    setSelectedService_date(requestData.service_date);
-    setSelectedService_time(requestData.service_time);
-    setSelectedBrand(requestData.brand);
-    setSelectedService_type(requestData.service_type);
-    setSelectedAircon_type(requestData.aircon_type);
-    setAdditionalInfo(requestData.detailInfo || "");
-    setSelectedDropdownOption("");
-    setSelectedAirconditionerform("");
+    setSelectedService_date(localRequestData.service_date);
+    setSelectedService_time(localRequestData.service_time);
+    setSelectedBrand(localRequestData.brand);
+    setSelectedService_type(localRequestData.service_type);
+    setSelectedAircon_type(localRequestData.aircon_type);
+    setSelectedCustomer_type(localRequestData.customer_type || "개인");
+    setAddress(localRequestData.customer_address || "");
+    setSelectedCustomer_address_detail(
+      localRequestData.customer_address_detail || ""
+    );
+    setAdditionalInfo(localRequestData.detailInfo || "");
+
+    setSelectedDate(null);
   };
 
   useEffect(() => {
@@ -113,9 +232,7 @@ const RequestReceived = ({
     ) {
       formattedDetailInfo = additionalInfo;
     } else if (selectedService_type === "설치 및 구매") {
-      formattedDetailInfo = [selectedairconditionerform, additionalInfo]
-        .filter(Boolean)
-        .join("\n");
+      formattedDetailInfo = [additionalInfo].filter(Boolean).join("\n");
     }
 
     const updatedRequest = {
@@ -125,13 +242,20 @@ const RequestReceived = ({
       service_type: selectedService_type,
       brand: selectedBrand,
       aircon_type: selectedAircon_type,
+      customer_type: selectedCustomer_type,
+      customer_address: address,
+      customer_address_detail: selectedCustomer_address_detail,
       detailInfo: formattedDetailInfo,
     };
+
     try {
       const docRef = doc(db, "Request", request.id);
       await updateDoc(docRef, updatedRequest);
 
       if (isMounted.current) {
+        // localRequestData 업데이트 추가
+        setLocalRequestData(updatedRequest);
+
         setRequests((prevRequests) =>
           prevRequests.map((req) =>
             req.id === request.id
@@ -150,15 +274,16 @@ const RequestReceived = ({
       console.error("Firestore 업데이트 중 오류 발생:", error);
     }
   };
+
   useEffect(() => {
     setLocalRequestData(requestData);
   }, [requestData]);
 
   const handleRefresh = async () => {
-    if (!requestData?.id) return;
+    if (!localRequestData?.id) return;
 
     try {
-      const docRef = doc(db, "Request", requestData.id);
+      const docRef = doc(db, "Request", localRequestData.id);
       const snapshot = await getDoc(docRef);
       if (snapshot.exists()) {
         const updatedData = { id: snapshot.id, ...snapshot.data() };
@@ -170,14 +295,9 @@ const RequestReceived = ({
         setSelectedService_type(updatedData.service_type);
         setSelectedAircon_type(updatedData.aircon_type);
 
-        if (editingRequestId !== requestData.id) {
+        if (editingRequestId !== localRequestData.id) {
           setAdditionalInfo(updatedData.detailInfo || "");
         }
-
-        setSelectedDropdownOption(updatedData.selectedDropdownOption || "");
-        setSelectedAirconditionerform(
-          updatedData.selectedairconditionerform || ""
-        );
 
         if (onRealtimeUpdate && typeof onRealtimeUpdate === "function") {
           onRealtimeUpdate(updatedData);
@@ -230,6 +350,7 @@ const RequestReceived = ({
     }
     return number;
   };
+
   const formatDateForPicker = (dateStr) => {
     const match = dateStr.match(/(\d{4})년\s*(\d{2})월\s*(\d{2})일/);
     if (match) {
@@ -239,35 +360,131 @@ const RequestReceived = ({
     return "";
   };
 
-  useEffect(() => {
-    if (
-      editingRequestId === requestData.id &&
-      selectedService_type !== initialServiceTypeRef.current
-    ) {
-      setAdditionalInfo(
-        "※ 서비스 유형이 변경되었습니다.\n새로운 요청사항을 다시 입력해주세요."
-      );
-      setSelectedDropdownOption("");
-      setSelectedAirconditionerform("");
+  // 날짜 관련 함수들 (Step1에서 가져옴)
+  const formatDate = (date) => {
+    if (!(date instanceof Date) || isNaN(date)) return "";
+    const y = date.getFullYear();
+    const m = `${date.getMonth() + 1}`.padStart(2, "0");
+    const d = `${date.getDate()}`.padStart(2, "0");
+    return `${y}년 ${m}월 ${d}일`;
+  };
+
+  const isDateToday = (date) => {
+    const today = new Date();
+    return (
+      date.getDate() === today.getDate() &&
+      date.getMonth() === today.getMonth() &&
+      date.getFullYear() === today.getFullYear()
+    );
+  };
+
+  const getDateButtons = () => {
+    const today = new Date();
+    const buttons = [];
+
+    for (let i = 0; i < 20; i++) {
+      const date = new Date(today);
+      date.setDate(today.getDate() + i);
+
+      const dayNames = ["일", "월", "화", "수", "목", "금", "토"];
+      const dayName = dayNames[date.getDay()];
+
+      buttons.push({
+        date: date,
+        day: date.getDate(),
+        dayName: i === 0 ? "오늘" : dayName,
+        isToday: i === 0,
+      });
     }
-  }, [selectedService_type]);
+
+    return buttons;
+  };
+
+  const formatSelectedDate = (date) => {
+    if (!date) return "";
+    const month = date.getMonth() + 1;
+    const day = date.getDate();
+    const dayNames = ["일", "월", "화", "수", "목", "금", "토"];
+    const dayName = dayNames[date.getDay()];
+
+    if (isDateToday(date)) {
+      return `${month}월 ${day}일 오늘`;
+    }
+
+    return `${month}월 ${day}일 ${dayName}요일`;
+  };
+
+  const handleDateSelect = (date) => {
+    setSelectedDate(date);
+    const formattedDate = formatDate(date);
+    setSelectedService_date(formattedDate);
+    updateRequestData("service_date", formattedDate);
+  };
+
+  const handleCalendarClick = () => {
+    setIsCalendarModalOpen(true);
+  };
+
+  const handleCalendarModalClose = () => {
+    setIsCalendarModalOpen(false);
+  };
+
+  const handleCalendarDateSelect = (date) => {
+    setSelectedDate(date);
+    const formattedDate = formatDate(date);
+    setSelectedService_date(formattedDate);
+    updateRequestData("service_date", formattedDate);
+    setIsCalendarModalOpen(false);
+  };
 
   return (
     <Container>
       <RequestBox>
-        <ProgressBar>
-          {steps.map((step, index) => (
-            <ProgressStep key={index}>
-              <Circle $isActive={index + 1 <= localRequestData.status} />
-              <StepLabel $isActive={index + 1 === localRequestData.status}>
-                {step.label}
-              </StepLabel>
-              {index < steps.length - 1 && (
-                <Line $isActive={index + 1 < localRequestData.status} />
-              )}
-            </ProgressStep>
-          ))}
-        </ProgressBar>
+        {/* 수정 모드가 아닐 때만 ProgressBar 표시 */}
+        {editingRequestId !== localRequestData.id && (
+          <ProgressBar>
+            <ProgressStepsContainer>
+              {steps.map((step, index) => {
+                const stepNumber = index + 1;
+                const isCompleted = stepNumber <= localRequestData.status;
+                const isPending = stepNumber > localRequestData.status;
+
+                return (
+                  <React.Fragment key={index}>
+                    <ProgressStep>
+                      <StepIconWrapper
+                        $isCompleted={isCompleted}
+                        $isPending={isPending}
+                      >
+                        {isCompleted ? (
+                          <IoCheckmarkCircle size={24} />
+                        ) : (
+                          <PendingCircle>
+                            <DotContainer>
+                              <Dot />
+                              <Dot />
+                              <Dot />
+                            </DotContainer>
+                          </PendingCircle>
+                        )}
+                      </StepIconWrapper>
+                      <StepLabel $isActive={isCompleted}>
+                        {step.label}
+                      </StepLabel>
+                    </ProgressStep>
+                    {index < steps.length - 1 && (
+                      <Line $isActive={stepNumber < localRequestData.status} />
+                    )}
+                  </React.Fragment>
+                );
+              })}
+            </ProgressStepsContainer>
+            <RefreshIconButton onClick={handleRefresh} title="새로고침">
+              <MdRefresh />
+            </RefreshIconButton>
+          </ProgressBar>
+        )}
+
         {!editingRequestId && localRequestData.status === 3 && (
           <ButtonGroup>
             <Button
@@ -275,268 +492,335 @@ const RequestReceived = ({
               style={{ width: "100%" }}
               onClick={handleGoToPayment}
             >
-              결제하기
+              바로 결제하기
             </Button>
           </ButtonGroup>
         )}
-        <RefreshIconButton onClick={handleRefresh} title="새로고침">
-          <MdRefresh />
-          <RefreshText>실시간 의뢰서 정보 업데이트하기</RefreshText>
-        </RefreshIconButton>
+
         {localRequestData.status >= 2 && (
           <TechnicianContainer>
+            <TechnicianTitle>배정된 기사님 정보</TechnicianTitle>
             <TechnicianCard>
-              <TechnicianTitle>배정된 기사님 정보</TechnicianTitle>
-              <ProfileImage
-                loading="lazy"
-                decoding="async"
-                src={
-                  requestData.engineer_profile_image || "default-profile.jpg"
-                }
-                alt="기사님 사진"
-              />
-              <TechnicianName>
-                {requestData.engineer_name || "배정된 기사 없음"}
-              </TechnicianName>
-              <ContactInfo>
-                <PhoneNumber>
-                  {requestData.engineer_phone || "없음"}
-                </PhoneNumber>
-              </ContactInfo>
-              <CompanyInfo>
-                <CompanyTitle>
-                  {requestData.partner_name || "업체 정보 없음"}
-                </CompanyTitle>
-                <CompanyAddress>
-                  {requestData.partner_address || "주소 정보 없음"}
-                  {requestData.partner_address_detail || "주소 정보 없음"}
-                </CompanyAddress>
-              </CompanyInfo>
-              <TechnicianFooter>
-                <CompanyAcceptTimeInfo>
-                  <Tag>기사님 승인날짜</Tag>
-                  <Tag2>{requestData.accepted_at || "접수완료시간없음"}</Tag2>
-                </CompanyAcceptTimeInfo>
-              </TechnicianFooter>
+              <TechnicianContent>
+                <ProfileImage
+                  loading="lazy"
+                  decoding="async"
+                  src={
+                    localRequestData.engineer_profile_image ||
+                    "default-profile.jpg"
+                  }
+                  alt="기사님 사진"
+                />
+
+                <TechnicianInfo>
+                  <NameRow>
+                    <TechnicianName>
+                      {localRequestData.engineer_name || "기사님"} 기사님
+                    </TechnicianName>
+                    <PartnerName>
+                      {localRequestData.partner_name || ""}
+                    </PartnerName>
+                  </NameRow>
+
+                  <ContactInfo>
+                    <IoCall size={14} color="#333" />
+                    <PhoneNumber
+                      $isMobile={isMobileDevice()}
+                      onClick={() =>
+                        isMobileDevice() && handlePhoneSelect(phoneNumbers)
+                      }
+                    >
+                      {"070-8648-3327"}
+                    </PhoneNumber>
+                  </ContactInfo>
+
+                  <CompanyAddress>
+                    {localRequestData.partner_address || ""}{" "}
+                  </CompanyAddress>
+
+                  <AcceptDate>
+                    의뢰 수락 날짜 | {localRequestData.accepted_at || ""}
+                  </AcceptDate>
+                </TechnicianInfo>
+              </TechnicianContent>
             </TechnicianCard>
+            <NoticeText>
+              ⓘ 진행 중 의뢰는 기사님 일정에 따라 변동사항이 있을 수 있습니다.
+            </NoticeText>
           </TechnicianContainer>
         )}
+
         <ContentBox>
-          {/* 방문 희망 날짜 수정 */}
-          <Section>
-            <Label>방문 희망 일자</Label>
-            {editingRequestId === requestData.id ? (
-              <LabelBox>
-                <CalendarPicker
-                  selectedDate={
-                    selectedService_date &&
-                    !isNaN(new Date(formatDateForPicker(selectedService_date)))
-                      ? new Date(formatDateForPicker(selectedService_date))
-                      : null
-                  }
-                  setSelectedDate={(date) => {
-                    const formattedForDisplay = `${date.getFullYear()}년 ${String(
-                      date.getMonth() + 1
-                    ).padStart(2, "0")}월 ${String(date.getDate()).padStart(
-                      2,
-                      "0"
-                    )}일`;
+          {editingRequestId === localRequestData.id ? (
+            <>
+              {/* 수정 모드 - 방문 희망일 */}
+              <EditSection style={{ marginTop: "36px" }}>
+                <SectionTitle>방문 희망일</SectionTitle>
 
-                    setSelectedService_date(formattedForDisplay);
-                    updateRequestData("service-date", formattedForDisplay);
-                  }}
-                />
-              </LabelBox>
-            ) : (
-              <Value>{selectedService_date || "없음"}</Value>
-            )}
-          </Section>
+                <EditLabelBox>
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: "flex",
+                        gap: "12px",
+                        alignItems: "center",
+                      }}
+                    >
+                      <EditLabel>희망 날짜</EditLabel>
+                      {selectedDate && (
+                        <SelectedLabel>
+                          {formatSelectedDate(selectedDate)}
+                        </SelectedLabel>
+                      )}
+                    </div>
+                    <CalendarIconButton onClick={handleCalendarClick}>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="18"
+                        height="20"
+                        viewBox="0 0 18 20"
+                        fill="none"
+                      >
+                        <path
+                          d="M16 2H15V0H13V2H5V0H3V2H2C0.89 2 0.00999999 2.9 0.00999999 4L0 18C0 18.5304 0.210714 19.0391 0.585786 19.4142C0.960859 19.7893 1.46957 20 2 20H16C17.1 20 18 19.1 18 18V4C18 2.9 17.1 2 16 2ZM16 18H2V8H16V18ZM6 12H4V10H6V12ZM10 12H8V10H10V12ZM14 12H12V10H14V12ZM6 16H4V14H6V16ZM10 16H8V14H10V16ZM14 16H12V14H14V16Z"
+                          fill="#A0A0A0"
+                        />
+                      </svg>
+                    </CalendarIconButton>
+                  </div>
+                  <DateHeaderRow>
+                    <DateButtonsContainer>
+                      {getDateButtons().map((item, index) => (
+                        <DateButton
+                          key={index}
+                          $isSelected={
+                            selectedDate &&
+                            selectedDate.getDate() === item.day &&
+                            selectedDate.getMonth() === item.date.getMonth()
+                          }
+                          $isToday={item.isToday}
+                          onClick={() => handleDateSelect(item.date)}
+                        >
+                          <DateNumber>{item.day}</DateNumber>
+                          <DayName>{item.dayName}</DayName>
+                        </DateButton>
+                      ))}
+                    </DateButtonsContainer>
+                  </DateHeaderRow>
+                </EditLabelBox>
 
-          {/* 방문 희망 시간 수정*/}
-          <Section>
-            <Label>방문 희망 시간</Label>
-            {editingRequestId === requestData.id ? (
-              <LabelBox>
-                <TimeSlotPicker
-                  selectedTime={selectedServcie_time}
-                  setSelectedTime={(time) => {
-                    setSelectedService_time(time);
-                    updateRequestData("service_time", time);
-                  }}
-                />
-              </LabelBox>
-            ) : (
-              <Value>{selectedServcie_time || "없음"}</Value>
-            )}
-          </Section>
-          {/* 에어컨종류 */}
-          <Section>
-            <Label>서비스 받을 에어컨 종류</Label>
-            {editingRequestId === requestData.id ? (
-              <DropdownSelector
-                title="에어컨 종류 선택하기"
-                icon={<GrApps size="18" />}
-                options={["스탠드형", "천장형", "항온항습기", "벽걸이형"]}
-                selected={selectedAircon_type}
-                setSelected={setSelectedAircon_type}
-                isOpen={isTypeOpen}
-                setIsOpen={setIsTypeOpen}
-                optionWidths={["90px", "90px", "90px", "110px"]}
-              />
-            ) : (
-              <Value>{selectedAircon_type || "없음"}</Value>
-            )}
-          </Section>
-          {/* 원하는서비스수정 */}
-          <Section>
-            <Label>원하는서비스</Label>
-            {editingRequestId === requestData.id ? (
-              <DropdownSelector
-                title="원하는 서비스 선택하기"
-                icon={<GrUserSettings size="18" />}
-                options={[
-                  "설치",
-                  "설치 및 구매",
-                  "청소",
-                  "수리",
-                  "냉매 충전",
-                  "이전설치",
-                ]}
-                selected={selectedService_type}
-                setSelected={setSelectedService_type}
-                isOpen={isServiceOpen}
-                setIsOpen={setIsServiceOpen}
-                optionWidths={[
-                  "70px",
-                  "110px",
-                  "70px",
-                  "70px",
-                  "90px",
-                  "70px",
-                  "70px",
-                  "70px",
-                ]}
-              />
-            ) : (
-              <Value>{selectedService_type || "없음"}</Value>
-            )}
-          </Section>
-          {/* 브랜드수정 */}
-          <Section>
-            <Label>브랜드</Label>
-            {editingRequestId === requestData.id ? (
-              <DropdownSelector
-                title="브랜드 선택하기"
-                icon={<GrBookmark size="18" />}
-                options={["삼성전자", "LG전자", "캐리어", "센추리", "기타"]}
-                selected={selectedBrand}
-                setSelected={setSelectedBrand}
-                isOpen={isBrandOpen}
-                setIsOpen={setIsBrandOpen}
-                optionWidths={["100px", "90px", "90px", "90px", "90px", ,]}
-              />
-            ) : (
-              <Value>{selectedBrand || "없음"}</Value>
-            )}
-          </Section>
-          {/* 주소수정불가능 */}
-          <Section>
-            <Label>주소</Label>
-            <Value>{requestData.customer_address || "없음"}</Value>
-            <Value style={{ marginTop: "5px" }}>
-              {requestData.customer_address_detail || "없음"}
-            </Value>
-          </Section>
-          {/* 연락처수정불가능 */}
-          <Section>
-            <Label>연락처</Label>
-            <Value>
-              {formatPhoneForDisplay(requestData.customer_phone) || "없음"}
-            </Value>
-          </Section>
-          {/* 이름수정불가능 */}
-          {/* <Section>
-            <Label>이름</Label>
-            <Value style={{ marginTop: "5px" }}>
-              {requestData.clientName || "없음"}
-            </Value>
-          </Section> */}
-          {/* 추가요청사항 */}
-          <Section style={{ whiteSpace: "pre-line" }}>
-            {editingRequestId === requestData.id ? (
-              <>
-                {["청소", "냉매 충전", "수리", "설치", "이전설치"].includes(
-                  selectedService_type
-                ) && (
-                  <RequestDetails
-                    additionalInfo={additionalInfo}
-                    setAdditionalInfo={setAdditionalInfo}
+                <EditLabelBox>
+                  <EditLabel>희망 시간</EditLabel>
+                  <TimeSelectBox
+                    value={selectedServcie_time}
+                    onChange={(time) => {
+                      setSelectedService_time(time);
+                      updateRequestData("service_time", time);
+                    }}
                   />
-                )}
+                </EditLabelBox>
+              </EditSection>
 
-                {selectedService_type === "설치 및 구매" && (
-                  <>
-                    <AdditionalDropSelected
-                      options={[
-                        "중고에어컨 구매원해요",
-                        "신규에어컨 구매원해요",
-                      ]}
-                      placeholderText="에어컨 구매 종류 선택하기"
-                      boxPerRow={2}
-                      onSelect={setSelectedAirconditionerform}
-                    />
+              {/* 수정 모드 - 서비스 세부내역 */}
+              <EditSection>
+                <SectionTitle>서비스 세부내역</SectionTitle>
+                <ThreeColumnGrid>
+                  <SelectBox
+                    value={selectedBrand}
+                    options={["삼성전자", "LG전자", "캐리어", "센추리", "기타"]}
+                    onChange={setSelectedBrand}
+                    placeholder="삼성전자"
+                  />
+                  <SelectBox
+                    value={selectedAircon_type}
+                    options={["스탠드형", "천장형", "항온항습기", "벽걸이형"]}
+                    onChange={setSelectedAircon_type}
+                    placeholder="천장형"
+                  />
+                  <SelectBox
+                    value={selectedService_type}
+                    options={[
+                      "설치",
+                      "설치 및 구매",
+                      "청소",
+                      "수리",
+                      "냉매 충전",
+                      "이전설치",
+                    ]}
+                    onChange={setSelectedService_type}
+                    placeholder="청소"
+                  />
+                </ThreeColumnGrid>
+              </EditSection>
 
-                    <Label>추가요청사항</Label>
-                    <RequestDetails
-                      additionalInfo={additionalInfo}
-                      setAdditionalInfo={setAdditionalInfo}
-                    />
-                  </>
-                )}
-              </>
-            ) : (
-              <div style={{ marginBottom: "30px" }}>
-                <Label>추가요청사항</Label>
-                <Value style={{ whiteSpace: "pre-line" }}>
+              {/* 수정 모드 - 주소 */}
+              <EditSection>
+                <SectionTitle>주소</SectionTitle>
+                <ClickableTextField
+                  size="stepsize"
+                  value={address}
+                  placeholder="주소를 입력해주세요"
+                  onClick={handleAddressClick}
+                  readOnly
+                />
+                <AddressDetailInput
+                  type="text"
+                  placeholder="상세주소를 입력해주세요"
+                  value={selectedCustomer_address_detail}
+                  onChange={(e) =>
+                    setSelectedCustomer_address_detail(e.target.value)
+                  }
+                />
+              </EditSection>
+
+              {/* 수정 모드 - 연락처와 의뢰인 유형 */}
+              <TwoColumnGrid>
+                <div>
+                  <EditLabel>연락처 수정 불가</EditLabel>
+                  <ValueBox>
+                    {formatPhoneForDisplay(localRequestData.customer_phone) ||
+                      "없음"}
+                  </ValueBox>
+                </div>
+
+                <div>
+                  <EditLabel>의뢰인 유형</EditLabel>
+                  <SelectBox
+                    value={selectedCustomer_type}
+                    options={["개인", "사업장"]}
+                    onChange={setSelectedCustomer_type}
+                    placeholder="개인"
+                  />
+                </div>
+              </TwoColumnGrid>
+
+              {/* 수정 모드 - 추가 사항 */}
+              <EditSection>
+                <SectionTitle>추가 사항</SectionTitle>
+
+                <AdditionalTextarea
+                  value={additionalInfo}
+                  onChange={(e) => setAdditionalInfo(e.target.value)}
+                  placeholder="추가 요청사항을 입력해주세요"
+                  rows={5}
+                />
+              </EditSection>
+            </>
+          ) : (
+            <>
+              {/* 조회 모드 - 방문 희망일 */}
+              <SectionTitle>방문 희망일</SectionTitle>
+              <TwoColumnGrid>
+                <Section>
+                  <ValueBox>{selectedService_date || "없음"}</ValueBox>
+                </Section>
+                <Section>
+                  <ValueBox>{selectedServcie_time || "없음"}</ValueBox>
+                </Section>
+              </TwoColumnGrid>
+
+              {/* 조회 모드 - 서비스 세부내역 */}
+              <SectionTitle>서비스 세부내역</SectionTitle>
+              <ThreeColumnGrid>
+                <Section>
+                  <ValueBox>{selectedBrand || "없음"}</ValueBox>
+                </Section>
+                <Section>
+                  <ValueBox>{selectedAircon_type || "없음"}</ValueBox>
+                </Section>
+                <Section>
+                  <ValueBox>{selectedService_type || "없음"}</ValueBox>
+                </Section>
+              </ThreeColumnGrid>
+
+              {/* 조회 모드 - 주소 */}
+              <SectionTitle>주소</SectionTitle>
+              <Section>
+                <ValueBox>
+                  {localRequestData.customer_address || "없음"}
+                  {localRequestData.customer_address_detail && (
+                    <> {localRequestData.customer_address_detail}</>
+                  )}
+                </ValueBox>
+              </Section>
+
+              {/* 조회 모드 - 연락처와 의뢰인 유형 */}
+              <TwoColumnGrid>
+                <div>
+                  <SectionTitle style={{ marginBottom: "12px" }}>
+                    연락처
+                  </SectionTitle>
+                  <Section>
+                    <ValueBox>
+                      {formatPhoneForDisplay(localRequestData.customer_phone) ||
+                        "없음"}
+                    </ValueBox>
+                  </Section>
+                </div>
+
+                <div>
+                  <SectionTitle style={{ marginBottom: "12px" }}>
+                    의뢰인 유형
+                  </SectionTitle>
+                  <Section>
+                    <ValueBox>
+                      {localRequestData.customer_type || "개인"}
+                    </ValueBox>
+                  </Section>
+                </div>
+              </TwoColumnGrid>
+
+              {/* 조회 모드 - 추가 사항 */}
+              <SectionTitle>추가 사항</SectionTitle>
+              <Section style={{ whiteSpace: "pre-line" }}>
+                <ValueBox style={{ whiteSpace: "pre-line" }}>
                   {additionalInfo || "없음"}
-                </Value>
-              </div>
-            )}
-          </Section>
+                </ValueBox>
+              </Section>
+            </>
+          )}
         </ContentBox>
 
-        {requestData.state === 1 && (
+        {localRequestData.state === 1 && (
           <WarningText>
             의뢰서 수정은 기사님 배정 전까지만 가능합니다.
           </WarningText>
         )}
 
-        {editingRequestId === requestData.id ? (
-          <ButtonGroup>
-            <EditButton onClick={handleCancelClick}>취소</EditButton>
-            <Button
-              size="md"
-              style={{ width: "50%" }}
-              onClick={() => handleSaveClick(requestData)}
-            >
-              저장
-            </Button>
-          </ButtonGroup>
+        {editingRequestId === localRequestData.id ? (
+          <EditButtonGroup>
+            <CancelButton onClick={handleCancelClick}>취소</CancelButton>
+            <SaveButton onClick={() => handleSaveClick(localRequestData)}>
+              수정 완료
+            </SaveButton>
+          </EditButtonGroup>
         ) : (
           <ButtonGroup>
-            {requestData.status < 2 && (
+            {localRequestData.status === 1 && (
+              <EditButton onClick={() => handleEditClick(localRequestData.id)}>
+                수정하기
+              </EditButton>
+            )}
+            {localRequestData.status < 2 && (
               <Button
                 size="md"
-                style={{ width: "50%" }}
-                onClick={() => handleCancelRequestPopup(requestData.id)}
+                style={{
+                  backgroundColor: "#F2F3F6",
+                  border: "none",
+                  color: "#A0A0A0",
+                  fontWeight: "500",
+                  fontSize: "14px",
+                }}
+                onClick={() => handleCancelRequestPopup(localRequestData.id)}
               >
                 의뢰 취소
               </Button>
-            )}
-            {requestData.status === 1 && (
-              <EditButton onClick={() => handleEditClick(requestData.id)}>
-                수정
-              </EditButton>
             )}
           </ButtonGroup>
         )}
@@ -569,26 +853,42 @@ const RequestReceived = ({
           <PopupMessage>정말로 의뢰를 취소하시겠습니까?</PopupMessage>
         </Modal>
       )}
+
+      {/* 주소검색 모달 */}
+      <Modal
+        open={isAddressOpen}
+        onClose={() => setIsAddressOpen(false)}
+        title="주소 검색"
+        width={420}
+        containerId="rightbox-modal-root"
+      >
+        <div style={{ width: "100%", height: "70vh" }}>
+          <AddressModal
+            onSelect={handleAddressSelect}
+            onClose={() => setIsAddressOpen(false)}
+            serviceAreas={SERVICE_AREAS}
+          />
+        </div>
+      </Modal>
+
+      {/* 캘린더 모달 */}
+      <Modal
+        open={isCalendarModalOpen}
+        onClose={handleCalendarModalClose}
+        title="날짜 선택"
+        width={400}
+        containerId="rightbox-modal-root"
+      >
+        <CalendarPicker
+          selectedDate={selectedDate}
+          setSelectedDate={handleCalendarDateSelect}
+        />
+      </Modal>
     </Container>
   );
 };
 
 export default RequestReceived;
-const InfoNotice = styled.p`
-  color: #ff5c5c;
-  font-size: ${({ theme }) => theme.font.size.bodySmall};
-  margin-bottom: 10px;
-  font-weight: ${({ theme }) => theme.font.weight.bold};
-`;
-
-const LabelBox = styled.div`
-  width: 100%;
-  border: 2px solid #e3e3e3;
-  border-radius: 10px;
-  background: ${({ theme }) => theme.colors.bg};
-  padding: 20px 10px 30px 20px;
-`;
-const TechnicianContainer = styled.div``;
 
 const Container = styled.div`
   display: flex;
@@ -600,151 +900,465 @@ const ProgressBar = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  padding-top: 36px;
+  padding-bottom: 32px;
+`;
+
+const ProgressStepsContainer = styled.div`
+  display: flex;
+  align-items: center;
+  flex: 1;
 `;
 
 const ProgressStep = styled.div`
   display: flex;
   align-items: center;
+  gap: 6px;
 `;
-const RequestBox = styled.div`
-  width: 100%;
+
+const StepIconWrapper = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: ${({ $isCompleted }) => ($isCompleted ? "#004FFF" : "#D9D9D9")};
 `;
-const Circle = styled.div`
-  width: 16px;
-  height: 16px;
+
+const PendingCircle = styled.div`
+  width: 20px;
+  height: 20px;
   border-radius: 50%;
-  margin-right: 0.5rem;
-  background-color: ${({ $isActive }) => ($isActive ? "#0080FF" : "#ddd")};
+  background-color: #8d989f;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+`;
+
+const DotContainer = styled.div`
+  display: flex;
+  gap: 2px;
+  align-items: center;
+`;
+
+const Dot = styled.div`
+  width: 2px;
+  height: 2px;
+  border-radius: 50%;
+  background-color: white;
 `;
 
 const Line = styled.div`
-  width: 60px;
+  width: 50px;
   height: 2px;
-  background-color: ${({ $isActive }) => ($isActive ? "#0080FF" : "#ddd")};
-  margin: 0px 0px 0px 35px;
-  @media (max-width: ${({ theme }) => theme.font.breakpoints.mobile}) {
-    width: 40px;
-    margin: 0px;
-  }
+  background-color: ${({ $isActive }) => ($isActive ? "#004FFF" : "#8D989F")};
+  margin: 0 8px;
+
   @media (max-width: ${({ theme }) => theme.font.breakpoints.mobile}) {
     width: 20px;
-    margin: 0px;
+    margin: 0 4px;
+  }
+  @media (max-width: ${({ theme }) => theme.font.breakpoints.smobile}) {
+    width: 6px;
+    margin: 0 2px;
   }
 `;
 
 const StepLabel = styled.div`
-  font-size: ${({ theme }) => theme.font.size.bodySmall};
-  font-weight: ${({ $isActive }) => ($isActive ? "bold" : "normal")};
-  color: ${({ $isActive }) => ($isActive ? "#0080FF" : "#666")};
-  @media (max-width: ${({ theme }) => theme.font.breakpoints.smobile}) {
-    font-size: ${({ theme }) => theme.font.size.small};
+  font-size: 16px;
+  font-weight: 700;
+  font-size: 13px;
+  font-weight: 700;
+  color: ${({ $isActive }) => ($isActive ? "#004fff" : "#8D989F")};
+  white-space: nowrap;
+
+  @media (max-width: ${({ theme }) => theme.font.breakpoints.mobile}) {
+    font-size: 12px;
   }
+`;
+
+const RequestBox = styled.div`
+  width: 100%;
+`;
+
+const TechnicianContainer = styled.div``;
+
+const TechnicianCard = styled.div`
+  background: #ffffff;
+  border-radius: 10px;
+  padding: 24px;
+  @media (max-width: ${({ theme }) => theme.font.breakpoints.mobile}) {
+    padding: 8px;
+  }
+`;
+
+const TechnicianTitle = styled.p`
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 12px;
+  @media (max-width: ${({ theme }) => theme.font.breakpoints.smobile}) {
+    font-size: 16px;
+  }
+`;
+
+const TechnicianContent = styled.div`
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
+  @media (max-width: ${({ theme }) => theme.font.breakpoints.mobile}) {
+    gap: 10px;
+  }
+`;
+
+const ProfileImage = styled.img`
+  width: 116px;
+  height: 116px;
+  border-radius: 6px;
+  background: #d9d9d9;
+  flex-shrink: 0;
+  object-fit: cover;
+`;
+
+const TechnicianInfo = styled.div`
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+`;
+
+const NameRow = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+`;
+
+const TechnicianName = styled.span`
+  font-size: 18px;
+  font-weight: 700;
+  @media (max-width: ${({ theme }) => theme.font.breakpoints.smobile}) {
+    font-size: 16px;
+  }
+`;
+
+const PartnerName = styled.span`
+  color: #8d989f;
+  font-size: 14px;
+  font-weight: 600;
+  @media (max-width: ${({ theme }) => theme.font.breakpoints.smobile}) {
+    font-size: 12px;
+  }
+`;
+
+const ContactInfo = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  @media (max-width: ${({ theme }) => theme.font.breakpoints.mobile}) {
+    gap: 3px;
+  }
+`;
+
+const PhoneNumber = styled.span`
+  font-size: 14px;
+  font-weight: 400;
+  cursor: ${({ $isMobile }) => ($isMobile ? "pointer" : "default")};
+  color: ${({ $isMobile }) => ($isMobile ? "#004FFF" : "inherit")};
+  text-decoration: ${({ $isMobile }) => ($isMobile ? "underline" : "none")};
+
+  @media (max-width: ${({ theme }) => theme.font.breakpoints.smobile}) {
+    font-size: 12px;
+  }
+`;
+
+const CompanyAddress = styled.p`
+  font-size: 14px;
+  font-weight: 400;
+  margin: 0 0 8px 0;
+  @media (max-width: ${({ theme }) => theme.font.breakpoints.smobile}) {
+    font-size: 12px;
+  }
+`;
+
+const AcceptDate = styled.p`
+  color: #004fff;
+  font-size: 12px;
+  font-weight: 500;
+  margin: 0;
+  @media (max-width: ${({ theme }) => theme.font.breakpoints.smobile}) {
+    font-size: 10px;
+  }
+`;
+
+const NoticeText = styled.p`
+  color: #8d989f;
+  font-size: 10px;
+  font-weight: 500;
+  text-align: right;
+  margin: 16px 0 0 0;
 `;
 
 const ContentBox = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 15px;
-`;
-const TechnicianCard = styled.div`
-  background: #f9f9f9;
-  padding-top: 20px;
-  border-radius: 10px;
-  text-align: center;
-  margin-bottom: 20px;
+  gap: 12px;
 `;
 
-const TechnicianTitle = styled.p`
-  font-size: ${({ theme }) => theme.font.size.body};
-  font-weight: ${({ theme }) => theme.font.weight.bold};
-  margin-bottom: 15px;
+const SectionTitle = styled.h3`
+  font-size: 18px;
+  font-weight: 700;
+  @media (max-width: ${({ theme }) => theme.font.breakpoints.smobile}) {
+    font-size: 16px;
+  }
 `;
-const ProfileImage = styled.img`
-  width: 70px;
-  height: 70px;
-  border-radius: 8px;
-  background: #ddd;
-  margin: 0 auto;
-`;
-const CompanyAcceptTimeInfo = styled.div`
+
+const EditSection = styled.div`
   display: flex;
+  flex-direction: column;
+  gap: 12px;
 `;
 
-const Tag = styled.span`
-  display: inline-block;
-  background: ${({ theme }) => theme.colors.primary};
-  color: ${({ theme }) => theme.colors.bg};
-  font-size: ${({ theme }) => theme.font.size.body};
-  font-weight: ${({ theme }) => theme.font.weight.bold};
-  margin-right: 15px;
-  border-radius: 15px;
-`;
-const Tag2 = styled.div``;
-const TechnicianName = styled.p`
-  font-size: ${({ theme }) => theme.font.size.body};
-  font-weight: ${({ theme }) => theme.font.weight.bold};
-  margin-top: 5px;
-`;
-
-const ContactInfo = styled.div`
+const EditLabelBox = styled.div`
   display: flex;
-  justify-content: center;
-  align-items: center;
-  margin-top: 10px;
+  flex-direction: column;
+  gap: 8px;
 `;
 
-const PhoneNumber = styled.span`
-  font-size: ${({ theme }) => theme.font.size.body};
-  font-weight: ${({ theme }) => theme.font.weight.bold};
-  margin-right: 10px;
+const EditLabel = styled.div`
+  color: #8d989f;
+  font-size: 14px;
+  font-weight: 500;
 `;
 
-const CompanyInfo = styled.div`
-  margin-top: 10px;
-  text-align: center;
+const SelectedLabel = styled.div`
+  font-size: 18px;
+  font-weight: 700;
 `;
 
-const CompanyTitle = styled.p`
-  font-size: ${({ theme }) => theme.font.size.bodySmall};
-  font-weight: ${({ theme }) => theme.font.weight.bold};
-  color: #666;
+const TwoColumnGrid = styled.div`
+  display: grid;
+  grid-template-columns: 0.9fr 1fr;
+  gap: 8px;
+  @media (max-width: ${({ theme }) => theme.font.breakpoints.smobile}) {
+    grid-template-columns: 1fr 1fr;
+  }
 `;
 
-const CompanyAddress = styled.p`
-  font-size: ${({ theme }) => theme.font.size.small};
-  color: #999;
-`;
-const TechnicianFooter = styled.div`
-  background: ${({ theme }) => theme.colors.primary};
-  padding: 30px 20px 30px 20px;
-  border-radius: 0px 0px 10px 10px;
-  display: flex;
-  justify-content: space-between;
-  margin-top: 15px;
-  color: ${({ theme }) => theme.colors.bg};
-  font-weight: ${({ theme }) => theme.font.weight.regular};
+const ThreeColumnGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
 `;
 
 const Section = styled.div`
   display: flex;
   flex-direction: column;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
 `;
 
-const Label = styled.div`
-  font-size: ${({ theme }) => theme.font.size.bodySm};
-  font-weight: ${({ theme }) => theme.font.weight.bold};
-  margin-bottom: 5px;
+const ValueBox = styled.div`
+  font-weight: 500;
+  background: #ffffff;
+  padding: 14px 0px 14px 20px;
+  border-radius: 8px;
+  font-size: 16px;
+  @media (max-width: ${({ theme }) => theme.font.breakpoints.smobile}) {
+    font-size: 14px;
+    padding: 12px 0px 12px 12px;
+  }
 `;
 
-const Value = styled.div`
-  font-size: ${({ theme }) => theme.font.size.bodySmall};
-  font-weight: ${({ theme }) => theme.font.weight.bold};
-  background: #f9f9f9;
-  padding: 10px;
-  border: 1px solid #ddd;
-  border-radius: 5px;
+const AddressDetailInput = styled.input`
+  width: 100%;
+  padding: 14px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  background: #ffffff;
+
+  &::placeholder {
+    color: #999;
+  }
+
+  &:focus {
+    outline: none;
+    border-color: #0080ff;
+  }
+`;
+
+const DateHeaderRow = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+`;
+
+const CalendarIconButton = styled.button`
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  flex-shrink: 0;
+
+  &:hover {
+    background-color: #f5f5f5;
+  }
+
+  &:active {
+    background-color: #e0e0e0;
+  }
+
+  svg {
+    pointer-events: none;
+  }
+`;
+
+const DateButtonsContainer = styled.div`
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  flex: 1;
+  padding: 4px 0 8px 0;
+  -webkit-overflow-scrolling: touch;
+
+  &::-webkit-scrollbar {
+    height: 4px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 2px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 2px;
+  }
+
+  &::-webkit-scrollbar-thumb:hover {
+    background: #a1a1a1;
+  }
+
+  @media (max-width: ${({ theme }) => theme.font.breakpoints.mobile}) {
+    &::-webkit-scrollbar {
+      display: none;
+    }
+    scrollbar-width: none;
+    gap: 12px;
+  }
+`;
+
+const DateButton = styled.button`
+  flex: none;
+  min-width: 70px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 16px 12px;
+  border: 1px solid
+    ${({ $isSelected, $isToday }) =>
+      $isSelected ? "#007BFF" : $isToday ? "#007BFF" : "#d6d6d6"};
+  border-radius: 8px;
+  background-color: ${({ $isSelected }) => ($isSelected ? "#004FFF" : "white")};
+  color: ${({ $isSelected }) => ($isSelected ? "white" : "#333")};
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+
+  &:hover {
+    border-color: #007bff;
+  }
+`;
+
+const DateNumber = styled.span`
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 4px;
+`;
+
+const DayName = styled.span`
+  font-size: 13px;
+  font-weight: 500;
+`;
+
+const SelectBoxContainer = styled.div`
+  position: relative;
+  width: 100%;
+`;
+const SelectBoxButton = styled.button`
+  width: 100%;
+  padding: 16px 14px 16px 20px;
+  background: #ffffff;
+  border: none;
+  border-radius: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 500;
+  transition: border-color 0.2s;
+
+  &:hover {
+    border-color: #0080ff;
+  }
+
+  @media (max-width: ${({ theme }) => theme.font.breakpoints.smobile}) {
+    font-size: 14px;
+    padding: 12px 12px 12px 12px;
+  }
+`;
+
+const SelectBoxValue = styled.span`
+  font-size: 16px;
+  font-weight: 500;
+  color: #000;
+
+  @media (max-width: ${({ theme }) => theme.font.breakpoints.smobile}) {
+    font-size: 14px;
+  }
+`;
+
+const SelectBoxArrow = styled.span`
+  font-size: 10px;
+  color: #666;
+  transition: transform 0.2s;
+  transform: ${({ $isOpen }) => ($isOpen ? "rotate(180deg)" : "rotate(0)")};
+`;
+
+const SelectBoxDropdown = styled.div`
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: #ffffff;
+  border: 1px solid #e8e8e8;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 10;
+`;
+
+const SelectBoxOption = styled.div`
+  padding: 12px 14px;
+  font-size: 14px;
+  cursor: pointer;
+  background: ${({ $isSelected }) => ($isSelected ? "#f0f7ff" : "#ffffff")};
+  color: ${({ $isSelected }) => ($isSelected ? "#0080ff" : "#000")};
+
+  &:hover {
+    background: #f9f9f9;
+  }
+
+  &:first-child {
+    border-radius: 8px 8px 0 0;
+  }
+
+  &:last-child {
+    border-radius: 0 0 8px 8px;
+  }
 `;
 
 const WarningText = styled.p`
@@ -756,22 +1370,55 @@ const WarningText = styled.p`
 
 const ButtonGroup = styled.div`
   display: flex;
+  flex-direction: column;
   gap: 10px;
   width: 100%;
-  margin-top: 15px;
+  margin-bottom: 20px;
+`;
+
+const EditButtonGroup = styled.div`
+  display: flex;
+  gap: 10px;
+  width: 100%;
+  margin-top: 64px;
   margin-bottom: 20px;
 `;
 
 const EditButton = styled.button`
-  flex: 1;
-  background-color: #ddd;
+  background-color: #004fff;
   color: ${({ theme }) => theme.colors.bg};
-  border-radius: 8px;
-  padding: 13px;
+  height: 44px;
+  padding: 0 16px;
   font-size: ${({ theme }) => theme.font.size.body};
+  border-radius: 8px;
   border: none;
   cursor: pointer;
-  font-weight: ${({ theme }) => theme.font.weight.bold};
+  font-weight: 700;
+  margin-top: 64px;
+`;
+
+const CancelButton = styled.button`
+  flex: 3;
+  background-color: #e0e0e0;
+  color: #666;
+  border-radius: 8px;
+  padding: 15px;
+  font-size: 16px;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+`;
+
+const SaveButton = styled.button`
+  flex: 8;
+  background-color: #004fff;
+  color: #ffffff;
+  border-radius: 8px;
+  padding: 15px;
+  font-size: 16px;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
 `;
 
 const PopupMessage = styled.p`
@@ -792,6 +1439,7 @@ const CloseButton = styled.button`
   border-radius: 0px 0px 0px 0px;
   cursor: pointer;
 `;
+
 const PopupButtons = styled.div`
   display: flex;
   justify-content: space-between;
@@ -799,17 +1447,20 @@ const PopupButtons = styled.div`
 `;
 
 const RefreshIconButton = styled.button`
-  align-self: flex-end;
   background: none;
   border: none;
   cursor: pointer;
-  padding: 10px 10px 10px 0px;
-  margin-bottom: 5px;
   display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &:hover {
+    background-color: #f5f5f5;
+  }
 
   svg {
-    color: ${({ theme }) => theme.colors.primary};
-    font-size: 26px;
+    color: #8d989f;
+    font-size: 24px;
     transition: transform 0.2s;
 
     &:hover {
@@ -817,7 +1468,32 @@ const RefreshIconButton = styled.button`
     }
   }
 `;
-const RefreshText = styled.p`
-  font-size: ${({ theme }) => theme.font.size.bodySmall};
-  padding: 0.3rem;
+
+const AdditionalTextarea = styled.textarea`
+  width: 100%;
+  padding: 14px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  background: #ffffff;
+  color: #333;
+  font-family: inherit;
+  resize: vertical;
+  min-height: 120px;
+
+  &::placeholder {
+    color: #999;
+  }
+  &:focus {
+    outline: none;
+    border-color: #004fff;
+  }
+`;
+
+const ClickableTextField = styled(TextField)`
+  cursor: pointer;
+
+  input {
+    cursor: pointer;
+  }
 `;

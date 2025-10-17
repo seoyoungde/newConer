@@ -8,7 +8,6 @@ import NoHeaderLayout from "./NOHeaderLayout.jsx";
 import AuthAddressPage from "./pages/Auth/AuthAddressPage.jsx";
 import PricingPage from "./pages/Price/PricePage.jsx";
 import RequestSearchPage from "./pages/Search/RequestSearchPage.jsx";
-import InquiryPage from "./pages/Search/InquiryPage.jsx";
 import MyPage from "./pages/Mypage/MyPage.jsx";
 import MypageInquiryPage from "./pages/Mypage/MypageInquiryPage.jsx";
 import ModifyPage from "./pages/Mypage/ModifyPage.jsx";
@@ -18,6 +17,9 @@ import PayPage from "./pages/Pay/PayPage.jsx";
 import SuccessPage from "./pages/Pay/SuccessPage.jsx";
 import PartnerApply from "./pages/partner/PartnerApply.jsx";
 import SmsRequestPage from "./pages/Search/SmsRequestPage.jsx";
+import CompletedRequests from "./pages/Search/CompletedRequests.jsx";
+import InProgressRequest from "./pages/Search/InProgressRequest.jsx";
+import RequestSearchLayout from "./RequestSearchLayout.jsx";
 
 // 단계 리뉴얼 디자인
 import Step0 from "./pages/Request/Steps/Step0.jsx";
@@ -74,13 +76,11 @@ export default function App() {
           <Route path="/auth/addressmodal" element={<AuthAddressPage />} />
 
           <Route path="/search/request" element={<RequestSearchPage />} />
-          <Route path="/search/inquiry" element={<InquiryPage />} />
-          <Route path="/search/sms/:requestId" element={<SmsRequestPage />} />
 
           <Route path="/partner/apply" element={<PartnerApply />} />
 
           <Route path="/mypage" element={<MyPage />} />
-          <Route path="/mypage/inquiry" element={<MypageInquiryPage />} />
+
           <Route path="/qna" element={<QnaPage />} />
           <Route path="/mypage/modify" element={<ModifyPage />} />
           <Route path="/mypage/withdraw" element={<WithdrawPage />} />
@@ -112,6 +112,14 @@ export default function App() {
           <Route path="/partner/step4/:partnerId" element={<PartnerStep4 />} />
           <Route path="/partner/step5/:partnerId" element={<PartnerStep5 />} />
           <Route path="/partner/step6/:partnerId" element={<PartnerStep6 />} />
+        </Route>
+
+        <Route element={<RequestSearchLayout />}>
+          {/* 의뢰서 조회하기 -> 진행중 /완료 보기 */}
+          <Route path="/search/inquiry" element={<InProgressRequest />} />
+          <Route path="/search/completed" element={<CompletedRequests />} />
+          <Route path="/mypage/inquiry" element={<MypageInquiryPage />} />
+          <Route path="/search/sms/:requestId" element={<SmsRequestPage />} />
         </Route>
       </Routes>
       <RequestDraftResetter />

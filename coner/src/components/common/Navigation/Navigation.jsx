@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import styled from "styled-components";
 import { useParams } from "react-router-dom";
-import { FaPhoneAlt, FaSadCry } from "react-icons/fa";
+import { FaPhoneAlt } from "react-icons/fa";
 import { BsChatDotsFill } from "react-icons/bs";
 import { Link } from "react-router-dom";
 import Modal from "../Modal/Modal";
@@ -48,7 +48,7 @@ const Navigation = () => {
             전화 상담
           </Actionhref>
           <Actionhref
-            href="https://talk.naver.com/ct/w7a8bh2#nafullscreen"
+            href="https://talk.naver.com/profile/c/coner"
             target="_blank"
             rel="noopener noreferrer"
           >

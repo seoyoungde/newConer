@@ -5,6 +5,7 @@ import mianbannerIcon from "../../assets/images/mainbanner.png";
 import PartnerSection from "./sections/PartnerSection";
 import ReviewSection from "./sections/ReviewSection";
 import BlogSection from "./sections/BlogSection";
+import EnterpriseBanner from "./sections/EnterpriseBanner";
 
 const Home = () => {
   return (
@@ -17,6 +18,7 @@ const Home = () => {
         height={302}
       />
       <ServiceGrid />
+      <EnterpriseBanner />
       <MainContent>
         <PartnerSection />
         {/* <ReviewSection /> */}
@@ -30,7 +32,7 @@ export default Home;
 const MainContent = styled.div`
   display: flex;
   flex-direction: column;
-  padding: 0px 34px;
+  padding: 48px 34px;
   @media (max-width: ${({ theme }) => theme.font.breakpoints.mobile}) {
     padding: 34px 15px;
   }
