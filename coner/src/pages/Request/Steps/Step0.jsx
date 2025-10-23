@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import styled from "styled-components";
 import StepHeader from "../../../components/common/Header/StepHeader";
 import { useNavigate } from "react-router-dom";
+import Button from "../../../components/ui/Button";
 import { useRequest } from "../../../context/context";
 import { useFunnelStep } from "../../../analytics/useFunnelStep";
 
@@ -13,21 +14,19 @@ const Step0 = () => {
   const [hasAircon, setHasAircon] = useState("");
 
   const options = [
-    { id: "중고", text: "중고에어컨으로 구매원해요." },
-    { id: "신규", text: "신규에어컨으로 구매원해요." },
+    { id: "신규", text: "새 에어컨" },
+    { id: "중고", text: "중고 에어컨" },
   ];
 
   const handleOptionSelect = (optionId) => {
     setHasAircon(optionId);
 
-    const purchaseInfo = `${optionId}에어컨으로 원해요`;
+    const purchaseInfo = `${optionId}`;
 
     const existingDetail = requestData.detailInfo || "";
     const lines = existingDetail.split("\n");
     const nonPurchaseLines = lines.filter(
-      (line) =>
-        !line.includes("중고에어컨으로 원해요") &&
-        !line.includes("신규에어컨으로 원해요")
+      (line) => !line.includes("중고") && !line.includes("신규")
     );
 
     const newDetail =
@@ -36,8 +35,20 @@ const Step0 = () => {
         : purchaseInfo;
 
     updateRequestData("detailInfo", newDetail);
+  };
+
+  const handleNext = () => {
+    if (!hasAircon) {
+      alert("에어컨 유형을 선택해주세요.");
+      return;
+    }
+
     onAdvance(1);
     navigate("/request/step1");
+  };
+
+  const handleHelpClick = () => {
+    window.open("http://pf.kakao.com/_jyhxmn/chat", "_blank");
   };
 
   const currentStep = hasAircon ? 0 : 0;
@@ -47,7 +58,7 @@ const Step0 = () => {
       <ScrollableContent>
         <StepHeader to="/" currentStep={currentStep} totalSteps={9} />
         <ContentSection>
-          <PageTitle>구매할 에어컨을 선택해주세요</PageTitle>
+          <PageTitle>구매할 에어컨 유형을 선택해주세요.</PageTitle>
 
           <OptionList>
             {options.map((option) => (
@@ -57,29 +68,50 @@ const Step0 = () => {
               >
                 <OptionText>{option.text}</OptionText>
                 <CheckIcon $isSelected={hasAircon === option.id}>
-                  {hasAircon === option.id && (
-                    <svg
-                      width="14"
-                      height="10"
-                      viewBox="0 0 14 10"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path
-                        d="M1 5L5 9L13 1"
-                        stroke="white"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                  )}
+                  <svg
+                    width="14"
+                    height="10"
+                    viewBox="0 0 14 10"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M1 5L5 9L13 1"
+                      stroke="white"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
                 </CheckIcon>
               </OptionItem>
             ))}
           </OptionList>
         </ContentSection>
       </ScrollableContent>
+
+      {/* 하단 고정 버튼 영역 - 조건부 렌더링 */}
+      {hasAircon && (
+        <FixedButtonArea>
+          <Button fullWidth size="stepsize" onClick={handleNext}>
+            확인
+          </Button>
+          <CSButtonContainer>
+            <CSButton onClick={handleHelpClick}>
+              <CSButtonText>도움이 필요해요</CSButtonText>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="8"
+                height="14"
+                viewBox="0 0 8 14"
+                fill="none"
+              >
+                <path d="M0.999999 13L7 7L1 1" stroke="#A0A0A0" />
+              </svg>
+            </CSButton>
+          </CSButtonContainer>
+        </FixedButtonArea>
+      )}
     </PageContainer>
   );
 };
@@ -95,11 +127,9 @@ const PageContainer = styled.div`
 
 const ScrollableContent = styled.div`
   flex: 1;
-  min-height: 0; /* flexbox overflow 버그 방지 */
+  min-height: 0;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-
-  /* 스크롤 성능 최적화 */
   will-change: scroll-position;
   transform: translateZ(0);
 
@@ -120,11 +150,12 @@ const ContentSection = styled.div`
 
 const FixedButtonArea = styled.div`
   flex-shrink: 0;
-  background: ${({ theme }) => theme.colors.bg};
+  margin-bottom: 87px;
   padding: 16px 24px;
 
   @media (max-width: ${({ theme }) => theme.font.breakpoints.mobile}) {
     padding: 15px;
+    margin-bottom: 10px;
   }
 `;
 
@@ -141,15 +172,17 @@ const PageTitle = styled.h1`
 const OptionList = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 0;
+  gap: 16px;
 `;
 
 const OptionItem = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 20px 0;
+  padding: 18px 26px 18px 26px;
   cursor: pointer;
+  background: white;
+  border-radius: 10px;
 `;
 
 const OptionText = styled.span`
@@ -161,10 +194,11 @@ const OptionText = styled.span`
 const CheckIcon = styled.div`
   width: 24px;
   height: 24px;
-  border-radius: 50%;
+  border-radius: 16%;
   border: 2px solid
-    ${({ $isSelected }) => ($isSelected ? "#007BFF" : "#D6D6D6")};
-  background-color: ${({ $isSelected }) => ($isSelected ? "#007BFF" : "white")};
+    ${({ $isSelected }) => ($isSelected ? "#007BFF" : "#A2AFB7")};
+  background-color: ${({ $isSelected }) =>
+    $isSelected ? "#007BFF" : "#A2AFB7"};
   display: flex;
   align-items: center;
   justify-content: center;
@@ -172,24 +206,24 @@ const CheckIcon = styled.div`
   flex-shrink: 0;
 `;
 
-const HelpButton = styled.button`
+const CSButtonContainer = styled.div`
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+`;
+
+const CSButton = styled.button`
+  color: ${({ theme }) => theme.colors.text};
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 6px;
+  gap: 8px;
   background: none;
   border: none;
   cursor: pointer;
-  margin: 20px auto 0 auto;
-  padding: 8px;
-
-  &:hover {
-    background-color: #f8f9fa;
-    border-radius: 4px;
-  }
 `;
 
-const HelpText = styled.span`
+const CSButtonText = styled.p`
+  margin: 0;
   font-size: ${({ theme }) => theme.font.size.bodyLarge};
   color: #a0a0a0;
 `;

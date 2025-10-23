@@ -60,7 +60,7 @@ const ScrollArea = styled.div`
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
-  padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px));
+  // padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px));
 
   &::-webkit-scrollbar {
     width: 0;

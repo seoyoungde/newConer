@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import styled from "styled-components";
 import StepHeader from "../../../components/common/Header/StepHeader";
 import { useNavigate } from "react-router-dom";
+import Button from "../../../components/ui/Button";
 import { useRequest } from "../../../context/context";
 import { useFunnelStep } from "../../../analytics/useFunnelStep";
 
@@ -37,23 +38,38 @@ const Step2 = () => {
   const handleTypeSelect = (typeId) => {
     setSelectedType(typeId);
     updateRequestData("aircon_type", typeId);
+  };
 
-    // 선택 즉시 다음 페이지로 이동
+  const handleNext = () => {
+    if (!selectedType) {
+      alert("에어컨 종류를 선택해주세요.");
+      return;
+    }
+
     onAdvance(3);
     navigate("/request/step3");
   };
 
+  const handleHelpClick = () => {
+    window.open("http://pf.kakao.com/_jyhxmn/chat", "_blank");
+  };
+
   const title = "에어컨 종류를 선택해주세요.";
+
+  const currentStep = selectedType ? 3 : 2;
 
   return (
     <PageContainer>
       <ScrollableContent>
-        <StepHeader to="/request/step1" currentStep={2} totalSteps={9} />
+        <StepHeader
+          to="/request/step1"
+          currentStep={currentStep}
+          totalSteps={9}
+        />
         <ContentSection>
           <PageTitle>{title}</PageTitle>
 
           <FormGroup>
-            <Label>에어컨 종류</Label>
             <TypeContainer>
               {airconTypes.map((type) => (
                 <Type
@@ -73,6 +89,29 @@ const Step2 = () => {
           </FormGroup>
         </ContentSection>
       </ScrollableContent>
+
+      {/* 하단 고정 버튼 영역 - 조건부 렌더링 */}
+      {selectedType && (
+        <FixedButtonArea>
+          <Button fullWidth size="stepsize" onClick={handleNext}>
+            확인
+          </Button>
+          <CSButtonContainer>
+            <CSButton onClick={handleHelpClick}>
+              <CSButtonText>도움이 필요해요</CSButtonText>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="8"
+                height="14"
+                viewBox="0 0 8 14"
+                fill="none"
+              >
+                <path d="M0.999999 13L7 7L1 1" stroke="#A0A0A0" />
+              </svg>
+            </CSButton>
+          </CSButtonContainer>
+        </FixedButtonArea>
+      )}
     </PageContainer>
   );
 };
@@ -110,6 +149,17 @@ const ContentSection = styled.div`
   }
 `;
 
+const FixedButtonArea = styled.div`
+  flex-shrink: 0;
+  margin-bottom: 87px;
+  padding: 16px 24px;
+
+  @media (max-width: ${({ theme }) => theme.font.breakpoints.mobile}) {
+    padding: 15px;
+    margin-bottom: 10px;
+  }
+`;
+
 const PageTitle = styled.h1`
   font-size: ${({ theme }) => theme.font.size.h1};
   font-weight: ${({ theme }) => theme.font.weight.bold};
@@ -124,15 +174,10 @@ const FormGroup = styled.div`
   margin-bottom: 24px;
 `;
 
-const Label = styled.p`
-  margin-bottom: 6px;
-  font-size: ${({ theme }) => theme.font.size.body};
-  font-weight: ${({ theme }) => theme.font.weight.medium};
-  color: ${({ theme }) => theme.colors.subtext};
-`;
-
 const TypeContainer = styled.div`
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
   justify-content: space-between;
   gap: 8px;
 
@@ -150,16 +195,16 @@ const Type = styled.button`
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  width: 133px;
-  height: 133px;
+  gap: 22px;
+  width: 274px;
+  height: 200px;
   border-radius: 10px;
   border: 1px solid
     ${({ $isSelected, theme }) =>
-      $isSelected ? theme.colors.primary || "#007BFF" : "#a0a0a0"};
+      $isSelected ? theme.colors.primary || "#007BFF" : "none"};
   background: ${({ $isSelected, theme }) =>
     $isSelected ? theme.colors.primary || "#007BFF" : "#fff"};
-  color: ${({ $isSelected }) => ($isSelected ? "white" : "#333")};
+  color: ${({ $isSelected }) => ($isSelected ? "white" : "#8D989F")};
   cursor: pointer;
   transition: all 0.2s ease;
   font-size: ${({ theme }) => theme.font.size.body};
@@ -172,21 +217,21 @@ const Type = styled.button`
   @media (max-width: ${({ theme }) => theme.font.breakpoints.mobile}) {
     width: 180px;
     height: 180px;
-    gap: 6px;
+    gap: 12px;
     font-size: ${({ theme }) => theme.font.size.body};
   }
 
   @media (max-width: ${({ theme }) => theme.font.breakpoints.smobile}) {
     width: 140px;
     height: 140px;
-    gap: 4px;
+    gap: 8px;
     font-size: ${({ theme }) => theme.font.size.bodySmall};
   }
 `;
 
 const TypeImg = styled.img`
-  width: 88px;
-  height: 88px;
+  width: 108px;
+  height: 108px;
   transition: filter 0.2s ease;
 
   @media (max-width: ${({ theme }) => theme.font.breakpoints.mobile}) {
@@ -198,4 +243,26 @@ const TypeImg = styled.img`
     width: 78px;
     height: 78px;
   }
+`;
+
+const CSButtonContainer = styled.div`
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+`;
+
+const CSButton = styled.button`
+  color: ${({ theme }) => theme.colors.text};
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: none;
+  border: none;
+  cursor: pointer;
+`;
+
+const CSButtonText = styled.p`
+  margin: 0;
+  font-size: ${({ theme }) => theme.font.size.bodyLarge};
+  color: #a0a0a0;
 `;

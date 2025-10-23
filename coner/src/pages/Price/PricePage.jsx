@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import styled from "styled-components";
-import TitleHeader from "../../components/common/Header/NavHeader";
+import RequestHeader from "../../components/common/Header/RequestHeader";
 import PricingTable from "./PriceTable";
 
 const PricingPage = () => {
@@ -12,7 +12,8 @@ const PricingPage = () => {
 
   return (
     <Container>
-      <TitleHeader />
+      <RequestHeader showPrevButton={false} userName="" to="/" />
+
       {/* 
       <ImageWrapper>
         <img src={pricingchartIcon} alt="서비스 비용 도표" />
@@ -31,25 +32,4 @@ const PricingPage = () => {
 
 export default PricingPage;
 
-const Container = styled.div`
-  width: 100%;
-`;
-
-const ImageWrapper = styled.div`
-  img {
-    width: 100%;
-    height: auto;
-    border-radius: 10px;
-  }
-`;
-
-const ExtraButton = styled.button`
-  background: none;
-  border: none;
-  color: ${({ theme }) => theme.colors.subtext};
-  font-size: ${({ theme }) => theme.font.size.bodySmall};
-  margin-top: 30px;
-  margin-bottom: 10px;
-  cursor: pointer;
-  text-decoration: underline;
-`;
+const Container = styled.div``;

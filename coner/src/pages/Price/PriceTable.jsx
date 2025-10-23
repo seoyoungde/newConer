@@ -9,6 +9,12 @@ const Container = styled.div`
   padding-bottom: 30px;
   min-height: 100vh;
   color: #333;
+  width: 100%;
+  padding: 36px 24px 24px 24px;
+
+  @media (max-width: ${({ theme }) => theme.font.breakpoints.mobile}) {
+    padding: 24px 15px 24px 15px;
+  }
 `;
 
 const Header = styled.div`

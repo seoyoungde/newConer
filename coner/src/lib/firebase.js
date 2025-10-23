@@ -17,29 +17,17 @@ const firebaseConfig = {
 const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 
 export const auth = getAuth(app);
-
-export const db = getFirestore(app); // 단순하게 변경
+export const db = getFirestore(app);
 export const storage = getStorage(app);
 
-// Analytics를 지연 로딩으로 변경
+// Analytics는 필요할 때만 초기화
 export const getAnalyticsInstance = async () => {
   try {
+    if (typeof window === "undefined") return null;
     const supported = await isSupported();
     return supported ? getAnalytics(app) : null;
   } catch (error) {
-    console.warn("Analytics not supported:", error);
+    console.warn("Analytics not supported");
     return null;
   }
 };
-
-// 또는 필요하면 이렇게 동기적으로
-export let analytics = null;
-isSupported()
-  .then((supported) => {
-    if (supported) {
-      analytics = getAnalytics(app);
-    }
-  })
-  .catch(() => {
-    console.warn("Analytics not supported");
-  });

@@ -46,7 +46,7 @@ const HeaderBar = styled.header`
   grid-template-columns: 40px 1fr 40px;
   align-items: center;
   height: 72px;
-  background: ${({ theme }) => theme.colors.bg};
+  background: #f2f3f6;
   position: sticky;
   top: 0;
   z-index: 10;

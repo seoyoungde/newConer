@@ -48,6 +48,7 @@ const RightBox = styled.main`
   height: 100%;
   border: 1px solid #d4d4d4;
   box-sizing: border-box;
+  background-color: #f2f3f6;
 
   /* Outlet이 전체 높이를 사용할 수 있도록 */
   display: flex;

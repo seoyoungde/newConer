@@ -11,10 +11,10 @@ export const inputSizes = {
   `,
   md: css`
     padding: 14px 14px;
-    font-size: ${({ theme }) => theme.font.size.bodySmall};
+    font-size: ${({ theme }) => theme.font.size.body};
     font-weight: ${({ theme }) => theme.font.weight.bold};
     @media (max-width: ${({ theme }) => theme.font.breakpoints.mobile}) {
-      font-size: ${({ theme }) => theme.font.size.body};
+      font-size: ${({ theme }) => theme.font.size.h1};
       font-weight: ${({ theme }) => theme.font.weight.medium};
     }
   `,
@@ -31,7 +31,7 @@ export const inputSizes = {
     }
   `,
   stepsize: css`
-    padding: 14px 14px;
+    padding: 18px 18px;
     font-size: 16px;
   `,
 };
@@ -84,7 +84,7 @@ export const messageSizes = labelSizes;
 /** 인풋 엘리먼트(input/textarea/select 공용) */
 export const inputElementCss = css`
   width: 100%;
-  border: 0;
+  border: none;
   outline: none;
 
   color: ${({ theme }) => theme.colors.text};
@@ -104,13 +104,17 @@ export const inputElementCss = css`
 export const controlCss = css`
   display: flex;
   align-items: center;
-  border: 1px solid ${({ theme }) => theme.colors.border};
-  border-radius: 7px;
+  border: none;
+  border-radius: 10px;
   background: #fff;
-  overflow: hidden;
+
+  &:focus {
+    border: none;
+  }
 
   &:focus-within {
     border: none;
+    outline: none;
   }
 `;
 

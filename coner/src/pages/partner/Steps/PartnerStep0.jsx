@@ -1,70 +1,77 @@
-import React, { useState, useEffect } from "react";
-import styled from "styled-components";
+import React, { useState } from "react";
 import StepHeader from "../../../components/common/Header/StepHeader";
+import styled from "styled-components";
 import { useNavigate, useParams } from "react-router-dom";
 import { useRequest } from "../../../context/context";
 import { useFunnelStep } from "../../../analytics/useFunnelStep";
 import Button from "../../../components/ui/Button";
 
-const PartnerStep3 = () => {
+const PartnerStep0 = () => {
   const navigate = useNavigate();
-  const { partnerId } = useParams();
   const { requestData, updateRequestData } = useRequest();
+  const { partnerId } = useParams();
 
-  // 퍼널: 3단계
-  const { onAdvance } = useFunnelStep({ step: 3 });
-
-  const [selectedBrand, setSelectedBrand] = useState(requestData.brand || "");
-
-  const brands = [
-    { id: "삼성전자", name: "삼성전자" },
-    { id: "LG전자", name: "LG전자" },
-    { id: "캐리어", name: "캐리어" },
-    { id: "센추리", name: "센추리 에어컨" },
-    { id: "기타", name: "기타" },
+  // 퍼널 0단계
+  const { onAdvance } = useFunnelStep({ step: 0 });
+  const [selectedServiceType, setSelectedServiceType] = useState(
+    requestData.service_type || ""
+  );
+  const serviceTypes = [
+    { id: "설치", name: "설치" },
+    { id: "냉매충전", name: "냉매충전" },
+    { id: "수리", name: "수리" },
+    { id: "설치 및 구매", name: "설치 및 구매" },
+    { id: "이전설치", name: "이전설치" },
+    { id: "청소", name: "청소" },
   ];
 
-  useEffect(() => {
-    if (requestData.brand && requestData.brand !== selectedBrand) {
-      setSelectedBrand(requestData.brand);
-    }
-  }, [requestData.brand, selectedBrand]);
-
-  const handleBrandSelect = (brandId) => {
-    setSelectedBrand(brandId);
-    updateRequestData("brand", brandId);
+  const handleServiceTypeSelect = (serviceTypeId) => {
+    setSelectedServiceType(serviceTypeId);
+    updateRequestData("service_type", serviceTypeId);
   };
 
   const handleNext = () => {
-    onAdvance(4);
-    navigate(`/partner/step4/${partnerId}`);
+    onAdvance(1);
+
+    if (selectedServiceType === "설치 및 구매") {
+      navigate(`/partner/step0/purchase/${partnerId}`);
+    } else {
+      navigate(`/partner/step1/${partnerId}`);
+    }
   };
 
   const handleHelpClick = () => {
     window.open("http://pf.kakao.com/_jyhxmn/chat", "_blank");
   };
 
-  const currentStep = selectedBrand ? 5 : 4;
+  const handleKeyPress = (e, serviceTypeId) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      handleServiceTypeSelect(serviceTypeId);
+    }
+  };
+
+  const currentStep = selectedServiceType ? 1 : 0;
 
   return (
     <PageContainer>
       <ScrollableContent>
-        <StepHeader
-          to={`/partner/step2/${partnerId}`}
-          currentStep={currentStep}
-          totalSteps={10}
-        />
-        <ContentSection>
-          <PageTitle>에어컨 브랜드를 선택해주세요.</PageTitle>
+        <StepHeader to="/" currentStep={currentStep} totalSteps={10} />
 
-          <BrandList>
-            {brands.map((brand) => (
-              <BrandItem
-                key={brand.id}
-                onClick={() => handleBrandSelect(brand.id)}
+        <ContentSection>
+          <PageTitle>받고 싶은 서비스 유형을 선택해주세요.</PageTitle>
+          <ServiceTypeList>
+            {serviceTypes.map((serviceType) => (
+              <ServiceTypeItem
+                key={serviceType.id}
+                onClick={() => handleServiceTypeSelect(serviceType.id)}
+                onKeyPress={(e) => handleKeyPress(e, serviceType.id)}
+                role="button"
+                tabIndex={0}
+                aria-pressed={selectedServiceType === serviceType.id}
               >
-                <BrandName>{brand.name}</BrandName>
-                <CheckIcon $isSelected={selectedBrand === brand.id}>
+                <ServiceTypeName>{serviceType.name}</ServiceTypeName>
+                <CheckIcon $isSelected={selectedServiceType === serviceType.id}>
                   <svg
                     width="14"
                     height="10"
@@ -81,13 +88,13 @@ const PartnerStep3 = () => {
                     />
                   </svg>
                 </CheckIcon>
-              </BrandItem>
+              </ServiceTypeItem>
             ))}
-          </BrandList>
+          </ServiceTypeList>
         </ContentSection>
       </ScrollableContent>
 
-      {selectedBrand && (
+      {selectedServiceType && (
         <FixedButtonArea>
           <Button fullWidth size="stepsize" onClick={handleNext}>
             확인
@@ -112,7 +119,7 @@ const PartnerStep3 = () => {
   );
 };
 
-export default PartnerStep3;
+export default PartnerStep0;
 
 const PageContainer = styled.div`
   display: flex;
@@ -156,13 +163,13 @@ const PageTitle = styled.h1`
   }
 `;
 
-const BrandList = styled.div`
+const ServiceTypeList = styled.div`
   display: flex;
   flex-direction: column;
   gap: 16px;
 `;
 
-const BrandItem = styled.div`
+const ServiceTypeItem = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -170,11 +177,20 @@ const BrandItem = styled.div`
   cursor: pointer;
   background: white;
   border-radius: 10px;
+  outline: none;
+
+  &:focus-visible {
+    box-shadow: 0 0 0 3px rgba(0, 79, 255, 0.3);
+  }
+
+  &:hover {
+    background: #f8f9fa;
+  }
 `;
 
-const BrandName = styled.span`
+const ServiceTypeName = styled.span`
   font-size: ${({ theme }) => theme.font.size.bodyLarge};
-  font-weight: ${({ theme }) => theme.font.weight.bold};
+  font-weight: ${({ theme }) => theme.font.weight.medium};
   color: ${({ theme }) => theme.colors.text};
 `;
 
@@ -192,13 +208,25 @@ const CheckIcon = styled.div`
   transition: all 0.2s ease;
   flex-shrink: 0;
 `;
+
+const FixedButtonArea = styled.div`
+  flex-shrink: 0;
+  margin-bottom: 87px;
+  padding: 16px 24px;
+
+  @media (max-width: ${({ theme }) => theme.font.breakpoints.mobile}) {
+    padding: 15px;
+    margin-bottom: 10px;
+  }
+`;
+
 const CSButtonContainer = styled.div`
   display: flex;
   justify-content: center;
   margin-top: 20px;
 `;
 
-const CSButton = styled.button`
+const CSButton = styled.div`
   color: ${({ theme }) => theme.colors.text};
   display: flex;
   align-items: center;
@@ -212,14 +240,4 @@ const CSButtonText = styled.p`
   margin: 0;
   font-size: ${({ theme }) => theme.font.size.bodyLarge};
   color: #a0a0a0;
-`;
-const FixedButtonArea = styled.div`
-  flex-shrink: 0;
-  margin-bottom: 87px;
-  padding: 16px 24px;
-
-  @media (max-width: ${({ theme }) => theme.font.breakpoints.mobile}) {
-    padding: 15px;
-    margin-bottom: 10px;
-  }
 `;

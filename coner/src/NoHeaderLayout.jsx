@@ -51,6 +51,7 @@ const RightBox = styled.main`
   flex-direction: column;
   border: 1px solid #d4d4d4;
   box-sizing: border-box;
+  background-color: #f2f3f6;
 `;
 
 const ScrollArea = styled.div`

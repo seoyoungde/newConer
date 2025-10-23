@@ -9,6 +9,7 @@ import { useAuth } from "../../context/AuthProvider";
 import { onSnapshot } from "firebase/firestore";
 import mypagelogo from "../../assets/images/mypagelogo.png";
 import NavHeader from "../../components/common/Header/NavHeader";
+import RequestHeader from "../../components/common/Header/RequestHeader";
 
 const sections = [
   {
@@ -70,68 +71,71 @@ const MyPage = () => {
 
   return (
     <Container>
-      <NavHeader to="/" title="마이페이지" />
-      <UserBox>
-        <h1>반가워요 {userInfo?.name || "고객"}님</h1>
+      <RequestHeader showPrevButton={false} userName="마이페이지" to="/" />
 
-        {currentUser ? <div></div> : <Link to="/loginpage">로그인하기</Link>}
-      </UserBox>
-      <ProfileSection>
-        <Logo src={mypagelogo} alt="앱 로고" />
-        <h3>{userInfo?.name || "고객"}님</h3>
-        {currentUser ? (
-          <ModifyLink to="/mypage/modify">내 정보 수정하기</ModifyLink>
-        ) : (
-          <div></div>
-        )}
-      </ProfileSection>
+      <ContentSection>
+        <UserBox>
+          <h1>반가워요 {userInfo?.name || "고객"}님</h1>
 
-      <UserRequestNumber>
-        <StateBox>
-          {requestStates.map((status, i) => (
-            <StateItem
-              key={i}
-              $isLast={i === requestStates.length - 1}
-              onClick={() =>
-                navigate("/mypage/inquiry", {
-                  status: {
-                    status: status.statusValue,
-                    customer_uid: currentUser?.uid,
-                  },
-                })
-              }
-            >
-              <p>{status.label}</p>
-              <p>{status.count}</p>
-            </StateItem>
-          ))}
-        </StateBox>
-      </UserRequestNumber>
+          {currentUser ? <div></div> : <Link to="/loginpage">로그인하기</Link>}
+        </UserBox>
+        <ProfileSection>
+          <Logo src={mypagelogo} alt="앱 로고" />
+          <h3>{userInfo?.name || "고객"}님</h3>
+          {currentUser ? (
+            <ModifyLink to="/mypage/modify">내 정보 수정하기</ModifyLink>
+          ) : (
+            <div></div>
+          )}
+        </ProfileSection>
 
-      {sections.map((section, index) => (
-        <InfoSection key={index}>
-          {section.items.map((item, idx) => (
-            <InfoItem key={idx}>
-              {item.link.startsWith("http") ? (
-                <a href={item.link} target="_blank" rel="noopener noreferrer">
-                  {item.label}
-                </a>
-              ) : (
-                <Link to={item.link}>{item.label}</Link>
-              )}
-            </InfoItem>
-          ))}
-        </InfoSection>
-      ))}
+        <UserRequestNumber>
+          <StateBox>
+            {requestStates.map((status, i) => (
+              <StateItem
+                key={i}
+                $isLast={i === requestStates.length - 1}
+                onClick={() =>
+                  navigate("/mypage/inquiry", {
+                    status: {
+                      status: status.statusValue,
+                      customer_uid: currentUser?.uid,
+                    },
+                  })
+                }
+              >
+                <p>{status.label}</p>
+                <p>{status.count}</p>
+              </StateItem>
+            ))}
+          </StateBox>
+        </UserRequestNumber>
 
-      <Footer>
-        {currentUser ? (
-          <LogoutBtn onClick={handleLogout}>로그아웃하기</LogoutBtn>
-        ) : (
-          <div></div>
-        )}
-        <p>©CONER Co., All rights reserved.</p>
-      </Footer>
+        {sections.map((section, index) => (
+          <InfoSection key={index}>
+            {section.items.map((item, idx) => (
+              <InfoItem key={idx}>
+                {item.link.startsWith("http") ? (
+                  <a href={item.link} target="_blank" rel="noopener noreferrer">
+                    {item.label}
+                  </a>
+                ) : (
+                  <Link to={item.link}>{item.label}</Link>
+                )}
+              </InfoItem>
+            ))}
+          </InfoSection>
+        ))}
+
+        <Footer>
+          {currentUser ? (
+            <LogoutBtn onClick={handleLogout}>로그아웃하기</LogoutBtn>
+          ) : (
+            <div></div>
+          )}
+          <p>©CONER Co., All rights reserved.</p>
+        </Footer>
+      </ContentSection>
     </Container>
   );
 };
@@ -141,6 +145,14 @@ const Container = styled.div`
   width: 100%;
   display: flex;
   flex-direction: column;
+`;
+
+const ContentSection = styled.div`
+  padding: 36px 24px 24px 24px;
+
+  @media (max-width: ${({ theme }) => theme.font.breakpoints.mobile}) {
+    padding: 24px 15px 24px 15px;
+  }
 `;
 
 const UserBox = styled.div`
@@ -153,7 +165,7 @@ const UserBox = styled.div`
 const UserRequestNumber = styled.div`
   width: 100%;
   margin: auto;
-  background: #f5f5f5;
+  background: #fff;
   margin-bottom: 13px;
   border-radius: 8px;
 `;
@@ -201,7 +213,7 @@ const Logo = styled.img`
 `;
 
 const InfoSection = styled.div`
-  background: #f5f5f5;
+  background: #fff;
   border-radius: 8px;
   padding: 5px 0 5px 42px;
   margin-bottom: 15px;

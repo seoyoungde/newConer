@@ -82,8 +82,8 @@ const variants = {
     }
   `,
   outline: css`
-    background: #fff;
-    color: ${({ theme }) => theme.colors.primary};
+    background: ${({ theme }) => theme.colors.primary};
+    color: ${({ theme }) => theme.colors.bg};
     border: 1px solid ${({ theme }) => theme.colors.primary};
     &:hover {
       background: rgba(0, 79, 255, 0.06);

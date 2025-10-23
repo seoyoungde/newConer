@@ -226,7 +226,7 @@ const RequestReceived = ({
 
     let formattedDetailInfo = "";
     if (
-      ["청소", "냉매 충전", "수리", "이전설치", "설치"].includes(
+      ["청소", "냉매충전", "수리", "이전설치", "보유기기 설치"].includes(
         selectedService_type
       )
     ) {
@@ -646,11 +646,11 @@ const RequestReceived = ({
                   <SelectBox
                     value={selectedService_type}
                     options={[
-                      "설치",
+                      "보유기기 설치",
                       "설치 및 구매",
                       "청소",
                       "수리",
-                      "냉매 충전",
+                      "냉매충전",
                       "이전설치",
                     ]}
                     onChange={setSelectedService_type}
@@ -1146,6 +1146,8 @@ const ThreeColumnGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 8px;
+
+  }
 `;
 
 const Section = styled.div`
@@ -1218,7 +1220,7 @@ const DateButtonsContainer = styled.div`
   display: flex;
   gap: 12px;
   overflow-x: auto;
-  flex: 1;
+
   padding: 4px 0 8px 0;
   -webkit-overflow-scrolling: touch;
 
@@ -1241,11 +1243,21 @@ const DateButtonsContainer = styled.div`
   }
 
   @media (max-width: ${({ theme }) => theme.font.breakpoints.mobile}) {
+    width: 360px;
     &::-webkit-scrollbar {
       display: none;
     }
     scrollbar-width: none;
     gap: 12px;
+  }
+  @media (max-width: ${({ theme }) => theme.font.breakpoints.smobile}) {
+    width: 280px;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
+    scrollbar-width: none;
+    gap: 8px;
   }
 `;
 
@@ -1422,9 +1434,9 @@ const SaveButton = styled.button`
 `;
 
 const PopupMessage = styled.p`
-  font-size: ${({ theme }) => theme.font.size.bodySmall};
-  padding: 30px 30px 50px 30px;
-  margin-bottom: 20px;
+  font-size: 14px;
+  padding: 30px 20px 40px 20px;
+
   font-weight: ${({ theme }) => theme.font.weight.bold};
 `;
 
@@ -1434,7 +1446,7 @@ const CloseButton = styled.button`
   border: none;
   background-color: blue;
   color: ${({ theme }) => theme.colors.bg};
-  font-size: ${({ theme }) => theme.font.size.bodySmall};
+  font-size: 14px;
   font-weight: ${({ theme }) => theme.font.weight.bold};
   border-radius: 0px 0px 0px 0px;
   cursor: pointer;

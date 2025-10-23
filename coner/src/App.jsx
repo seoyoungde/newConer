@@ -30,7 +30,10 @@ import Step3 from "./pages/Request/Steps/Step3.jsx";
 import Step4 from "./pages/Request/Steps/Step4.jsx";
 import Step5 from "./pages/Request/Steps/Step5.jsx";
 import Step6 from "./pages/Request/Steps/Step6.jsx";
+import SubmitSuccess from "./pages/Request/SubmitSuccess.jsx";
 
+import PartnerStep0 from "./pages/partner/Steps/PartnerStep0.jsx";
+import PartnerStepPurchase from "./pages/partner/Steps/PartnerStepPurchase.jsx";
 import PartnerStep1 from "./pages/partner/Steps/PartnerStep1.jsx";
 import PartnerStep2 from "./pages/partner/Steps/PartnerStep2.jsx";
 import PartnerStep3 from "./pages/partner/Steps/PartnerStep3.jsx";
@@ -69,17 +72,10 @@ export default function App() {
         </Route>
 
         <Route element={<NoHeaderLayout />}>
-          <Route path="/signup" element={<SignupPage />} />
-          <Route path="/price" element={<PricingPage />} />
-
           <Route path="/login" element={<LoginPage />} />
           <Route path="/auth/addressmodal" element={<AuthAddressPage />} />
 
-          <Route path="/search/request" element={<RequestSearchPage />} />
-
           <Route path="/partner/apply" element={<PartnerApply />} />
-
-          <Route path="/mypage" element={<MyPage />} />
 
           <Route path="/qna" element={<QnaPage />} />
           <Route path="/mypage/modify" element={<ModifyPage />} />
@@ -105,7 +101,13 @@ export default function App() {
           <Route path="/request/step4" element={<Step4 />} />
           <Route path="/request/step5" element={<Step5 />} />
           <Route path="/request/step6" element={<Step6 />} />
+          <Route path="/request/submitsuccess" element={<SubmitSuccess />} />
           {/* 파트너의뢰서신청단계 */}
+          <Route path="/partner/step0/:partnerId" element={<PartnerStep0 />} />
+          <Route
+            path="/partner/step0/purchase/:partnerId"
+            element={<PartnerStepPurchase />}
+          />
           <Route path="/partner/step1/:partnerId" element={<PartnerStep1 />} />
           <Route path="/partner/step2/:partnerId" element={<PartnerStep2 />} />
           <Route path="/partner/step3/:partnerId" element={<PartnerStep3 />} />
@@ -120,6 +122,11 @@ export default function App() {
           <Route path="/search/completed" element={<CompletedRequests />} />
           <Route path="/mypage/inquiry" element={<MypageInquiryPage />} />
           <Route path="/search/sms/:requestId" element={<SmsRequestPage />} />
+          <Route path="/search/request" element={<RequestSearchPage />} />
+          <Route path="/signup" element={<SignupPage />} />
+
+          <Route path="/price" element={<PricingPage />} />
+          <Route path="/mypage" element={<MyPage />} />
         </Route>
       </Routes>
       <RequestDraftResetter />

@@ -30,13 +30,13 @@ const Group = styled.div`
 `;
 
 const Item = styled.button`
-  padding: 10px 0;
+  padding: 14px 0;
   border-radius: 6px;
-  font-size: ${({ theme }) => theme.font.size.bodySmall};
+  font-size: ${({ theme }) => theme.font.size.body};
   font-weight: ${({ theme }) => theme.font.weight.medium};
-  background: ${({ $active }) => ($active ? "#e8f0ff" : "#f2f2f2")};
-  border: 1px solid ${({ $active }) => ($active ? "#80BFFF" : "#f9f9f9")};
-  color: ${({ theme }) => theme.colors.text};
+  background: ${({ $active }) => ($active ? "#004FFF" : "white")};
+  border: 1px solid #f2f3f6;
+  color: ${({ $active }) => ($active ? "#white" : "#a0a0a0")};
   cursor: pointer;
 
   &:focus {

@@ -1,70 +1,90 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import styled from "styled-components";
 import StepHeader from "../../../components/common/Header/StepHeader";
-import { useNavigate, useParams } from "react-router-dom";
-import { useRequest } from "../../../context/context";
-import { useFunnelStep } from "../../../analytics/useFunnelStep";
 import Button from "../../../components/ui/Button";
+import { useFunnelStep } from "../../../analytics/useFunnelStep";
+import { useRequest } from "../../../context/context";
+import { useNavigate, useParams } from "react-router-dom";
 
-const PartnerStep3 = () => {
+const PartnerStepPurchase = () => {
   const navigate = useNavigate();
-  const { partnerId } = useParams();
   const { requestData, updateRequestData } = useRequest();
+  const { onAdvance } = useFunnelStep({ step: 0.5 });
+  const { partnerId } = useParams();
 
-  // 퍼널: 3단계
-  const { onAdvance } = useFunnelStep({ step: 3 });
+  const getInitialValue = () => {
+    const detailInfo = requestData.detailInfo || "";
+    if (detailInfo.includes("신규")) return "신규";
+    if (detailInfo.includes("중고")) return "중고";
+    return "";
+  };
 
-  const [selectedBrand, setSelectedBrand] = useState(requestData.brand || "");
-
-  const brands = [
-    { id: "삼성전자", name: "삼성전자" },
-    { id: "LG전자", name: "LG전자" },
-    { id: "캐리어", name: "캐리어" },
-    { id: "센추리", name: "센추리 에어컨" },
-    { id: "기타", name: "기타" },
-  ];
+  const [hasAircon, setHasAircon] = useState("");
 
   useEffect(() => {
-    if (requestData.brand && requestData.brand !== selectedBrand) {
-      setSelectedBrand(requestData.brand);
+    const initialValue = getInitialValue();
+    if (initialValue) {
+      setHasAircon(initialValue);
     }
-  }, [requestData.brand, selectedBrand]);
+  }, [requestData.detailInfo]);
 
-  const handleBrandSelect = (brandId) => {
-    setSelectedBrand(brandId);
-    updateRequestData("brand", brandId);
+  const options = [
+    { id: "신규", text: "새 에어컨" },
+    { id: "중고", text: "중고 에어컨" },
+  ];
+  const handleOptionSelect = (optionId) => {
+    setHasAircon(optionId);
+
+    const purchaseInfo = `${optionId}`;
+
+    const existingDetail = requestData.detailInfo || "";
+    const lines = existingDetail.split("\n");
+    const nonPurchaseLines = lines.filter(
+      (line) => !line.includes("중고") && !line.includes("신규")
+    );
+
+    const newDetail =
+      nonPurchaseLines.length > 0
+        ? `${purchaseInfo}\n${nonPurchaseLines.join("\n")}`
+        : purchaseInfo;
+
+    updateRequestData("detailInfo", newDetail);
   };
 
   const handleNext = () => {
-    onAdvance(4);
-    navigate(`/partner/step4/${partnerId}`);
+    if (!hasAircon) {
+      alert("에어컨 유형을 선택해주세요.");
+      return;
+    }
+
+    onAdvance(1);
+    navigate(`/partner/step1/${partnerId}`);
   };
 
   const handleHelpClick = () => {
     window.open("http://pf.kakao.com/_jyhxmn/chat", "_blank");
   };
 
-  const currentStep = selectedBrand ? 5 : 4;
-
+  const currentStep = hasAircon ? 1 : 1;
   return (
     <PageContainer>
       <ScrollableContent>
         <StepHeader
-          to={`/partner/step2/${partnerId}`}
+          to={`/partner/step0/${partnerId}`}
           currentStep={currentStep}
-          totalSteps={10}
+          totalSteps={9}
         />
         <ContentSection>
-          <PageTitle>에어컨 브랜드를 선택해주세요.</PageTitle>
+          <PageTitle>구매할 에어컨 유형을 선택해주세요.</PageTitle>
 
-          <BrandList>
-            {brands.map((brand) => (
-              <BrandItem
-                key={brand.id}
-                onClick={() => handleBrandSelect(brand.id)}
+          <OptionList>
+            {options.map((option) => (
+              <OptionItem
+                key={option.id}
+                onClick={() => handleOptionSelect(option.id)}
               >
-                <BrandName>{brand.name}</BrandName>
-                <CheckIcon $isSelected={selectedBrand === brand.id}>
+                <OptionText>{option.text}</OptionText>
+                <CheckIcon $isSelected={hasAircon === option.id}>
                   <svg
                     width="14"
                     height="10"
@@ -81,13 +101,14 @@ const PartnerStep3 = () => {
                     />
                   </svg>
                 </CheckIcon>
-              </BrandItem>
+              </OptionItem>
             ))}
-          </BrandList>
+          </OptionList>
         </ContentSection>
       </ScrollableContent>
 
-      {selectedBrand && (
+      {/* 하단 고정 버튼 영역 - 조건부 렌더링 */}
+      {hasAircon && (
         <FixedButtonArea>
           <Button fullWidth size="stepsize" onClick={handleNext}>
             확인
@@ -111,9 +132,7 @@ const PartnerStep3 = () => {
     </PageContainer>
   );
 };
-
-export default PartnerStep3;
-
+export default PartnerStepPurchase;
 const PageContainer = styled.div`
   display: flex;
   flex-direction: column;
@@ -139,9 +158,19 @@ const ScrollableContent = styled.div`
 
 const ContentSection = styled.div`
   padding: 36px 24px 24px 24px;
-
   @media (max-width: ${({ theme }) => theme.font.breakpoints.mobile}) {
     padding: 24px 15px 24px 15px;
+  }
+`;
+
+const FixedButtonArea = styled.div`
+  flex-shrink: 0;
+  margin-bottom: 87px;
+  padding: 16px 24px;
+
+  @media (max-width: ${({ theme }) => theme.font.breakpoints.mobile}) {
+    padding: 15px;
+    margin-bottom: 10px;
   }
 `;
 
@@ -150,19 +179,18 @@ const PageTitle = styled.h1`
   font-weight: ${({ theme }) => theme.font.weight.bold};
   color: ${({ theme }) => theme.colors.text};
   margin-bottom: 36px;
-
   @media (max-width: ${({ theme }) => theme.font.breakpoints.smobile}) {
     font-size: ${({ theme }) => theme.font.size.h2};
   }
 `;
 
-const BrandList = styled.div`
+const OptionList = styled.div`
   display: flex;
   flex-direction: column;
   gap: 16px;
 `;
 
-const BrandItem = styled.div`
+const OptionItem = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -172,9 +200,9 @@ const BrandItem = styled.div`
   border-radius: 10px;
 `;
 
-const BrandName = styled.span`
+const OptionText = styled.span`
   font-size: ${({ theme }) => theme.font.size.bodyLarge};
-  font-weight: ${({ theme }) => theme.font.weight.bold};
+  font-weight: ${({ theme }) => theme.font.weight.medium};
   color: ${({ theme }) => theme.colors.text};
 `;
 
@@ -183,15 +211,16 @@ const CheckIcon = styled.div`
   height: 24px;
   border-radius: 16%;
   border: 2px solid
-    ${({ $isSelected }) => ($isSelected ? "#004FFF" : "#A2AFB7")};
+    ${({ $isSelected }) => ($isSelected ? "#007BFF" : "#A2AFB7")};
   background-color: ${({ $isSelected }) =>
-    $isSelected ? "#004FFF" : "#A2AFB7"};
+    $isSelected ? "#007BFF" : "#A2AFB7"};
   display: flex;
   align-items: center;
   justify-content: center;
   transition: all 0.2s ease;
   flex-shrink: 0;
 `;
+
 const CSButtonContainer = styled.div`
   display: flex;
   justify-content: center;
@@ -212,14 +241,4 @@ const CSButtonText = styled.p`
   margin: 0;
   font-size: ${({ theme }) => theme.font.size.bodyLarge};
   color: #a0a0a0;
-`;
-const FixedButtonArea = styled.div`
-  flex-shrink: 0;
-  margin-bottom: 87px;
-  padding: 16px 24px;
-
-  @media (max-width: ${({ theme }) => theme.font.breakpoints.mobile}) {
-    padding: 15px;
-    margin-bottom: 10px;
-  }
 `;

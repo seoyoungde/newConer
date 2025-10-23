@@ -35,7 +35,7 @@ const Item = styled.button`
   font-size: ${({ theme }) => theme.font.size.body};
   font-weight: ${({ theme }) => theme.font.weight.medium};
   background: ${({ $active }) => ($active ? "#004FFF" : "white")};
-  border: 1px solid ${({ theme }) => theme.colors.border};
+  border: 1px solid #f2f3f6;
   color: ${({ $active }) => ($active ? "#white" : "#a0a0a0")};
   cursor: pointer;
 

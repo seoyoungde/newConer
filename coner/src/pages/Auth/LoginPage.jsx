@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import styled from "styled-components";
-import conerlogo from "../../assets/images/conerlogo.png";
 import { Link, useNavigate } from "react-router-dom";
 import Button from "../../components/ui/Button";
 import Input from "../../components/ui/formControls/Input";
@@ -10,6 +9,7 @@ import { db, auth } from "../../lib/firebase";
 import { collection, query, where, getDocs } from "firebase/firestore";
 import axios from "axios";
 import { signInWithCustomToken } from "firebase/auth";
+import conerlogo from "../../assets/images/conerlogo.png";
 
 const LoginPage = () => {
   const [phoneNumber, setPhoneNumber] = useState("");
@@ -116,22 +116,23 @@ const LoginPage = () => {
   return (
     <>
       <NavHeader to="/" />
+
       <LoginContainer>
-        <LogoImage src={conerlogo} alt="코너 로고" width={170} />
+        <LogoImage src={conerlogo} alt="코너 로고" width={130} />
         <InputBox>
           <Input
-            size="lg"
+            size="stepsize"
             type="tel"
             inputMode="numeric"
-            placeholder="휴대폰 번호"
+            placeholder="전화번호 입력"
             value={phoneNumber}
             onChange={handlePhoneChange}
           />
           <PasswordField>
             <InputGroup
-              size="lg"
+              size="stepsize"
               inputProps={{
-                placeholder: "인증번호입력",
+                placeholder: "인증번호 입력",
                 inputMode: "numeric",
                 autoComplete: "one-time-code",
                 value: code,
@@ -152,7 +153,7 @@ const LoginPage = () => {
         </InputBox>
         <Button
           fullWidth
-          size="lg"
+          size="stepsize"
           style={{ marginTop: 20, marginBottom: 24 }}
           onClick={handleLogin}
           disabled={isLoading}
@@ -160,7 +161,7 @@ const LoginPage = () => {
           {isLoading ? "로딩중..." : "로그인"}
         </Button>
         <SearchSection>
-          <SignupLink to="/signup">회원가입하기</SignupLink>
+          <SignupLink to="/signup">회원 가입하고 더 편하게 예약하기</SignupLink>
         </SearchSection>
       </LoginContainer>
     </>
@@ -183,7 +184,8 @@ const InputBox = styled.div`
   flex-direction: column;
   gap: 12px;
   width: 100%;
-  margin-top: 40px;
+  margin-top: 80px;
+  margin-bottom: 64px;
   box-sizing: border-box;
 `;
 const PasswordField = styled.div``;
@@ -192,7 +194,7 @@ const SearchSection = styled.div`
   display: flex;
   justify-content: center;
   gap: 16px;
-  color: ${({ theme }) => theme.colors.subtext};
-  font-size: ${({ theme }) => theme.font.size.bodySmall};
+  color: #a0a0a0;
+  font-size: ${({ theme }) => theme.font.size.body};
 `;
 const SignupLink = styled(Link)``;

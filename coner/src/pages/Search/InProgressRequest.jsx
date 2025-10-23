@@ -130,7 +130,7 @@ const InProgressRequest = () => {
     <Container>
       <RequestHeader
         showPrevButton={true}
-        userName="고객님의 "
+        userName="고객님의 의뢰서"
         to={currentUser ? "/" : "/search/request"}
         prevRequestTo="/search/completed"
         prevRequestState={{

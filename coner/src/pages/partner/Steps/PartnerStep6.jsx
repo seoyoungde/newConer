@@ -84,9 +84,8 @@ const PartnerStep6 = () => {
         requestData.customer_address_detail || ""
       }`.trim(),
       customerType: requestData.customer_type || "",
-      datetime: `${requestData.service_date || ""} ${
-        requestData.service_time || ""
-      }`.trim(),
+      date: requestData.service_date || "",
+      datetime: requestData.service_time || "",
       airconType: requestData.aircon_type || "",
       brand: requestData.brand || "",
 
@@ -202,7 +201,7 @@ const PartnerStep6 = () => {
 
       resetRequestData();
 
-      navigate("/search/inquiry", {
+      navigate("/request/submitsuccess", {
         state: { customer_phone: digitsPhone, requestId },
       });
     } catch (error) {
@@ -227,51 +226,69 @@ const PartnerStep6 = () => {
           <PageTitle>아래 정보가 맞는지 확인해주세요.</PageTitle>
 
           <InfoList>
+            <SectionTitle>방문 희망일</SectionTitle>
+            <TwoColumnGrid>
+              <Section>
+                <ValueBox style={{ color: "#004FFF", fontWeight: "600" }}>
+                  {confirmationData.date || "없음"}
+                </ValueBox>
+              </Section>
+              <Section>
+                <ValueBox style={{ color: "#004FFF", fontWeight: "600" }}>
+                  {confirmationData.datetime || "없음"}
+                </ValueBox>
+              </Section>
+            </TwoColumnGrid>
+
             {/* 선택한 업체 */}
-            <InfoItem>
-              <InfoLabel>선택한 업체</InfoLabel>
-              <InfoValue>{confirmationData.partnerName}</InfoValue>
-            </InfoItem>
+
+            <SectionTitle>선택한 업체</SectionTitle>
+            <Section>
+              <ValueBox>{confirmationData.partnerName || "없음"}</ValueBox>
+            </Section>
+
             {/* 서비스 타입 추가 */}
-            <InfoItem>
-              <InfoLabel>서비스 타입</InfoLabel>
-              <InfoValue>{confirmationData.serviceType}</InfoValue>
-            </InfoItem>
 
-            <InfoItem>
-              <InfoLabel>휴대폰 번호</InfoLabel>
-              <InfoValue>{confirmationData.phone}</InfoValue>
-            </InfoItem>
+            <SectionTitle>서비스 세부내역</SectionTitle>
+            <ThreeColumnGrid>
+              <Section>
+                <ValueBox>{confirmationData.brand || "없음"}</ValueBox>
+              </Section>
+              <Section>
+                <ValueBox>{confirmationData.airconType || "없음"}</ValueBox>
+              </Section>
+              <Section>
+                <ValueBox>{confirmationData.serviceType || "없음"}</ValueBox>
+              </Section>
+            </ThreeColumnGrid>
+            <SectionTitle>주소</SectionTitle>
+            <Section>
+              <ValueBox>{confirmationData.address || "없음"}</ValueBox>
+            </Section>
 
-            <InfoItem>
-              <InfoLabel>주소</InfoLabel>
-              <InfoValue>{confirmationData.address}</InfoValue>
-            </InfoItem>
+            {/* 연락처와 의뢰인 유형 */}
+            <TwoColumnGrid>
+              <div>
+                <SectionTitle>연락처</SectionTitle>
+                <Section>
+                  <ValueBox>{confirmationData.phone}</ValueBox>
+                </Section>
+              </div>
 
-            <InfoItem>
-              <InfoLabel>의뢰인 유형</InfoLabel>
-              <InfoValue>{confirmationData.customerType}</InfoValue>
-            </InfoItem>
+              <div>
+                <SectionTitle>의뢰인 유형</SectionTitle>
+                <Section>
+                  <ValueBox>{confirmationData.customerType}</ValueBox>
+                </Section>
+              </div>
+            </TwoColumnGrid>
 
-            <InfoItem>
-              <InfoLabel>희망 시간과 날짜</InfoLabel>
-              <InfoValue>{confirmationData.datetime}</InfoValue>
-            </InfoItem>
-
-            <InfoItem>
-              <InfoLabel>에어컨 종류</InfoLabel>
-              <InfoValue>{confirmationData.airconType}</InfoValue>
-            </InfoItem>
-
-            <InfoItem>
-              <InfoLabel>브랜드</InfoLabel>
-              <InfoValue>{confirmationData.brand}</InfoValue>
-            </InfoItem>
-
-            <InfoItem>
-              <InfoLabel>추가 요청사항</InfoLabel>
-              <InfoValue>{confirmationData.additionalRequest}</InfoValue>
-            </InfoItem>
+            <SectionTitle>추가 요청사항</SectionTitle>
+            <Section style={{ whiteSpace: "pre-line" }}>
+              <ValueBox style={{ whiteSpace: "pre-line" }}>
+                {confirmationData.additionalRequest}
+              </ValueBox>
+            </Section>
           </InfoList>
 
           {/* 약관 동의 */}
@@ -358,11 +375,12 @@ const ContentSection = styled.div`
 
 const FixedButtonArea = styled.div`
   flex-shrink: 0;
-  background: ${({ theme }) => theme.colors.bg};
+  margin-bottom: 87px;
   padding: 16px 24px;
 
   @media (max-width: ${({ theme }) => theme.font.breakpoints.mobile}) {
     padding: 15px;
+    margin-bottom: 10px;
   }
 `;
 
@@ -380,29 +398,16 @@ const PageTitle = styled.h1`
 const InfoList = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 24px;
+
   margin-bottom: 32px;
 `;
 
-const InfoItem = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-`;
-
-const InfoLabel = styled.span`
-  font-size: ${({ theme }) => theme.font.size.bodySmall};
-  color: ${({ theme }) => theme.colors.subtext};
-  font-weight: ${({ theme }) => theme.font.weight.medium};
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-`;
-
-const InfoValue = styled.span`
-  font-size: ${({ theme }) => theme.font.size.bodyLarge};
-  color: ${({ theme }) => theme.colors.text};
-  font-weight: ${({ theme }) => theme.font.weight.medium};
-  line-height: 1.4;
+const SectionTitle = styled.span`
+  font-size: 18px;
+  font-weight: 700;
+  @media (max-width: ${({ theme }) => theme.font.breakpoints.smobile}) {
+    font-size: 16px;
+  }
 `;
 
 const AgreementSection = styled.div`
@@ -429,4 +434,35 @@ const HelpButton = styled.button`
 const HelpText = styled.span`
   font-size: ${({ theme }) => theme.font.size.bodyLarge};
   color: #a0a0a0;
+`;
+const TwoColumnGrid = styled.div`
+  display: grid;
+  grid-template-columns: 0.9fr 1fr;
+  gap: 8px;
+  @media (max-width: ${({ theme }) => theme.font.breakpoints.smobile}) {
+    grid-template-columns: 1fr 1fr;
+  }
+`;
+const Section = styled.div`
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 16px;
+  margin-top: 12px;
+`;
+const ValueBox = styled.div`
+  font-weight: 500;
+  background: #ffffff;
+  padding: 14px 0px 14px 20px;
+  border-radius: 8px;
+  font-size: 16px;
+  @media (max-width: ${({ theme }) => theme.font.breakpoints.smobile}) {
+    font-size: 14px;
+    padding: 12px 0px 12px 12px;
+  }
+`;
+const ThreeColumnGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  }
 `;

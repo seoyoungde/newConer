@@ -100,11 +100,11 @@ const Dialog = styled.div`
 const Title = styled.h3`
   margin: 0 0 12px;
   font-weight: 600;
-  font-size: 16px;
+  font-size: 18px;
 `;
 
 const Content = styled.div`
-  font-size: 14px;
+  font-size: 16px;
   margin-bottom: 16px;
 `;
 

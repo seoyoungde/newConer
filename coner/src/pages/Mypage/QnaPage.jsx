@@ -49,7 +49,7 @@ const QnaCards = styled.section`
   cursor: default;
 `;
 const QnaItem = styled.div`
-  background: #f5f5f5;
+  background: #fff;
   border-radius: 8px;
   padding: 18px 20px;
   margin-bottom: 15px;

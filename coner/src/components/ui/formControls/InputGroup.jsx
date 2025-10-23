@@ -3,16 +3,10 @@ import styled from "styled-components";
 import { controlCss, controlSizes, inputElementCss } from "./inputStyles";
 import Button from "../Button";
 
-const sizeGap = {
-  sm: "8px",
-  md: "8px",
-  lg: "10px",
-};
-
 const Group = styled.div`
   display: grid;
-  grid-template-columns: 1fr auto;
-  gap: ${({ $size = "md" }) => sizeGap[$size]};
+  grid-template-columns: 0.8fr auto;
+  gap: 9px;
   align-items: stretch;
 `;
 

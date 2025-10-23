@@ -56,7 +56,7 @@ const RequestHeader = memo(function RequestHeader({
         <IoIosArrowBack size={28} />
       </BackButton>
 
-      <TitleArea>{userName}의뢰서</TitleArea>
+      <TitleArea>{userName}</TitleArea>
 
       {showPrevButton && (
         <RightArea>

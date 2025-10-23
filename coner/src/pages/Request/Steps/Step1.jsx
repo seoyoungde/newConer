@@ -395,11 +395,12 @@ const ContentSection = styled.div`
 
 const FixedButtonArea = styled.div`
   flex-shrink: 0;
-  background: ${({ theme }) => theme.colors.bg};
+  margin-bottom: 87px;
   padding: 16px 24px;
 
   @media (max-width: ${({ theme }) => theme.font.breakpoints.mobile}) {
     padding: 15px;
+    margin-bottom: 10px;
   }
 `;
 
@@ -433,8 +434,8 @@ const DropdownContainer = styled.div`
 
 const DropdownButton = styled.button`
   width: 100%;
-  padding: 16px;
-  border: 1px solid #d6d6d6;
+  padding: 18px;
+  border: none;
   border-radius: 8px;
   background: ${({ theme }) => theme.colors.bg};
   color: ${({ $hasValue }) => ($hasValue ? "#333" : "#999")};
@@ -444,16 +445,6 @@ const DropdownButton = styled.button`
   display: flex;
   justify-content: space-between;
   align-items: center;
-
-  &:hover {
-    border-color: #007bff;
-  }
-
-  &:focus {
-    outline: none;
-    border-color: #007bff;
-    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
-  }
 `;
 
 const ArrowIcon = styled.div`
@@ -470,8 +461,7 @@ const DropdownMenu = styled.div`
   left: 0;
   right: 0;
   background: white;
-  border: 1px solid #d6d6d6;
-  border-top: none;
+
   border-radius: 0 0 8px 8px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   z-index: 1000;
@@ -576,9 +566,6 @@ const DateButton = styled.button`
   flex-direction: column;
   align-items: center;
   padding: 16px 12px;
-  border: 1px solid
-    ${({ $isSelected, $isToday, theme }) =>
-      $isSelected ? "#007BFF" : $isToday ? theme.colors.primary : "#d6d6d6"};
   border-radius: 8px;
   background-color: ${({ $isSelected }) => ($isSelected ? "#004FFF" : "white")};
   color: ${({ $isSelected }) => ($isSelected ? "white" : "#333")};

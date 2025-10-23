@@ -4,23 +4,23 @@ import EnterpriseImage from "../../../assets/EnterpriseImage/enterprise.png";
 
 const EnterpriseBanner = ({
   imageUrl = EnterpriseImage,
-  consultUrl = "talk.naver.com/profile/c/coner",
-  boldText = "대량 구매",
+  consultUrl = "https://pf.kakao.com/_jyhxmn/chat",
+  boldText = "대량 서비스",
   lightText = "가 필요하신가요?",
   buttonText = "기업 구매 상담받기",
 }) => {
   return (
-    <BannerContainer>
+    <BannerContainer
+      href={consultUrl}
+      target="_blank"
+      rel="noopener noreferrer"
+    >
       <IllustrationImage src={imageUrl} alt="비즈니스 일러스트" />
       <RightContent>
         <MainText>
           <BoldText>{boldText}</BoldText> <LightText>{lightText}</LightText>
         </MainText>
-        <ConsultLink
-          href={consultUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
+        <ConsultLink>
           {buttonText}
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -44,7 +44,8 @@ const EnterpriseBanner = ({
 };
 
 export default EnterpriseBanner;
-const BannerContainer = styled.div`
+
+const BannerContainer = styled.a`
   background: linear-gradient(
       274deg,
       rgba(255, 255, 255, 0) 8.6%,
@@ -58,6 +59,13 @@ const BannerContainer = styled.div`
   align-items: center;
   justify-content: space-between;
   padding: 0px 28px 0px 0px;
+  text-decoration: none;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+
+  &:hover {
+    opacity: 0.95;
+  }
 
   @media (max-width: ${({ theme }) => theme.font.breakpoints.mobile}) {
     padding: 0px 18px 0px 0px;
@@ -90,7 +98,6 @@ const IllustrationImage = styled.img`
 const MainText = styled.h2`
   color: #fff;
   font-family: Pretendard, sans-serif;
-  font-size: 22px;
   font-style: normal;
   line-height: 150%;
   margin: 0;
@@ -131,11 +138,15 @@ const BoldText = styled.span`
   line-height: 150%;
   transform: translateY(-0.25em);
 
+  @media (max-width: 580px) {
+    font-size: 24px;
+  }
+
   @media (max-width: ${({ theme }) => theme.font.breakpoints.mobile}) {
     font-size: 20px;
   }
   @media (max-width: ${({ theme }) => theme.font.breakpoints.smobile}) {
-    font-size: 18px;
+    font-size: 17px;
   }
 `;
 
@@ -147,15 +158,19 @@ const LightText = styled.span`
   font-weight: 400;
   line-height: 150%;
 
+  @media (max-width: 580px) {
+    font-size: 23px;
+  }
+
   @media (max-width: ${({ theme }) => theme.font.breakpoints.mobile}) {
     font-size: 20px;
   }
   @media (max-width: ${({ theme }) => theme.font.breakpoints.smobile}) {
-    font-size: 18px;
+    font-size: 16px;
   }
 `;
 
-const ConsultLink = styled.a`
+const ConsultLink = styled.span`
   color: #fff;
   text-align: center;
   font-family: Pretendard;
@@ -168,10 +183,6 @@ const ConsultLink = styled.a`
   align-items: center;
   gap: 4px;
   white-space: nowrap;
-
-  &:hover {
-    color: #fff;
-  }
 
   svg {
     width: 5px;

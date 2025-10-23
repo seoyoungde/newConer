@@ -12,7 +12,6 @@ const RequestSearch = () => {
   const { fetchRequestByClient } = useRequest();
   const [formData, setFormData] = useState({
     customer_phone: "",
-    // clientName: "",
   });
   const [errorMessage, setErrorMessage] = useState("");
   const [loading, setLoading] = useState(false);
@@ -33,23 +32,14 @@ const RequestSearch = () => {
       setFormData((prev) => ({ ...prev, customer_phone: onlyNumbers }));
       return;
     }
-
-    // if (name === "clientName") {
-    //   setFormData((prev) => ({ ...prev, clientName: value }));
-    //   return;
-    // }
   };
 
   const handleSearch = async () => {
     if (loading) return;
 
-    // const nameTrimmed = (formData.clientName || "").trim();
     const phoneDigits = (formData.customer_phone || "").replace(/\D/g, "");
 
-    if (
-      // !nameTrimmed ||
-      !phoneDigits
-    ) {
+    if (!phoneDigits) {
       setErrorMessage("전화번호를 입력해주세요.");
       return;
     }
@@ -59,21 +49,24 @@ const RequestSearch = () => {
 
     try {
       const requests = await fetchRequestByClient(phoneDigits);
-      // const matched = (requests || []).filter(
-      //   (r) => (r.clientName || "").trim() === nameTrimmed
-      // );
 
-      // if (matched.length > 0) {
+      if (!requests || requests.length === 0) {
+        setErrorMessage("조회된 의뢰서가 없습니다.");
+        return;
+      }
+
+      const validRequests = requests.filter((request) => request.status !== 0);
+
+      if (validRequests.length === 0) {
+        setErrorMessage("조회된 의뢰서가 없습니다.");
+        return;
+      }
 
       navigate("/search/inquiry", {
         state: {
           customer_phone: phoneDigits,
-          // , clientName: nameTrimmed
         },
       });
-      // } else {
-      //   setErrorMessage("일치하는 의뢰서를 찾을 수 없습니다.");
-      // }
     } finally {
       setLoading(false);
     }
@@ -92,10 +85,7 @@ const RequestSearch = () => {
 
   return (
     <Container>
-      <Title>
-        <h1>의뢰서 조회</h1>
-        <p>의뢰서에 작성했던 전화번호를 입력해주세요</p>
-      </Title>
+      <Title>의뢰 시 작성했던 전화번호를 입력해주세요.</Title>
       <form
         onSubmit={(e) => {
           e.preventDefault();
@@ -103,22 +93,12 @@ const RequestSearch = () => {
         }}
       >
         <InputWrapper>
-          {/* <TextField
-            label="이름"
-            size="md"
-            id="clientName"
-            name="clientName"
-            placeholder="이름"
-            value={formData.clientName}
-            onChange={handleChange}
-          />
-          <div style={{ marginBottom: "15px" }}></div> */}
           <TextField
             label="전화번호"
-            size="md"
+            size="stepsize"
             id="customer_phone"
             name="customer_phone"
-            placeholder="전화번호"
+            placeholder="전화번호를 입력해주세요."
             value={formData.customer_phone}
             onChange={handleChange}
             maxLength={13}
@@ -127,7 +107,7 @@ const RequestSearch = () => {
           />
         </InputWrapper>
         {errorMessage && <ErrorText>{errorMessage}</ErrorText>}
-        <Button type="submit" size="md" fullWidth disabled={loading}>
+        <Button type="submit" size="stepsize" fullWidth disabled={loading}>
           {loading ? "조회 중..." : "의뢰서 조회하기"}
         </Button>
       </form>
@@ -139,16 +119,29 @@ const Container = styled.section`
   width: 100%;
   display: flex;
   flex-direction: column;
+  padding: 36px 24px 24px 24px;
+
+  @media (max-width: ${({ theme }) => theme.font.breakpoints.mobile}) {
+    padding: 24px 15px 24px 15px;
+  }
 `;
 
-const Title = styled.div`
-  text-align: center;
-  margin-top: 45px;
-  margin-bottom: 25px;
+const Title = styled.h1`
+  font-size: ${({ theme }) => theme.font.size.h1};
+  font-weight: ${({ theme }) => theme.font.weight.bold};
+  color: ${({ theme }) => theme.colors.text};
+  margin-bottom: 36px;
+
+  @media (max-width: ${({ theme }) => theme.font.breakpoints.mobile}) {
+    font-size: 21px;
+  }
+  @media (max-width: ${({ theme }) => theme.font.breakpoints.smobile}) {
+    font-size: 17px;
+  }
 `;
 
 const InputWrapper = styled.div`
-  margin-bottom: 35px;
+  margin-bottom: 64px;
 `;
 
 const ErrorText = styled.p`

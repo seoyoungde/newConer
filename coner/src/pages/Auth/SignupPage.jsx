@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import styled from "styled-components";
 import { useNavigate, useLocation } from "react-router-dom";
-import NavHeader from "../../components/common/Header/NavHeader";
 import Button from "../../components/ui/Button";
 import TextField from "../../components/ui/formControls/TextField";
 import InputGroup from "../../components/ui/formControls/InputGroup";
@@ -21,6 +20,7 @@ import AddressModal, {
   SERVICE_AREAS,
 } from "../../components/common/Modal/AddressModal";
 import Modal from "../../components/common/Modal/Modal";
+import RequestHeader from "../../components/common/Header/RequestHeader";
 
 const SignupPage = () => {
   const navigate = useNavigate();
@@ -40,6 +40,9 @@ const SignupPage = () => {
   const [codeSentTo, setCodeSentTo] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isAddressOpen, setIsAddressOpen] = useState(false);
+  const [isPhoneVerified, setIsPhoneVerified] = useState(false);
+
+  const [step, setStep] = useState(1);
 
   const policyLinks = {
     customer: "https://www.notion.so/harvies/2475c6005f128035b4d7e9f362c1f81c",
@@ -84,6 +87,33 @@ const SignupPage = () => {
     }
   }, [location.state]);
 
+  // 자동으로 다음 단계로 진행 (이메일 제외)
+  useEffect(() => {
+    if (step === 1 && name.trim()) {
+      setStep(2);
+    }
+  }, [name, step]);
+
+  useEffect(() => {
+    if (step === 2 && birth_date.length >= 11) {
+      setStep(3);
+    }
+  }, [birth_date, step]);
+
+  // step 3은 인증완료 버튼으로 수동 진행
+
+  useEffect(() => {
+    if (step === 4 && address && address_detail) {
+      setStep(5);
+    }
+  }, [address, address_detail, step]);
+
+  useEffect(() => {
+    if (step === 5 && customerType) {
+      setStep(6);
+    }
+  }, [customerType, step]);
+
   const generateRandomCode = () =>
     Math.floor(100000 + Math.random() * 900000).toString();
 
@@ -96,6 +126,10 @@ const SignupPage = () => {
     setCodeSentTo(phone.replace(/-/g, ""));
 
     setTimer(180);
+
+    // 인증 상태 초기화
+    setIsPhoneVerified(false);
+    setPassPhone("");
 
     if (timerId) clearInterval(timerId);
 
@@ -146,12 +180,11 @@ const SignupPage = () => {
       if (!phone || !passPhone) {
         return alert("전화번호와 인증번호를 입력해주세요.");
       }
-      if (!sentCode) {
-        return alert("인증번호가 만료되었습니다. 다시 요청해주세요.");
+      if (!isPhoneVerified) {
+        return alert("휴대폰 인증을 완료해주세요.");
       }
-      if (passPhone !== sentCode) {
-        return alert("인증번호가 일치하지 않습니다.");
-      }
+      // 인증이 완료된 경우에는 sentCode와 passPhone 검증을 건너뜀
+      // 이미 인증이 완료되었으면 타이머가 만료되어도 문제없음
       if (phone.replace(/-/g, "") !== codeSentTo) {
         return alert("인증번호를 받은 전화번호와 일치하지 않습니다.");
       }
@@ -197,13 +230,6 @@ const SignupPage = () => {
         phone: formattedPhone,
         state: 1,
         isDeleted: false,
-
-        // agreements: {
-        //   age: true,
-        //   customer: true,
-        //   privacy: true,
-        //   all: true,
-        // },
       };
 
       await setDoc(doc(db, "Customer", uid), newUser);
@@ -233,224 +259,339 @@ const SignupPage = () => {
     if (value.length >= 4) value = value.slice(0, 3) + "-" + value.slice(3);
     if (value.length >= 9) value = value.slice(0, 8) + "-" + value.slice(8);
     setPhone(value);
+    // 전화번호가 변경되면 인증 상태 초기화
+    setIsPhoneVerified(false);
   };
 
   const allRequiredAgreed =
     agreements.age && agreements.customer && agreements.privacy;
 
+  const getTitleByStep = () => {
+    switch (step) {
+      case 1:
+        return "성함을 입력해주세요.";
+      case 2:
+        return "생년월일을 입력해주세요.";
+      case 3:
+        return "휴대폰 번호를 입력해주세요.";
+      case 4:
+        return "주소를 입력해주세요.";
+      case 5:
+        return "개인이신가요, 사업자이신가요?";
+      case 6:
+        return "이메일을 입력해주세요.";
+      case 7:
+        return "이용약관을 확인해주세요.";
+      default:
+        return "회원가입";
+    }
+  };
+
+  const handleNext = () => {
+    // 이메일 단계(step 6)에서 다음으로 진행
+    if (step === 6) {
+      setStep(7);
+    }
+  };
+
+  const handleVerifyCode = () => {
+    if (!phone || !passPhone) {
+      return alert("전화번호와 인증번호를 입력해주세요.");
+    }
+    if (!sentCode) {
+      return alert("인증번호가 만료되었습니다. 다시 요청해주세요.");
+    }
+    if (passPhone !== sentCode) {
+      return alert("인증번호가 일치하지 않습니다.");
+    }
+    if (phone.replace(/-/g, "") !== codeSentTo) {
+      return alert("인증번호를 받은 전화번호와 일치하지 않습니다.");
+    }
+    // 인증 성공 - 다음 단계로
+    setIsPhoneVerified(true);
+    alert("인증이 완료되었습니다.");
+    setStep(4);
+  };
+
+  const handlePrev = () => {
+    if (step > 1) {
+      setStep(step - 1);
+    }
+  };
+
   return (
     <Container>
-      <NavHeader to="/login" title="회원정보입력" />
+      <RequestHeader showPrevButton={false} userName="회원가입" to="/login" />
+      <ContentSection>
+        <FormBox>
+          <Title>{getTitleByStep()}</Title>
+          {step >= 7 && (
+            <CheckboxGroup>
+              <CheckboxItem onClick={() => handleCheck("all")}>
+                <CheckboxText>이용약관 전체 동의</CheckboxText>
+                <CheckIcon checked={agreements.all}>✓</CheckIcon>
+              </CheckboxItem>
+              <div
+                style={{ height: "1.2px", backgroundColor: "#A2AFB7" }}
+              ></div>
 
-      <FormBox>
-        <FormGroup>
-          <TextField
-            label="이름"
-            size="sm"
-            placeholder="이름입력."
-            autoComplete="name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-          />
-        </FormGroup>
-        <FormGroup>
-          <LabelRow>
-            <span>휴대전화번호</span>
-          </LabelRow>
+              <CheckboxItem onClick={() => handleCheck("age")}>
+                <Required>필수</Required>
+                <CheckboxText>만 19세 이상입니다.</CheckboxText>
+                <CheckIcon checked={agreements.age}>✓</CheckIcon>
+              </CheckboxItem>
 
-          <InputGroup
-            size="sm"
-            inputProps={{
-              placeholder: "전화번호입력",
-              inputMode: "numeric",
-              autoComplete: "tel",
-              value: phone,
-              onChange: handlePhoneChange,
-              maxLength: 13,
-            }}
-            buttonText={timer > 0 ? "재전송 대기" : "인증번호받기"}
-            buttonDisabled={!phone || timer > 0 || isLoading}
-            onButtonClick={handleSendVerificationCode}
-          />
-        </FormGroup>
-        <FormGroup>
-          <TextField
-            label="인증번호 입력"
-            size="sm"
-            placeholder="6자리 인증번호 입력"
-            maxLength={6}
-            value={passPhone}
-            onChange={(e) => setPassPhone(e.target.value)}
-          />
+              <CheckboxItem onClick={() => handleCheck("customer")}>
+                <Required>필수</Required>
+                <CheckboxText>
+                  <PolicyLink
+                    href={policyLinks.customer}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    고객 이용약관
+                  </PolicyLink>
+                  에 동의합니다.
+                </CheckboxText>
+                <CheckIcon checked={agreements.customer}>✓</CheckIcon>
+              </CheckboxItem>
 
-          {timer > 0 && (
-            <p style={{ color: "#999", fontSize: "13px", marginTop: "4px" }}>
-              인증번호 유효 시간: {Math.floor(timer / 60)}:
-              {String(timer % 60).padStart(2, "0")}
-            </p>
+              <CheckboxItem onClick={() => handleCheck("privacy")}>
+                <Required>필수</Required>
+                <CheckboxText>
+                  <PolicyLink
+                    href={policyLinks.privacy}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    개인정보의 수집 및 이용
+                  </PolicyLink>
+                  에 동의합니다.
+                </CheckboxText>
+                <CheckIcon checked={agreements.privacy}>✓</CheckIcon>
+              </CheckboxItem>
+            </CheckboxGroup>
           )}
-        </FormGroup>
-        <FormGroup>
-          <TextField
-            label="거주지"
-            size="sm"
-            name="clientAddress"
-            placeholder="클릭하여 주소 검색"
-            readOnly
-            value={address}
-            onClick={() => setIsAddressOpen(true)}
-          />
-          <div style={{ height: "5px" }}></div>
-          <TextField
-            name="clientDetailAddress"
-            size="sm"
-            placeholder="상세주소입력"
-            value={address_detail}
-            onChange={(e) => setAddress_detail(e.target.value)}
-          />
-        </FormGroup>
-        <FormGroup>
-          <TextField
-            label="생년월일 8자리"
-            size="sm"
-            placeholder="예) 19991231"
-            inputMode="numeric"
-            maxLength={12}
-            value={birth_date}
-            onChange={handleBirthChange}
-          />
-        </FormGroup>
-        <FormGroup>
-          <Label>고객유형</Label>
-          <SegmentedToggle
-            value={customerType}
-            onChange={setCustomerType}
-            options={[
-              { label: "사업장(기업/매장)", value: "사업장(기업/매장)" },
-              { label: "개인(가정)", value: "개인(가정)" },
-            ]}
-          />
-        </FormGroup>
+          {step >= 6 && (
+            <FormGroup>
+              <TextField
+                label="이메일 주소 (선택 사항입니다)"
+                size="stepsize"
+                placeholder="이메일을 입력해주세요."
+                type="email"
+                autoComplete="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+            </FormGroup>
+          )}
+          {step >= 5 && (
+            <FormGroup>
+              <Label>의뢰인 유형</Label>
+              <SegmentedToggle
+                value={customerType}
+                onChange={setCustomerType}
+                options={[
+                  { label: "사업장(기업/매장)", value: "사업장(기업/매장)" },
+                  { label: "개인(가정)", value: "개인(가정)" },
+                ]}
+              />
+            </FormGroup>
+          )}
+          {step >= 4 && (
+            <>
+              <FormGroup>
+                <TextField
+                  label="거주지"
+                  size="stepsize"
+                  name="clientAddress"
+                  placeholder="클릭하여 주소 검색"
+                  readOnly
+                  value={address}
+                  onClick={() => setIsAddressOpen(true)}
+                />
+                <div style={{ height: "5px" }}></div>
+                <TextField
+                  name="clientDetailAddress"
+                  size="stepsize"
+                  placeholder="상세주소입력"
+                  value={address_detail}
+                  onChange={(e) => setAddress_detail(e.target.value)}
+                />
+              </FormGroup>
+            </>
+          )}
+          {step >= 3 && (
+            <>
+              <FormGroup>
+                <LabelRow>
+                  <span
+                    style={{
+                      fontWeight: "500",
+                      fontSize: "12px",
+                      color: "#8f8f8f",
+                    }}
+                  >
+                    휴대폰 번호
+                  </span>
+                </LabelRow>
 
-        <FormGroup>
-          <TextField
-            label="이메일 (선택)"
-            size="sm"
-            placeholder="이메일입력은 선택사항입니다"
-            type="email"
-            autoComplete="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
-        </FormGroup>
+                <InputGroup
+                  size="stepsize"
+                  inputProps={{
+                    placeholder: "전화번호입력",
+                    inputMode: "numeric",
+                    autoComplete: "tel",
+                    value: phone,
+                    onChange: handlePhoneChange,
+                    maxLength: 13,
+                  }}
+                  buttonText={timer > 0 ? "재전송 대기" : "인증번호받기"}
+                  buttonDisabled={!phone || timer > 0 || isLoading}
+                  onButtonClick={handleSendVerificationCode}
+                />
+                <div style={{ height: "5px" }}></div>
+                <InputGroup
+                  size="stepsize"
+                  inputProps={{
+                    placeholder: "6자리 인증번호 입력",
+                    maxLength: 6,
+                    inputMode: "numeric",
+                    value: passPhone,
+                    onChange: (e) => setPassPhone(e.target.value),
+                    disabled: isPhoneVerified,
+                  }}
+                  buttonText={
+                    isPhoneVerified ? "인증 번호 확인 완료" : "인증완료"
+                  }
+                  buttonDisabled={
+                    isPhoneVerified ||
+                    !passPhone ||
+                    passPhone.length !== 6 ||
+                    !sentCode
+                  }
+                  buttonVariant={isPhoneVerified ? "secondary" : "primary"}
+                  onButtonClick={handleVerifyCode}
+                />
 
-        <CheckboxGroup>
-          <label>
-            <input
-              type="checkbox"
-              checked={agreements.all}
-              onChange={() => handleCheck("all")}
-            />
-            이용약관 전체 동의
-          </label>
+                {timer > 0 && (
+                  <p
+                    style={{
+                      color: "#999",
+                      fontSize: "13px",
+                      marginTop: "4px",
+                    }}
+                  >
+                    인증번호 유효 시간: {Math.floor(timer / 60)}:
+                    {String(timer % 60).padStart(2, "0")}
+                  </p>
+                )}
+              </FormGroup>
+            </>
+          )}
+          {step >= 2 && (
+            <FormGroup>
+              <TextField
+                label="생년월일"
+                size="stepsize"
+                placeholder="예) 19991231"
+                inputMode="numeric"
+                maxLength={12}
+                value={birth_date}
+                onChange={handleBirthChange}
+              />
+            </FormGroup>
+          )}
+          {step >= 1 && (
+            <FormGroup>
+              <TextField
+                label="이름"
+                size="stepsize"
+                placeholder="이름을 입력해주세요."
+                autoComplete="name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+              />
+            </FormGroup>
+          )}
+        </FormBox>
 
-          <label>
-            <input
-              type="checkbox"
-              checked={agreements.age}
-              onChange={() => handleCheck("age")}
-            />
-            만 19세 이상입니다. <span style={{ color: "#0080FF" }}>(필수)</span>
-          </label>
-
-          <label>
-            <input
-              type="checkbox"
-              checked={agreements.customer}
-              onChange={() => handleCheck("customer")}
-            />
-            <PolicyLink
-              href={policyLinks.customer}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              고객 이용약관
-            </PolicyLink>
-            에 동의합니다. <span style={{ color: "#0080FF" }}>(필수)</span>
-          </label>
-
-          <label>
-            <input
-              type="checkbox"
-              checked={agreements.privacy}
-              onChange={() => handleCheck("privacy")}
-            />
-            <PolicyLink
-              href={policyLinks.privacy}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              개인정보의 수집 및 이용
-            </PolicyLink>
-            에 동의합니다. <span style={{ color: "#0080FF" }}>(필수)</span>
-          </label>
-        </CheckboxGroup>
-      </FormBox>
-
-      {isAddressOpen && (
-        <Modal
-          open={isAddressOpen}
-          onClose={() => setIsAddressOpen(false)}
-          title="주소 검색"
-          width={420}
-          containerId="rightbox-modal-root"
-        >
-          <div style={{ width: "100%", height: "70vh" }}>
-            <AddressModal
-              onSelect={(addr) => setAddress(addr)}
-              onClose={() => setIsAddressOpen(false)}
-              serviceAreas={SERVICE_AREAS}
-            />
-          </div>
-        </Modal>
+        {isAddressOpen && (
+          <Modal
+            open={isAddressOpen}
+            onClose={() => setIsAddressOpen(false)}
+            title="주소 검색"
+            width={420}
+            containerId="rightbox-modal-root"
+          >
+            <div style={{ width: "100%", height: "70vh" }}>
+              <AddressModal
+                onSelect={(addr) => setAddress(addr)}
+                onClose={() => setIsAddressOpen(false)}
+                serviceAreas={SERVICE_AREAS}
+              />
+            </div>
+          </Modal>
+        )}
+      </ContentSection>
+      {step === 6 && (
+        <FixedButtonArea>
+          <Button fullWidth size="stepsize" onClick={handleNext}>
+            다음
+          </Button>
+        </FixedButtonArea>
       )}
 
-      <Button
-        fullWidth
-        size="md"
-        style={{ marginTop: 20, marginBottom: 24 }}
-        onClick={handleCreataccount}
-        disabled={isSubmitting || !allRequiredAgreed}
-      >
-        {isSubmitting ? "가입 중..." : "가입하기"}
-      </Button>
+      {step === 7 && (
+        <FixedButtonArea>
+          <Button
+            fullWidth
+            size="stepsize"
+            onClick={handleCreataccount}
+            disabled={isSubmitting || !allRequiredAgreed}
+          >
+            {isSubmitting ? "가입 중..." : "회원가입 완료"}
+          </Button>
+        </FixedButtonArea>
+      )}
     </Container>
   );
 };
 export default SignupPage;
 
 const Container = styled.div``;
+const ContentSection = styled.div`
+  padding: 36px 24px 24px 24px;
 
-const FormBox = styled.div`
-  margin-top: 10px;
-  border: 1px solid #eee;
-  border-radius: 8px;
-  padding: 20px 12px;
-  background: #fff;
+  @media (max-width: ${({ theme }) => theme.font.breakpoints.mobile}) {
+    padding: 24px 15px 24px 15px;
+  }
+`;
+
+const FormBox = styled.div``;
+
+const Title = styled.h1`
+  font-size: ${({ theme }) => theme.font.size.h1};
+  font-weight: ${({ theme }) => theme.font.weight.bold};
+  color: ${({ theme }) => theme.colors.text};
+  margin-bottom: 36px;
+
   @media (max-width: ${({ theme }) => theme.font.breakpoints.smobile}) {
-    border: none;
-    padding: 0px;
+    font-size: ${({ theme }) => theme.font.size.h2};
   }
 `;
 
 const FormGroup = styled.div`
-  margin-bottom: 16px;
+  margin-top: 24px;
 `;
 
 const Label = styled.p`
   margin-bottom: 6px;
-  font-size: ${({ theme }) => theme.font.size.bodySmall};
-  font-weight: ${({ theme }) => theme.font.weight.bold};
+  font-weight: 500;
+  font-size: 12px;
+  color: ${({ theme }) => theme.colors.subtext};
 `;
 
 const LabelRow = styled.div`
@@ -464,37 +605,77 @@ const LabelRow = styled.div`
 `;
 
 const CheckboxGroup = styled.div`
-  margin-top: 38px;
+  margin-top: 24px;
   display: flex;
   flex-direction: column;
+  gap: 12px;
+  background: white;
+  border-radius: 12px;
+  padding: 20px 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+`;
+
+const CheckboxItem = styled.div`
+  display: flex;
+  align-items: center;
   gap: 10px;
+  padding: 8px 0;
+  cursor: pointer;
+  user-select: none;
+`;
 
-  label {
-    display: flex;
-    align-items: center;
-    gap: 2px;
-    font-size: ${({ theme }) => theme.font.size.bodySmall};
-  }
+const CheckboxText = styled.span`
+  flex: 1;
+  font-size: 14px;
+  color: ${({ theme }) => theme.colors.text};
+  line-height: 1.5;
+`;
 
-  label:first-child {
-    padding-left: 0;
-    font-weight: ${({ theme }) => theme.font.weight.bold};
-  }
+const CheckIcon = styled.span`
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: bold;
+  flex-shrink: 0;
+  background-color: ${({ checked }) => (checked ? "#004FFF" : "#A2AFB7")};
+  color: white;
+  transition: all 0.2s ease;
+`;
 
-  label:not(:first-child) {
-    padding-left: 10px;
-    @media (max-width: ${({ theme }) => theme.font.breakpoints.smobile}) {
-      padding-left: 6px;
-    }
-  }
-
-  input[type="checkbox"] {
-    width: 16px;
-    height: 16px;
-  }
+const Required = styled.div`
+  width: 31px;
+  height: 20px;
+  border-radius: 4px;
+  background: #a2afb7;
+  color: white;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 `;
 
 const PolicyLink = styled.a`
   text-decoration: underline;
   color: ${({ theme }) => theme.colors.primary};
+`;
+
+const FixedButtonArea = styled.div`
+  position: sticky;
+  bottom: 0;
+  width: 100%;
+  flex-shrink: 0;
+  background: #f2f3f6;
+  padding-left: 24px;
+  padding-right: 24px;
+  padding-bottom: 50px;
+  padding-top: 20px;
+  @media (max-width: ${({ theme }) => theme.font.breakpoints.mobile}) {
+    padding-left: 15px;
+    padding-right: 15px;
+  }
 `;

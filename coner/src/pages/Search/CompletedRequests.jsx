@@ -27,7 +27,7 @@ const CompletedRequests = () => {
   const customer_phone = location.state?.customer_phone;
 
   const [requestDataList, setRequestDataList] = useState([]);
-  const [reviewStatus, setReviewStatus] = useState({}); // 리뷰 작성 여부 저장
+  const [reviewStatus, setReviewStatus] = useState({});
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (u) => {
@@ -144,7 +144,7 @@ const CompletedRequests = () => {
 
   return (
     <Container>
-      <RequestHeader showPrevButton={false} userName="이전" to={-1} />
+      <RequestHeader showPrevButton={false} userName="이전 의뢰서" to={-1} />
 
       <RequestSection>
         {completedRequests.length > 0 ? (

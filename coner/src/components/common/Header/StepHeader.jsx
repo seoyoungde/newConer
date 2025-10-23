@@ -58,22 +58,24 @@ export default StepHeader;
 
 const HeaderBar = styled.header`
   width: 100%;
-  height: 106px;
+  height: 72px;
   background: ${({ theme }) => theme.colors.bg};
   position: sticky;
   top: 0;
   z-index: 10;
   box-shadow: 0 0 6px 0 rgba(0, 0, 0, 0.15);
+  padding: 0 24px;
+
+  @media (max-width: ${({ theme }) => theme.font.breakpoints.mobile}) {
+    padding: 0 15px;
+  }
 `;
 const HeaderBox = styled.div`
   display: flex;
+  height: 72px;
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
-  padding: 64px 24px 0 24px;
-  @media (max-width: ${({ theme }) => theme.font.breakpoints.mobile}) {
-    padding: 64px 15px 0 15px;
-  }
 `;
 const BackButton = styled.button`
   display: grid;

@@ -129,10 +129,10 @@ const Modify = () => {
       }
 
       alert("정보가 수정되었습니다");
-      if (location.state?.from === "step5") {
+      if (location.state?.from === "step4") {
         navigate("/request/step5", { replace: true });
-      } else if (location.state?.from === "partnerstep5") {
-        navigate(`/partner/step5/${partnerId}`);
+      } else if (location.state?.from === "partnerstep4") {
+        navigate(`/partner/step4/${partnerId}`);
       } else {
         navigate("/mypage", { replace: true });
       }
@@ -271,7 +271,6 @@ const Container = styled.div`
 `;
 
 const FormBox = styled.div`
-  border: 1px solid #eee;
   border-radius: 8px;
   padding: 12px;
   margin-top: 10px;

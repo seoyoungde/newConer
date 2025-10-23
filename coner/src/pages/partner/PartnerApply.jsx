@@ -711,10 +711,10 @@ const NoticeLink = styled.a`
 
 const FormBox = styled.div`
   margin-top: 10px;
-  border: 1px solid #eee;
+
   border-radius: 8px;
   padding: 20px 12px;
-  background: #fff;
+
   @media (max-width: ${({ theme }) => theme.font.breakpoints.smobile}) {
     border: none;
     padding: 0px;

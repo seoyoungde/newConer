@@ -114,7 +114,7 @@ const PartnerSection = () => {
                 e.preventDefault();
                 return;
               }
-              navigate(`/partner/step1/${tech.id}`, {
+              navigate(`/partner/step0/${tech.id}`, {
                 state: { flowType: "fromTechnician", selectedTechnician: tech },
               });
             }}

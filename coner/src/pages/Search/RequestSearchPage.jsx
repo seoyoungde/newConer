@@ -1,12 +1,13 @@
 import React from "react";
 import styled from "styled-components";
 import RequestSearch from "../../components/search/RequestSearch";
-import NavHeader from "../../components/common/Header/NavHeader";
+import RequestHeader from "../../components/common/Header/RequestHeader";
 
 const RequestSearchPage = () => {
   return (
     <Container>
-      <NavHeader to="/" />
+      <RequestHeader showPrevButton={false} userName="의뢰서 조회" to="/" />
+
       <RequestSearch />
     </Container>
   );
