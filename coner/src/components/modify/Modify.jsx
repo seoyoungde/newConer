@@ -53,10 +53,13 @@ const Modify = () => {
           "",
         address_detail:
           location.state?.address_detail || userInfo.address_detail || "",
-        phone: location.state?.phone || userInfo.phone || "",
+        phone: formatPhoneDisplay(
+          location.state?.phone || userInfo.phone || ""
+        ),
       });
     }
   }, [userInfo, location.state]);
+
   const handleAddressSelect = (selectedAddress) => {
     setFormData((prev) => ({
       ...prev,
@@ -64,6 +67,7 @@ const Modify = () => {
     }));
     setIsAddressModalOpen(false);
   };
+
   const handleFocusClear = (field) => {
     if (!clearedFields[field]) {
       setFormData((prev) => ({ ...prev, [field]: "" }));
@@ -73,6 +77,14 @@ const Modify = () => {
 
   const normalizePhone = (phone) => {
     return phone.replace(/\D/g, "");
+  };
+
+  const formatPhoneDisplay = (phone) => {
+    if (!phone) return "";
+    const digits = phone.replace(/\D/g, "");
+    if (digits.length <= 3) return digits;
+    if (digits.length <= 7) return `${digits.slice(0, 3)}-${digits.slice(3)}`;
+    return `${digits.slice(0, 3)}-${digits.slice(3, 7)}-${digits.slice(7, 11)}`;
   };
 
   const formatBirthInput = (e) => {
@@ -151,7 +163,7 @@ const Modify = () => {
           <TextField
             label="이름"
             name="name"
-            size="sm"
+            size="stepsize"
             placeholder="이름을 입력하세요"
             value={formData.name}
             onFocus={() => handleFocusClear("name")}
@@ -160,18 +172,21 @@ const Modify = () => {
         </FormGroup>
         <FormGroup>
           <TextField
-            label="전화번호는 수정이 불가능합니다"
-            size="sm"
+            label="휴대폰 번호"
+            size="stepsize"
             name="phone"
             value={formData.phone}
             readOnly
             onChange={formatPhoneInput}
           />
+          <Subtext>
+            * 전화번호 수정이 필요한경우 고객센터로 문의바랍니다
+          </Subtext>
         </FormGroup>
         <FormGroup>
           <TextField
             label="거주지"
-            size="sm"
+            size="stepsize"
             placeholder="클릭하여 주소검색"
             name="address"
             value={formData.address}
@@ -198,7 +213,7 @@ const Modify = () => {
           )}
           <div style={{ height: "5px" }}></div>
           <TextField
-            size="sm"
+            size="stepsize"
             placeholder="상세주소입력"
             name="address_detail"
             value={formData.address_detail}
@@ -209,7 +224,7 @@ const Modify = () => {
         <FormGroup>
           <TextField
             label="생년월일 8자리"
-            size="sm"
+            size="stepsize"
             placeholder="예) 19991231"
             inputMode="numeric"
             maxLength={12}
@@ -238,7 +253,7 @@ const Modify = () => {
           <TextField
             label="이메일"
             name="email"
-            size="sm"
+            size="stepsize"
             placeholder="이메일입력은 선택사항입니다"
             type="email"
             value={formData.email}
@@ -246,19 +261,19 @@ const Modify = () => {
             onChange={handleChange}
           />
         </FormGroup>
-
-        <WidthdrawLink to="/mypage/withdraw">회원탈퇴하기</WidthdrawLink>
       </FormBox>
 
       <Button
         fullWidth
-        size="md"
+        size="stepsize"
         onClick={handleSubmit}
-        style={{ marginTop: 20, marginBottom: 24 }}
+        style={{ marginBottom: 28, marginTop: 30 }}
         disabled={isSubmitting}
       >
         {isSubmitting ? "수정 중..." : "수정완료"}
       </Button>
+
+      <WidthdrawLink to="/mypage/withdraw">회원 탈퇴를 원해요</WidthdrawLink>
     </Container>
   );
 };
@@ -268,22 +283,34 @@ export default Modify;
 const Container = styled.div`
   width: 100%;
   box-sizing: border-box;
+  padding: 14px 24px 24px 24px;
+
+  @media (max-width: ${({ theme }) => theme.font.breakpoints.mobile}) {
+    padding: 4px 15px 24px 15px;
+  }
 `;
 
 const FormBox = styled.div`
   border-radius: 8px;
-  padding: 12px;
-  margin-top: 10px;
+  margin-bottom: 32px;
 `;
 
 const FormGroup = styled.div`
-  margin-bottom: 16px;
+  margin-top: 24px;
 `;
 
 const Label = styled.p`
   margin-bottom: 6px;
+  font-weight: 500;
+  font-size: 12px;
+  color: ${({ theme }) => theme.colors.subtext};
 `;
-
+const Subtext = styled.p`
+  margin-top: 5px;
+  font-weight: 500;
+  font-size: 12px;
+  color: ${({ theme }) => theme.colors.subtext};
+`;
 const JobButtonBox = styled.div`
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -292,21 +319,25 @@ const JobButtonBox = styled.div`
 `;
 
 const JobButton = styled.button`
-  border: 1px solid
-    ${({ $isSelected }) => ($isSelected ? "#80BFFF" : "#f9f9f9")};
   border-radius: 6px;
-  padding: 10px 0;
-  background: ${({ $isSelected }) => ($isSelected ? "#80BFFF" : "#f2f2f2")};
-  color: black;
-  font-size: ${({ theme }) => theme.font.size.bodySmall};
+  padding: 16px 0;
+  background: ${({ $isSelected }) => ($isSelected ? "#004FFF" : "white")};
+  color: ${({ $isSelected }) => ($isSelected ? "white" : "#a0a0a0")};
+  font-size: ${({ theme }) => theme.font.size.body};
   cursor: pointer;
 
-  &:hover {
-    background: ${({ $isSelected }) => ($isSelected ? "#80BFFF" : "#80BFFF")};
+  &:focus {
+    outline: none;
+  }
+  &:focus-visible {
+    outline: 2px solid ${({ theme }) => theme.colors.primary};
+    outline-offset: 2px;
   }
 `;
 
 const WidthdrawLink = styled(Link)`
-  font-size: ${({ theme }) => theme.font.size.bodySmall};
-  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  color: #8d989f;
+  font-size: 14px;
 `;

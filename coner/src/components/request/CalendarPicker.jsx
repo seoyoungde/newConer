@@ -19,7 +19,7 @@ const addMonths = (date, n) => {
 
 const CalendarPicker = ({ selectedDate, setSelectedDate, excludeDates }) => {
   const minDate = startOfToday();
-  const maxDate = endOfDay(addMonths(minDate, 6)); // 최대 6개월
+  const maxDate = endOfDay(addMonths(minDate, 2)); // 최대 6개월
 
   return (
     <CalendarWrapper>

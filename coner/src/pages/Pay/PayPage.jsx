@@ -76,7 +76,6 @@ export default function PayPage() {
     const tid = urlParams.get("tid");
     const serverStatus = urlParams.get("status");
 
-    // 서버에서 리다이렉트로 돌아온 경우
     if (authResultCode || serverStatus) {
       addDebugLog("서버 리다이렉트 감지", {
         authResultCode,
@@ -85,7 +84,6 @@ export default function PayPage() {
         serverStatus,
       });
 
-      // 성공 케이스
       if (authResultCode === "0000" || serverStatus === "success") {
         addDebugLog("서버 승인 성공 - 성공 페이지로 이동");
         navigate(
@@ -95,9 +93,7 @@ export default function PayPage() {
             authResultMsg || "결제가 완료되었습니다"
           )}`
         );
-      }
-      // 실패 케이스
-      else if (serverStatus === "fail" || authResultCode) {
+      } else if (serverStatus === "fail" || authResultCode) {
         addDebugLog("서버 승인 실패 - 실패 페이지로 이동");
         navigate(
           `/pay/fail/${requestId}?message=${encodeURIComponent(
@@ -247,7 +243,6 @@ export default function PayPage() {
   const requestNicePayment = async () => {
     if (!window.AUTHNICE?.requestPay) {
       alert("결제 모듈이 로드되지 않았습니다.");
-
       return;
     }
 
@@ -308,7 +303,6 @@ export default function PayPage() {
         ...paymentRequestData,
         fnSuccess: function (result) {
           clearTimeout(timeout);
-
           setPayBusy(true);
           setUiNote("결제 승인 처리 중입니다. 잠시만 기다려주세요...");
         },
@@ -393,10 +387,13 @@ export default function PayPage() {
   const getPaymentMethodName = (method) => {
     const methodNames = {
       card: "신용카드",
+      check_card: "체크카드",
+      kakao_payment: "카카오페이",
       kakaopay: "카카오페이",
       naverpayCard: "네이버페이",
       samsungpayCard: "삼성페이",
       payco: "페이코",
+      ssgpay: "SSGPAY",
       bank_transfer: "계좌이체",
     };
     return methodNames[method] || method;
@@ -482,60 +479,52 @@ export default function PayPage() {
     <div style={styles.container}>
       <div style={styles.shell}>
         <div style={styles.card}>
-          <h1 style={styles.title}>Coner 결제</h1>
-          <p style={styles.subTitle}>주문 ID: {requestId}</p>
+          <h1 style={styles.title}>코너 결제</h1>
+          <p style={styles.subTitle}>주문 ID : {requestId}</p>
 
-          <div style={styles.amountBox}>
-            <span>결제금액</span>
-            <strong>{amountObj.value.toLocaleString()}원</strong>
+          {/* 결제 요청됨 박스 */}
+          <div style={styles.statusBox}>결제 요청됨</div>
+
+          {/* 결제 금액 */}
+          <div style={styles.amountSection}>
+            <div style={styles.amountRow}>
+              <span style={styles.amountLabel}>결제 금액</span>
+              <strong style={styles.amountValue}>
+                {amountObj.value.toLocaleString()}원
+              </strong>
+            </div>
           </div>
-
-          {/* 결제 정보 */}
-          <div style={styles.infoBox}>
-            {paymentDoc.customer_name && (
-              <p>
-                <strong>고객명:</strong> {paymentDoc.customer_name}
-              </p>
-            )}
-            {paymentDoc.service_date && (
-              <p>
-                <strong>서비스 날짜:</strong> {paymentDoc.service_date}
-              </p>
-            )}
-            {paymentDoc.service_time && (
-              <p>
-                <strong>서비스 시간:</strong> {paymentDoc.service_time}
-              </p>
-            )}
-            {paymentDoc.customer_address && (
-              <p>
-                <strong>주소:</strong> {paymentDoc.customer_address}
-              </p>
-            )}
-          </div>
-
-          {uiNote && (
-            <div style={{ ...styles.note, ...styles.errorNote }}>{uiNote}</div>
-          )}
 
           {statusNum === STATUS.REQUESTED ? (
             <>
-              <div style={styles.serviceNotice}>
-                <strong>⚠️ 결제 보안 안내</strong>
-                <br />
-                코너에서 제공하는 본 결제페이지와 정해진 계좌번호로 이체하는 것
-                외에는 결제하지 마시기 바랍니다.
-                <br />
-                <span style={{ fontWeight: "700", color: "#dc2626" }}>
-                  안전한 결제를 위해 공식 결제창만 이용해 주시기 바랍니다.
-                </span>
+              {/* 결제 보안 안내 */}
+              <div style={styles.securityNotice}>
+                <div style={styles.securityTitle}>⚠️ 결제 보안 안내</div>
+                <ul style={styles.securityList}>
+                  <li>
+                    코너에서 제공하는 본 결제 페이지와 정해진 계좌번호로
+                    이체하는 것 외에는 결제하지 마시기 바랍니다.
+                  </li>
+                  <li>
+                    기사님이나 제 3자가 요청하는 다른 결제 수단으로는 절대
+                    결제하지 마세요.
+                  </li>
+                  <li>
+                    <strong>
+                      안전한 결제를 위해 공식 결제창만 이용해주시기 바랍니다.
+                    </strong>
+                  </li>
+                </ul>
               </div>
 
               {/* 결제 수단 선택 */}
               <div style={styles.paymentMethodBox}>
                 <h3 style={styles.paymentMethodTitle}>결제 수단 선택</h3>
 
+                {/* 일반 결제 */}
+                {/* 일반 결제 */}
                 <div style={styles.paymentMethodSection}>
+                  <div style={styles.sectionLabel}>일반 결제</div>
                   <div style={styles.paymentMethods}>
                     <button
                       style={{
@@ -548,11 +537,6 @@ export default function PayPage() {
                     >
                       신용카드
                     </button>
-                  </div>
-                </div>
-
-                <div style={styles.paymentMethodSection}>
-                  <div style={styles.paymentMethods}>
                     <button
                       style={{
                         ...styles.paymentMethodBtn,
@@ -567,7 +551,9 @@ export default function PayPage() {
                   </div>
                 </div>
 
+                {/* 간편 결제 */}
                 {/* <div style={styles.paymentMethodSection}>
+                  <div style={styles.sectionLabel}>간편 결제</div>
                   <div style={styles.paymentMethods}>
                     <button
                       style={{
@@ -604,6 +590,8 @@ export default function PayPage() {
                     >
                       삼성페이
                     </button>
+                  </div>
+                  <div style={styles.paymentMethods}>
                     <button
                       style={{
                         ...styles.paymentMethodBtn,
@@ -615,8 +603,19 @@ export default function PayPage() {
                     >
                       페이코
                     </button>
-                  </div> */}
-                {/* </div> */}
+                    <button
+                      style={{
+                        ...styles.paymentMethodBtn,
+                        ...(paymentMethod === "ssgpay"
+                          ? styles.paymentMethodActive
+                          : {}),
+                      }}
+                      onClick={() => handlePaymentMethodChange("ssgpay")}
+                    >
+                      SSGPAY
+                    </button>
+                  </div>
+                </div> */}
               </div>
             </>
           ) : (
@@ -694,196 +693,167 @@ export default function PayPage() {
           </ul>
         </div>
       </Modal>
-
-      {/* 모바일 하단 고정 결제바 */}
-      <div style={styles.stickyBar}>
-        <div style={styles.stickyInfo}>
-          <span style={styles.stickyLabel}>결제금액</span>
-          <strong style={styles.stickyAmount}>
-            {amountObj.value.toLocaleString()}원
-          </strong>
-        </div>
-        <button
-          style={{
-            ...styles.stickyBtn,
-            ...(payEnabled
-              ? styles.stickyBtnEnabled
-              : styles.stickyBtnDisabled),
-          }}
-          disabled={!payEnabled}
-          onClick={payEnabled ? onPay : undefined}
-        >
-          {payEnabled
-            ? payBusy
-              ? "처리 중..."
-              : paymentMethod === "bank_transfer"
-              ? "계좌번호"
-              : `${getPaymentMethodName(paymentMethod).split(" ")[0]}결제`
-            : "결제 불가"}
-        </button>
-      </div>
     </div>
   );
 }
 
 const styles = {
-  container: { minHeight: "100vh", background: "#fafcff" },
+  container: {
+    minHeight: "100vh",
+    background: "#f5f5f5",
+  },
   shell: {
     minHeight: "100vh",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    padding: "20px 10px",
   },
   card: {
     width: "100%",
-    maxWidth: "480px",
+    maxWidth: "604px",
     background: "#fff",
-    border: "1px solid #e5eaf0",
-    borderRadius: "24px",
-    boxShadow: "0 6px 20px rgba(0, 0, 0, 0.05)",
-    padding: "24px",
+    borderRadius: "0",
+    padding: "0",
     textAlign: "center",
-    marginBottom: "100px",
   },
-  debugBox: {
-    background: "#f8f9fa",
-    border: "1px solid #dee2e6",
-    borderRadius: "8px",
-    marginBottom: "16px",
-    fontSize: "12px",
-  },
-  debugSummary: {
-    padding: "8px 12px",
-    cursor: "pointer",
-    background: "#e9ecef",
+  title: {
     margin: "0",
-    fontWeight: "500",
-    color: "#495057",
-  },
-  debugContent: { padding: "8px 12px", maxHeight: "300px", overflowY: "auto" },
-  debugSection: {
-    marginBottom: "12px",
+    fontSize: "24px",
+    color: "#000",
+    fontWeight: "700",
+    paddingTop: "32px",
     paddingBottom: "8px",
-    borderBottom: "1px solid #eee",
   },
-  debugLog: {
-    marginBottom: "8px",
-    paddingBottom: "8px",
-    borderBottom: "1px solid #eee",
+  subTitle: {
+    margin: "0",
+    color: "#666",
+    fontSize: "14px",
+    fontWeight: "400",
+    paddingBottom: "24px",
   },
-  debugData: {
-    background: "#f1f3f4",
-    padding: "4px 8px",
+  statusBox: {
+    background: "#E8F3FF",
+    border: "1px solid #0066FF",
+    color: "#0066FF",
+    padding: "16px",
+    fontSize: "16px",
+    fontWeight: "600",
+    textAlign: "center",
+    margin: "0 33px 24px 33px",
     borderRadius: "4px",
-    marginTop: "4px",
-    fontSize: "10px",
-    overflow: "auto",
   },
-  title: { margin: "0", fontSize: "22px", color: "#0f172a", fontWeight: "800" },
-  subTitle: { margin: "4px 0 16px", color: "#64748b", fontSize: "14px" },
-  amountBox: {
+  amountSection: {
+    margin: "0 33px 24px 33px",
+    background: "#fff",
+    border: "1px solid #E5E5E5",
+    borderRadius: "4px",
+  },
+  amountRow: {
     display: "flex",
-    alignItems: "center",
     justifyContent: "space-between",
-    background: "#f0f7ff",
-    border: "1px solid #e0ebff",
-    borderRadius: "16px",
-    padding: "14px 16px",
-    marginBottom: "16px",
+    alignItems: "center",
+    padding: "20px 24px",
   },
-  infoBox: {
-    background: "#f8fafc",
-    border: "1px solid #e2e8f0",
-    borderRadius: "12px",
-    padding: "12px 16px",
-    marginBottom: "16px",
+  amountLabel: {
+    fontSize: "16px",
+    color: "#000",
+    fontWeight: "600",
+  },
+  amountValue: {
+    fontSize: "16px",
+    color: "#000",
+    fontWeight: "700",
+  },
+  securityNotice: {
+    background: "#FFF9E6",
+    border: "1px solid #FFE5B4",
+    margin: "0 33px 24px 33px",
+    padding: "20px",
     textAlign: "left",
-    fontSize: "14px",
-    color: "#475569",
+    borderRadius: "4px",
   },
-  note: {
-    padding: "10px",
-    borderRadius: "12px",
-    marginBottom: "14px",
-    fontSize: "14px",
+  securityTitle: {
+    fontSize: "15px",
+    fontWeight: "700",
+    color: "#000",
+    marginBottom: "12px",
   },
-  errorNote: {
-    background: "#fff4f4",
-    color: "#b91c1c",
-    border: "1px solid #fecaca",
-  },
-  serviceNotice: {
-    background: "#fff7ed",
-    color: "#9a3412",
-    border: "1px solid #fed7aa",
-    padding: "12px",
-    borderRadius: "12px",
-    marginBottom: "14px",
-    fontSize: "14px",
-    textAlign: "left",
+  securityList: {
+    margin: "0",
+    paddingLeft: "20px",
+    fontSize: "13px",
+    color: "#000",
+    lineHeight: "1.8",
   },
   paymentMethodBox: {
-    background: "#f8fafc",
-    border: "1px solid #e2e8f0",
-    borderRadius: "12px",
-    padding: "16px",
-    marginBottom: "16px",
+    margin: "0 33px 32px 33px",
+    textAlign: "left",
   },
   paymentMethodTitle: {
     fontSize: "16px",
-    fontWeight: "600",
+    fontWeight: "700",
     margin: "0 0 16px 0",
-    color: "#0f172a",
+    color: "#000",
   },
-  paymentMethodSection: { marginBottom: "16px" },
-  paymentMethods: { display: "flex", gap: "8px", flexWrap: "wrap" },
+  paymentMethodSection: {
+    marginBottom: "20px",
+  },
+  sectionLabel: {
+    fontSize: "14px",
+    fontWeight: "400",
+    color: "#666",
+    marginBottom: "12px",
+  },
+  paymentMethods: {
+    display: "flex",
+    gap: "8px",
+    marginBottom: "8px",
+  },
   paymentMethodBtn: {
     flex: "1",
-    minWidth: "100px",
-    padding: "10px 6px",
-    border: "2px solid #e2e8f0",
-    borderRadius: "8px",
-    background: "#fff",
-    fontSize: "12px",
+    padding: "14px 8px",
+    border: "1px solid #E5E5E5",
+    borderRadius: "4px",
+    background: "#F8F8F8",
+    fontSize: "14px",
     fontWeight: "500",
     cursor: "pointer",
     transition: "all 0.2s",
-    textAlign: "center",
-    color: "#333",
+    color: "#000",
   },
   paymentMethodActive: {
-    border: "2px solid #3b82f6",
-    background: "#eff6ff",
-    color: "#1d4ed8",
-  },
-  notAvailableBox: {
-    background: "#fef2f2",
-    border: "1px solid #fecaca",
-    borderRadius: "12px",
-    padding: "20px",
-    marginBottom: "16px",
-    color: "#991b1b",
+    border: "2px solid #0047FF",
+    background: "#fff",
+    color: "#0047FF",
+    fontWeight: "700",
   },
   button: {
-    width: "100%",
-    height: "50px",
+    width: "calc(100% - 66px)",
+    height: "56px",
     border: "none",
-    borderRadius: "14px",
+    borderRadius: "4px",
     fontSize: "16px",
     fontWeight: "700",
     cursor: "pointer",
     transition: "all 0.2s",
+    margin: "0 33px 40px 33px",
   },
   buttonEnabled: {
-    background: "#004FFF",
+    background: "#0047FF",
     color: "#fff",
-    boxShadow: "0 4px 12px rgba(47,128,237,0.3)",
   },
   buttonDisabled: {
-    background: "#E2E8F0",
-    color: "#94A3B8",
+    background: "#E5E5E5",
+    color: "#999",
     cursor: "not-allowed",
+  },
+  notAvailableBox: {
+    background: "#fef2f2",
+    border: "1px solid #fecaca",
+    borderRadius: "4px",
+    padding: "20px",
+    margin: "0 33px 24px 33px",
+    color: "#991b1b",
   },
   loading: {
     textAlign: "center",
@@ -904,8 +874,14 @@ const styles = {
     animation: "spin 1s linear infinite",
     margin: "0 auto 16px",
   },
-  errorIcon: { fontSize: "48px", marginBottom: "16px" },
-  errorText: { color: "#dc2626", marginBottom: "20px" },
+  errorIcon: {
+    fontSize: "48px",
+    marginBottom: "16px",
+  },
+  errorText: {
+    color: "#dc2626",
+    marginBottom: "20px",
+  },
   retryButton: {
     padding: "12px 24px",
     background: "#3b82f6",
@@ -913,42 +889,6 @@ const styles = {
     border: "none",
     borderRadius: "8px",
     cursor: "pointer",
-  },
-  stickyBar: {
-    position: "fixed",
-    left: "0",
-    right: "0",
-    bottom: "0",
-    display: "none",
-    alignItems: "center",
-    gap: "12px",
-    padding: "10px 14px",
-    background: "rgba(255, 255, 255, 0.96)",
-    backdropFilter: "saturate(180%) blur(8px)",
-    borderTop: "1px solid #e5eaf0",
-    boxShadow: "0 -4px 16px rgba(15, 23, 42, 0.06)",
-    zIndex: "50",
-  },
-  stickyInfo: { display: "flex", flexDirection: "column" },
-  stickyLabel: { fontSize: "12px", color: "#64748b" },
-  stickyAmount: { fontSize: "18px" },
-  stickyBtn: {
-    marginLeft: "auto",
-    height: "46px",
-    padding: "0 18px",
-    borderRadius: "12px",
-    border: "none",
-    fontWeight: "800",
-  },
-  stickyBtnEnabled: {
-    color: "#fff",
-    background: "#004FFF",
-    boxShadow: "0 6px 14px rgba(47, 128, 237, 0.25)",
-  },
-  stickyBtnDisabled: {
-    color: "#475569",
-    background: "linear-gradient(180deg, #bfd8ff, #a7c9ff)",
-    cursor: "not-allowed",
   },
   accountInfo: {
     background: "#f8fafc",
@@ -964,7 +904,9 @@ const styles = {
     marginBottom: "12px",
     fontWeight: "500",
   },
-  accountDetails: { marginBottom: "16px" },
+  accountDetails: {
+    marginBottom: "16px",
+  },
   bankName: {
     fontSize: "14px",
     fontWeight: "600",
@@ -978,7 +920,11 @@ const styles = {
     marginBottom: "4px",
     letterSpacing: "1px",
   },
-  accountHolder: { fontSize: "16px", color: "#475569", fontWeight: "500" },
+  accountHolder: {
+    fontSize: "16px",
+    color: "#475569",
+    fontWeight: "500",
+  },
   copyBtn: {
     background: "#004FFF",
     color: "white",

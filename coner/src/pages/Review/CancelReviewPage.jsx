@@ -1,12 +1,13 @@
 import React, { useState } from "react";
 import styled from "styled-components";
 import Button from "../../components/ui/Button";
-import { doc, setDoc } from "firebase/firestore";
+import { doc, setDoc, updateDoc } from "firebase/firestore";
 import { db } from "../../lib/firebase";
 import { useNavigate, useParams } from "react-router-dom";
 import Modal from "../../components/common/Modal/Modal";
+import RequestHeader from "../../components/common/Header/RequestHeader";
 
-const CANCEL_COLOR = "#C2E1FF";
+const MAX_TEXT_LENGTH = 100;
 
 const CANCEL_OPTIONS = [
   "가격이 합리적이지 않아요",
@@ -62,10 +63,17 @@ const CancelReviewPage = () => {
         cancelelse: selectedElse,
         createdAt: formatDate(new Date()),
       };
+
+      // CancelReview 컬렉션에 취소 리뷰 저장
       await setDoc(doc(db, "CancelReview", requestId), cancelreviewData);
 
-      setPopupMessage("감사합니다. 소중한 후기가 등록되었습니다");
+      // Request 컬렉션의 status를 0으로 변경
+      const requestRef = doc(db, "Request", requestId);
+      await updateDoc(requestRef, { status: 0 });
+
+      setPopupMessage("취소가 완료되었습니다.");
     } catch (error) {
+      console.error("의견 저장 중 오류 발생:", error);
       alert("의견 저장 중 오류가 발생했습니다. 다시 시도해주세요.");
     } finally {
       setIsSubmitting(false);
@@ -93,64 +101,125 @@ const CancelReviewPage = () => {
     });
   };
 
-  //체크박스 컴포넌트
-  const CheckboxItem = ({ label, checked, onChange }) => (
-    <CheckboxWrapper>
-      <Checkbox
-        checked={checked}
-        onClick={() => onChange(label)}
-        aria-label={label}
-      />
-      <CheckboxLabel>{label}</CheckboxLabel>
-    </CheckboxWrapper>
-  );
+  const handleHelpClick = () => {
+    window.open("http://pf.kakao.com/_jyhxmn/chat", "_blank");
+  };
+
+  const handleKeyPress = (e, cancel) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      toggleCancel(cancel);
+    }
+  };
+
+  const handleBackClick = () => {
+    navigate("/search/inquiry", { state: { requestId } });
+  };
 
   return (
     <Section>
-      <Header>의견을 보내주세요</Header>
-      <Divider />
+      <RequestHeader
+        showPrevButton={false}
+        userName="취소 이유가 무엇인가요?"
+        onPrevClick={handleBackClick}
+      />
+
       <Form onSubmit={handleSubmitCancelReview}>
         <CancelSection>
-          <SectionLabel>취소 사유를 선택해주세요</SectionLabel>
-          <CheckboxGrid>
-            {CANCEL_OPTIONS.map((cancel) => (
-              <CheckboxItem
-                key={cancel}
-                label={cancel}
-                checked={selectedCancel.has(cancel)}
-                onChange={toggleCancel}
+          <PageTitle>
+            {selectedCancel.size === 0
+              ? "취소 사유를 선택해주세요"
+              : "그 외 개선할점이 있다면 말씀해주세요"}
+          </PageTitle>
+
+          {selectedCancel.size > 0 && (
+            <TextAreaWrapper>
+              <TextAreaLabel>서비스에 대한 의견을 나눠주세요</TextAreaLabel>
+              <Divider />
+              <StyledTextArea
+                placeholder="나눠주신 의견을 통해 더 나은 서비스를 제공하는 코너가 되겠습니다."
+                rows={4}
+                value={complaints}
+                onChange={(e) => setComplaints(e.target.value)}
               />
+              <CharacterCount>
+                {complaints.length} | {MAX_TEXT_LENGTH}자 이내
+              </CharacterCount>
+            </TextAreaWrapper>
+          )}
+          <CancelList>
+            {CANCEL_OPTIONS.map((cancel) => (
+              <CancelItemWrapper key={cancel}>
+                <CancelItem
+                  onClick={() => toggleCancel(cancel)}
+                  onKeyPress={(e) => handleKeyPress(e, cancel)}
+                  role="button"
+                  tabIndex={0}
+                  aria-pressed={selectedCancel.has(cancel)}
+                >
+                  <CancelName>{cancel}</CancelName>
+                  <CheckIcon $isSelected={selectedCancel.has(cancel)}>
+                    <svg
+                      width="14"
+                      height="10"
+                      viewBox="0 0 14 10"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M1 5L5 9L13 1"
+                        stroke="white"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  </CheckIcon>
+                </CancelItem>
+                {cancel === "기타" && selectedCancel.has("기타") && (
+                  <EtcTextAreaWrapper>
+                    <Divider />
+                    <StyledTextAreaElse
+                      placeholder="입력해주신 사유를 토대로 더욱 발전하는 코너가 되겠습니다."
+                      rows={3}
+                      value={selectedElse}
+                      onChange={(e) => setSelectedElse(e.target.value)}
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                    <CharCount>{selectedElse.length} / 100자 이내</CharCount>
+                  </EtcTextAreaWrapper>
+                )}
+              </CancelItemWrapper>
             ))}
-          </CheckboxGrid>
-          <TextAreaWrapper>
-            <TextAreaLabel>기타 선택시 사유를 입력해주세요</TextAreaLabel>
-            <StyledTextAreaElse
-              placeholder=""
-              rows={1}
-              value={selectedElse}
-              onChange={(e) => setSelectedElse(e.target.value)}
-            />
-          </TextAreaWrapper>
+          </CancelList>
         </CancelSection>
 
-        <TextAreaWrapper>
-          <TextAreaLabel>그 외 개선할점이 있으면 적어주세요</TextAreaLabel>
-          <StyledTextArea
-            placeholder="소중한 의견은 코너 운영팀에게 전달됩니다"
-            rows={4}
-            value={complaints}
-            onChange={(e) => setComplaints(e.target.value)}
-          />
-        </TextAreaWrapper>
-
-        <Button
-          fullWidth
-          size="md"
-          type="submit"
-          // disabled={isSubmitting || selectedCancel.size === 0 || !complaints}
-        >
-          {isSubmitting ? " 저장 중..." : "의견 보내기 완료"}
-        </Button>
+        {selectedCancel.size > 0 && (
+          <ButtonArea>
+            <Button
+              fullWidth
+              size="stepsize"
+              type="submit"
+              // disabled={isSubmitting || selectedCancel.size === 0 || !complaints}
+            >
+              {isSubmitting ? " 제출 중..." : "서비스 취소하기"}
+            </Button>
+            <CSButtonContainer>
+              <CSButton onClick={handleHelpClick}>
+                <CSButtonText>도움이 필요해요</CSButtonText>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="8"
+                  height="14"
+                  viewBox="0 0 8 14"
+                  fill="none"
+                >
+                  <path d="M0.999999 13L7 7L1 1" stroke="#A0A0A0" />
+                </svg>
+              </CSButton>
+            </CSButtonContainer>
+          </ButtonArea>
+        )}
       </Form>
       <Modal
         open={!!popupMessage}
@@ -168,132 +237,189 @@ export default CancelReviewPage;
 
 const Section = styled.section``;
 
-const Header = styled.header`
-  text-align: center;
-  margin: 20px;
-  font-weight: bold;
-`;
-
-const Divider = styled.div`
-  height: 1px;
-  width: 100%;
-  background: #e0e0e0;
-`;
-
 const Form = styled.form`
   width: 100%;
-  padding: 20px 0px;
-`;
-const CancelSection = styled.div`
-  margin: 30px 0;
-`;
-const SectionLabel = styled.p`
-  font-size: 14px;
-  font-weight: 600;
-  margin-bottom: 15px;
-`;
-const CheckboxGrid = styled.div`
-  display: grid;
+  padding: 36px 24px 24px 24px;
 
-  gap: 15px;
+  @media (max-width: ${({ theme }) => theme.font.breakpoints.mobile}) {
+    padding: 24px 15px 24px 15px;
+  }
 `;
-const CheckboxWrapper = styled.div`
+
+const CancelSection = styled.div``;
+
+const PageTitle = styled.h1`
+  font-size: ${({ theme }) => theme.font.size.h1};
+  font-weight: ${({ theme }) => theme.font.weight.bold};
+  color: ${({ theme }) => theme.colors.text};
+  margin-bottom: 36px;
+
+  @media (max-width: ${({ theme }) => theme.font.breakpoints.smobile}) {
+    font-size: 1.2rem;
+  }
+`;
+
+const CancelList = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+`;
+
+const CancelItemWrapper = styled.div`
+  display: flex;
+  flex-direction: column;
+`;
+
+const CancelItem = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 18px 26px 18px 26px;
+  cursor: pointer;
+  background: white;
+  border-radius: 10px;
+  outline: none;
+
+  &:focus-visible {
+    box-shadow: 0 0 0 3px rgba(0, 79, 255, 0.3);
+  }
+`;
+
+const CancelName = styled.span`
+  font-size: ${({ theme }) => theme.font.size.bodyLarge};
+  font-weight: ${({ theme }) => theme.font.weight.medium};
+  color: ${({ theme }) => theme.colors.text};
+`;
+
+const CheckIcon = styled.div`
+  width: 24px;
+  height: 24px;
+  border-radius: 16%;
+  border: 2px solid
+    ${({ $isSelected }) => ($isSelected ? "#004FFF" : "#A2AFB7")};
+  background-color: ${({ $isSelected }) =>
+    $isSelected ? "#004FFF" : "#A2AFB7"};
   display: flex;
   align-items: center;
-  gap: 8px;
-`;
-
-const Checkbox = styled.div`
-  width: 16px;
-  height: 16px;
-  border: 2px solid ${(props) => (props.checked ? CANCEL_COLOR : "#ccc")};
-  background-color: ${(props) =>
-    props.checked ? CANCEL_COLOR : "transparent"};
-  border-radius: 3px;
-  cursor: pointer;
+  justify-content: center;
   transition: all 0.2s ease;
-  position: relative;
-
-  &:hover {
-    border-color: ${CANCEL_OPTIONS};
-  }
-
-  ${(props) =>
-    props.checked &&
-    `
-  &::after {
-  content:'✓';
-  position:absolute;
-  top:-6px;
-  left:1.5px;
-  color:white;
-  font-size:12px;
-  font-weight:bold;
-  }
-  `}
+  flex-shrink: 0;
 `;
-const CheckboxLabel = styled.label`
+
+const EtcTextAreaWrapper = styled.div`
+  padding: 16px 26px;
+  background: white;
+  border-radius: 0 0 10px 10px;
+  margin-top: -10px;
+`;
+
+const StyledTextAreaElse = styled.textarea`
+  width: 100%;
+  border: none;
+  background: white;
+  color: #333;
+  border-radius: 6px;
+  font-size: 16px;
+  font-family: inherit;
+  resize: vertical;
+  min-height: 60px;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  white-space: pre-wrap;
+
+  &:focus {
+    outline: none;
+    border-color: #004fff;
+    box-shadow: 0 0 0 2px rgba(0, 79, 255, 0.1);
+  }
+
+  &::placeholder {
+    color: #8d989f;
+  }
+`;
+
+const CharCount = styled.div`
+  text-align: right;
   font-size: 14px;
-  cursor: pointer;
-  user-select: none;
+  color: #999;
+  margin-top: 8px;
 `;
+
 const TextAreaWrapper = styled.div`
-  margin: 20px 0;
+  background-color: white;
+  padding: 23px 26px;
+  border-radius: 10px;
+  margin-bottom: 16px;
+  margin-top: 0;
+
+  @media (max-width: ${({ theme }) => theme.font.breakpoints.mobile}) {
+    padding: 16px 19px;
+  }
 `;
+
 const TextAreaLabel = styled.label`
   display: block;
-  font-weight: 600;
-  margin-bottom: 8px;
-  font-size: 14px;
+  margin-bottom: 16px;
+  font-size: 16px;
+  font-weight: 700;
+`;
+const Divider = styled.div`
+  height: 1px;
+  background-color: #a2afb7;
+  margin-bottom: 16px;
 `;
 const StyledTextArea = styled.textarea`
   width: 100%;
-  padding: 12px;
-  border: 1px solid #e0e0e0;
+  border: none;
   background: white;
   color: #333;
-  border-radisu: 6px;
-  font-size: 14px;
+  font-size: 16px;
   font-family: inherit;
-  resize: vertical;
+  resize: none;
   min-height: 100px;
   word-wrap: break-word;
   word-break: break-word;
   overflow-wrap: break-word;
   white-space: pre-wrap;
+  line-height: 1.5;
 
   &:focus {
     outline: none;
-    border-color: ${CANCEL_COLOR};
-    box-shadow: 0 0 0 2px ${CANCEL_COLOR}20;
   }
 
   &::placeholder {
-    color: #999;
+    color: #8d989f;
   }
 `;
-const StyledTextAreaElse = styled.textarea`
-  width: 100%;
-  padding: 12px;
-  border: 1px solid #e0e0e0;
-  background: white;
-  color: #333;
-  border-radius: 6px;
+const CharacterCount = styled.div`
+  text-align: right;
   font-size: 14px;
-  font-family: inherit;
-  resize: vertical;
-  min-height: 30px;
-  word-wrap: break-word;
-  overflow-wrap: break-word;
-  white-space: pre-wrap;
+  color: #8d989f;
+  margin-top: 8px;
+`;
 
-  &:focus {
-    outline: none;
-    border-color: ${CANCEL_COLOR};
-    box-shadow: 0 0 0 2px ${CANCEL_COLOR}20;
-  }
+const ButtonArea = styled.div`
+  margin-top: 64px;
+`;
 
-  &:placeholder {
-    color: #999;
-  }
+const CSButtonContainer = styled.div`
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+`;
+
+const CSButton = styled.button`
+  color: ${({ theme }) => theme.colors.text};
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: none;
+  border: none;
+  cursor: pointer;
+`;
+
+const CSButtonText = styled.p`
+  margin: 0;
+  font-size: ${({ theme }) => theme.font.size.bodyLarge};
+  color: #a0a0a0;
 `;

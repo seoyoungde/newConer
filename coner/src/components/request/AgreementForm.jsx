@@ -71,72 +71,65 @@ const AgreementForm = ({
       <Title>정보 동의</Title>
 
       <CheckboxGroup>
-        <label className="root">
-          <input
-            type="checkbox"
-            checked={agreements.all}
-            onChange={() => handleCheck("all")}
-          />
-          이용약관 전체 동의
-        </label>
-
+        <CheckboxItem onClick={() => handleCheck("all")}>
+          <CheckboxText>이용약관 전체 동의</CheckboxText>
+          <CheckIcon checked={agreements.all}>✓</CheckIcon>
+        </CheckboxItem>
+        <div style={{ height: "1.2px", backgroundColor: "#A2AFB7" }}></div>
         {/* 나머지 항목들 - 들여쓰기 적용 */}
-        <label className="child">
-          <input
-            type="checkbox"
-            checked={agreements.age}
-            onChange={() => handleCheck("age")}
-          />
-          만 19세 이상입니다. (필수)
-        </label>
+        <CheckboxItem onClick={() => handleCheck("age")}>
+          <Required>필수</Required>
+          <CheckboxText>만 19세 이상입니다.</CheckboxText>
+          <CheckIcon checked={agreements.age}>✓</CheckIcon>
+        </CheckboxItem>
 
-        <label className="child">
-          <input
-            type="checkbox"
-            checked={agreements.customer}
-            onChange={() => handleCheck("customer")}
-          />
-          <PolicyLink
-            href={policyLinks.customer}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            고객 이용약관
-          </PolicyLink>
-          에 동의합니다. (필수)
-        </label>
+        <CheckboxItem onClick={() => handleCheck("customer")}>
+          <Required>필수</Required>
+          <CheckboxText>
+            <PolicyLink
+              href={policyLinks.customer}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(e) => e.stopPropagation()}
+            >
+              고객 이용약관
+            </PolicyLink>
+            에 동의합니다.
+          </CheckboxText>
+          <CheckIcon checked={agreements.customer}>✓</CheckIcon>
+        </CheckboxItem>
 
-        <label className="child">
-          <input
-            type="checkbox"
-            checked={agreements.privacy}
-            onChange={() => handleCheck("privacy")}
-          />
-          <PolicyLink
-            href={policyLinks.privacy}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            개인정보의 수집 및 이용
-          </PolicyLink>
-          에 동의합니다. (필수)
-        </label>
+        <CheckboxItem onClick={() => handleCheck("privacy")}>
+          <Required>필수</Required>
+          <CheckboxText>
+            <PolicyLink
+              href={policyLinks.privacy}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(e) => e.stopPropagation()}
+            >
+              개인정보의 수집 및 이용
+            </PolicyLink>
+            에 동의합니다.
+          </CheckboxText>
+          <CheckIcon checked={agreements.privacy}>✓</CheckIcon>
+        </CheckboxItem>
 
-        <label className="child">
-          <input
-            type="checkbox"
-            checked={agreements.privacy2}
-            onChange={() => handleCheck("privacy2")}
-          />
-          <PolicyLink
-            href={policyLinks.privacy2}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            개인정보 제3자 제공 안내
-          </PolicyLink>
-          에 동의합니다. (필수)
-        </label>
+        <CheckboxItem onClick={() => handleCheck("privacy2")}>
+          <Required>필수</Required>
+          <CheckboxText>
+            <PolicyLink
+              href={policyLinks.privacy2}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(e) => e.stopPropagation()}
+            >
+              개인정보 제3자 제공 안내
+            </PolicyLink>
+            에 동의합니다.
+          </CheckboxText>
+          <CheckIcon checked={agreements.privacy2}>✓</CheckIcon>
+        </CheckboxItem>
       </CheckboxGroup>
     </Container>
   );
@@ -146,7 +139,6 @@ export default AgreementForm;
 
 const Container = styled.div`
   width: 100%;
-  margin-top: 35px;
 `;
 
 const Title = styled.h2`
@@ -156,30 +148,57 @@ const Title = styled.h2`
 `;
 
 const CheckboxGroup = styled.div`
+  margin-top: 24px;
   display: flex;
   flex-direction: column;
+  gap: 12px;
+  background: white;
+  border-radius: 12px;
+  padding: 20px 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+`;
+const CheckboxItem = styled.div`
+  display: flex;
+  align-items: center;
   gap: 10px;
-  font-size: 14px;
-  text-align: left;
-
-  label {
-    display: flex;
-    align-items: center;
-    gap: 2px;
-  }
-
-  label.root {
-    margin-left: 0;
-  }
-
-  label.child {
-    margin-left: 10px;
-    @media (max-width: ${({ theme }) => theme.font.breakpoints.mobile}) {
-      margin-left: 6px;
-    }
-  }
+  padding: 8px 0;
+  cursor: pointer;
+  user-select: none;
 `;
 
+const CheckboxText = styled.span`
+  flex: 1;
+  font-size: 14px;
+  color: ${({ theme }) => theme.colors.text};
+  line-height: 1.5;
+`;
+
+const CheckIcon = styled.span`
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: bold;
+  flex-shrink: 0;
+  background-color: ${({ checked }) => (checked ? "#004FFF" : "#A2AFB7")};
+  color: white;
+  transition: all 0.2s ease;
+`;
+const Required = styled.div`
+  width: 31px;
+  height: 20px;
+  border-radius: 4px;
+  background: #a2afb7;
+  color: white;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+`;
 const PolicyLink = styled.a`
   text-decoration: underline;
   color: ${({ theme }) => theme.colors?.primary || "#007bff"};

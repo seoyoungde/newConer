@@ -149,80 +149,78 @@ const Step6 = () => {
 
   return (
     <PageContainer>
-      <ScrollableContent>
-        <StepHeader
-          to="/request/step5"
-          currentStep={currentStep}
-          totalSteps={9}
-        />
-        <ContentSection>
-          <PageTitle>아래 정보가 맞는지 확인해주세요.</PageTitle>
+      <StepHeader
+        to="/request/step5"
+        currentStep={currentStep}
+        totalSteps={9}
+      />
+      <ContentSection>
+        <PageTitle>아래 정보가 맞는지 확인해주세요.</PageTitle>
 
-          <InfoList>
-            <SectionTitle>방문 희망일</SectionTitle>
-            <TwoColumnGrid>
-              <Section>
-                <ValueBox style={{ color: "#004FFF", fontWeight: "600" }}>
-                  {confirmationData.date || "없음"}
-                </ValueBox>
-              </Section>
-              <Section>
-                <ValueBox style={{ color: "#004FFF", fontWeight: "600" }}>
-                  {confirmationData.datetime || "없음"}
-                </ValueBox>
-              </Section>
-            </TwoColumnGrid>
-
-            {/* 서비스 세부 내역 */}
-
-            <SectionTitle>서비스 세부내역</SectionTitle>
-            <ThreeColumnGrid>
-              <Section>
-                <ValueBox>{confirmationData.brand || "없음"}</ValueBox>
-              </Section>
-              <Section>
-                <ValueBox>{confirmationData.airconType || "없음"}</ValueBox>
-              </Section>
-              <Section>
-                <ValueBox>{confirmationData.serviceType || "없음"}</ValueBox>
-              </Section>
-            </ThreeColumnGrid>
-
-            <SectionTitle>주소</SectionTitle>
+        <InfoList>
+          <SectionTitle>방문 희망일</SectionTitle>
+          <TwoColumnGrid>
             <Section>
-              <ValueBox>{confirmationData.address || "없음"}</ValueBox>
-            </Section>
-            {/* 연락처와 의뢰인 유형 */}
-            <TwoColumnGrid>
-              <div>
-                <SectionTitle>연락처</SectionTitle>
-                <Section>
-                  <ValueBox>{confirmationData.phone}</ValueBox>
-                </Section>
-              </div>
-
-              <div>
-                <SectionTitle>의뢰인 유형</SectionTitle>
-                <Section>
-                  <ValueBox>{confirmationData.customerType}</ValueBox>
-                </Section>
-              </div>
-            </TwoColumnGrid>
-
-            <SectionTitle>추가 요청사항</SectionTitle>
-            <Section style={{ whiteSpace: "pre-line" }}>
-              <ValueBox style={{ whiteSpace: "pre-line" }}>
-                {confirmationData.additionalRequest}
+              <ValueBox style={{ color: "#004FFF", fontWeight: "600" }}>
+                {confirmationData.date || "없음"}
               </ValueBox>
             </Section>
-          </InfoList>
+            <Section>
+              <ValueBox style={{ color: "#004FFF", fontWeight: "600" }}>
+                {confirmationData.datetime || "없음"}
+              </ValueBox>
+            </Section>
+          </TwoColumnGrid>
 
-          {/* 약관 동의 */}
-          <AgreementSection>
-            <AgreementForm onRequiredChange={setAgreementsOK} />
-          </AgreementSection>
-        </ContentSection>
-      </ScrollableContent>
+          {/* 서비스 세부 내역 */}
+
+          <SectionTitle>서비스 세부내역</SectionTitle>
+          <ThreeColumnGrid>
+            <Section>
+              <ValueBox>{confirmationData.brand || "없음"}</ValueBox>
+            </Section>
+            <Section>
+              <ValueBox>{confirmationData.airconType || "없음"}</ValueBox>
+            </Section>
+            <Section>
+              <ValueBox>{confirmationData.serviceType || "없음"}</ValueBox>
+            </Section>
+          </ThreeColumnGrid>
+
+          <SectionTitle>주소</SectionTitle>
+          <Section>
+            <ValueBox>{confirmationData.address || "없음"}</ValueBox>
+          </Section>
+          {/* 연락처와 의뢰인 유형 */}
+          <TwoColumnGrid>
+            <div>
+              <SectionTitle>연락처</SectionTitle>
+              <Section>
+                <ValueBox>{confirmationData.phone}</ValueBox>
+              </Section>
+            </div>
+
+            <div>
+              <SectionTitle>의뢰인 유형</SectionTitle>
+              <Section>
+                <ValueBox>{confirmationData.customerType}</ValueBox>
+              </Section>
+            </div>
+          </TwoColumnGrid>
+
+          <SectionTitle>추가 요청사항</SectionTitle>
+          <Section style={{ whiteSpace: "pre-line" }}>
+            <ValueBox style={{ whiteSpace: "pre-line" }}>
+              {confirmationData.additionalRequest}
+            </ValueBox>
+          </Section>
+        </InfoList>
+
+        {/* 약관 동의 */}
+        <AgreementSection>
+          <AgreementForm onRequiredChange={setAgreementsOK} />
+        </AgreementSection>
+      </ContentSection>
 
       {/* 하단 고정 버튼 영역 */}
       <FixedButtonArea>
@@ -275,28 +273,13 @@ const PageContainer = styled.div`
   width: 100%;
 `;
 
-const ScrollableContent = styled.div`
-  flex: 1;
-  min-height: 0;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-  will-change: scroll-position;
-  transform: translateZ(0);
-
-  &::-webkit-scrollbar {
-    width: 0;
-    height: 0;
-  }
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-`;
-
 const ContentSection = styled.div`
   padding: 36px 24px 24px 24px;
 
   @media (max-width: ${({ theme }) => theme.font.breakpoints.mobile}) {
     padding: 24px 15px 24px 15px;
   }
+  margin-bottom: 32px;
 `;
 
 const FixedButtonArea = styled.div`
@@ -336,9 +319,7 @@ const SectionTitle = styled.span`
   }
 `;
 
-const AgreementSection = styled.div`
-  margin-bottom: 24px;
-`;
+const AgreementSection = styled.div``;
 
 const HelpButton = styled.button`
   display: flex;

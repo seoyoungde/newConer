@@ -151,19 +151,22 @@ const ServiceItem = styled.li`
     height: 85px;
     object-fit: contain;
     @media (max-width: ${({ theme }) => theme.font.breakpoints.mobile}) {
-      width: 70px;
-      height: 70px;
+      width: 65px;
+      height: 65px;
     }
     @media (max-width: ${({ theme }) => theme.font.breakpoints.smobile}) {
-      width: 60px;
-      height: 60px;
+      width: 55px;
+      height: 55px;
     }
   }
   p {
     font-size: ${({ theme }) => theme.font.size.body};
     font-weight: ${({ theme }) => theme.font.weight.medium};
-    @media (max-width: ${({ theme }) => theme.font.breakpoints.smobile}) {
+    @media (max-width: ${({ theme }) => theme.font.breakpoints.mobile}) {
       font-size: 14px;
+    }
+    @media (max-width: ${({ theme }) => theme.font.breakpoints.smobile}) {
+      font-size: 12px;
     }
   }
 `;

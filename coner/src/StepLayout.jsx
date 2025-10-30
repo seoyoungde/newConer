@@ -1,4 +1,3 @@
-// StepLayout.js - 단순한 컨테이너만 제공
 import React from "react";
 import { Outlet } from "react-router-dom";
 import styled from "styled-components";
@@ -12,7 +11,13 @@ const StepLayout = () => {
       </LeftImage>
       <RightBox>
         {/* 각 Step 컴포넌트에서 전체 레이아웃 관리 */}
-        <Outlet />
+
+        <ScrollArea>
+          <ContentBox>
+            <Outlet />
+          </ContentBox>
+        </ScrollArea>
+
         <div id="rightbox-modal-root" />
       </RightBox>
     </Container>
@@ -27,10 +32,8 @@ const Container = styled.div`
   height: 100dvh;
   align-items: center;
   justify-content: center;
-
   gap: 20px;
 `;
-
 const LeftImage = styled.aside`
   width: 380px;
   img {
@@ -41,16 +44,43 @@ const LeftImage = styled.aside`
     display: none;
   }
 `;
-
 const RightBox = styled.main`
   position: relative;
   width: 605px;
+  display: flex;
   height: 100%;
+  flex-direction: column;
   border: 1px solid #d4d4d4;
   box-sizing: border-box;
   background-color: #f2f3f6;
+`;
 
-  /* Outlet이 전체 높이를 사용할 수 있도록 */
-  display: flex;
-  flex-direction: column;
+const ScrollArea = styled.div`
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  //padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px));
+
+  &::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: transparent;
+  }
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  scrollbar-width: none;
+
+  -ms-overflow-style: none;
+`;
+
+const ContentBox = styled.div`
+  width: 100%;
+  max-width: 605px;
+  min-height: 105%;
 `;

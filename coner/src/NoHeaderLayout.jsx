@@ -81,7 +81,7 @@ const ScrollArea = styled.div`
 const ContentBox = styled.div`
   width: 100%;
   max-width: 605px;
-  height: 100%;
+  height: 105%;
   padding: 0 24px;
 
   @media (max-width: ${({ theme }) => theme.font.breakpoints.mobile}) {

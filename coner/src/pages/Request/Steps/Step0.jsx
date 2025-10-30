@@ -55,40 +55,39 @@ const Step0 = () => {
 
   return (
     <PageContainer>
-      <ScrollableContent>
-        <StepHeader to="/" currentStep={currentStep} totalSteps={9} />
-        <ContentSection>
-          <PageTitle>구매할 에어컨 유형을 선택해주세요.</PageTitle>
+      <StepHeader to="/" currentStep={currentStep} totalSteps={9} />
 
-          <OptionList>
-            {options.map((option) => (
-              <OptionItem
-                key={option.id}
-                onClick={() => handleOptionSelect(option.id)}
-              >
-                <OptionText>{option.text}</OptionText>
-                <CheckIcon $isSelected={hasAircon === option.id}>
-                  <svg
-                    width="14"
-                    height="10"
-                    viewBox="0 0 14 10"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M1 5L5 9L13 1"
-                      stroke="white"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                </CheckIcon>
-              </OptionItem>
-            ))}
-          </OptionList>
-        </ContentSection>
-      </ScrollableContent>
+      <ContentSection>
+        <PageTitle>구매할 에어컨 유형을 선택해주세요.</PageTitle>
+
+        <OptionList>
+          {options.map((option) => (
+            <OptionItem
+              key={option.id}
+              onClick={() => handleOptionSelect(option.id)}
+            >
+              <OptionText>{option.text}</OptionText>
+              <CheckIcon $isSelected={hasAircon === option.id}>
+                <svg
+                  width="14"
+                  height="10"
+                  viewBox="0 0 14 10"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M1 5L5 9L13 1"
+                    stroke="white"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </CheckIcon>
+            </OptionItem>
+          ))}
+        </OptionList>
+      </ContentSection>
 
       {/* 하단 고정 버튼 영역 - 조건부 렌더링 */}
       {hasAircon && (
@@ -121,24 +120,7 @@ export default Step0;
 const PageContainer = styled.div`
   display: flex;
   flex-direction: column;
-  height: 100%;
   width: 100%;
-`;
-
-const ScrollableContent = styled.div`
-  flex: 1;
-  min-height: 0;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-  will-change: scroll-position;
-  transform: translateZ(0);
-
-  &::-webkit-scrollbar {
-    width: 0;
-    height: 0;
-  }
-  scrollbar-width: none;
-  -ms-overflow-style: none;
 `;
 
 const ContentSection = styled.div`
@@ -146,6 +128,7 @@ const ContentSection = styled.div`
   @media (max-width: ${({ theme }) => theme.font.breakpoints.mobile}) {
     padding: 24px 15px 24px 15px;
   }
+  margin-bottom: 32px;
 `;
 
 const FixedButtonArea = styled.div`

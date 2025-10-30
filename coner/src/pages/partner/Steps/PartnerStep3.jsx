@@ -48,44 +48,42 @@ const PartnerStep3 = () => {
 
   return (
     <PageContainer>
-      <ScrollableContent>
-        <StepHeader
-          to={`/partner/step2/${partnerId}`}
-          currentStep={currentStep}
-          totalSteps={10}
-        />
-        <ContentSection>
-          <PageTitle>에어컨 브랜드를 선택해주세요.</PageTitle>
+      <StepHeader
+        to={`/partner/step2/${partnerId}`}
+        currentStep={currentStep}
+        totalSteps={10}
+      />
+      <ContentSection>
+        <PageTitle>에어컨 브랜드를 선택해주세요.</PageTitle>
 
-          <BrandList>
-            {brands.map((brand) => (
-              <BrandItem
-                key={brand.id}
-                onClick={() => handleBrandSelect(brand.id)}
-              >
-                <BrandName>{brand.name}</BrandName>
-                <CheckIcon $isSelected={selectedBrand === brand.id}>
-                  <svg
-                    width="14"
-                    height="10"
-                    viewBox="0 0 14 10"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M1 5L5 9L13 1"
-                      stroke="white"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                </CheckIcon>
-              </BrandItem>
-            ))}
-          </BrandList>
-        </ContentSection>
-      </ScrollableContent>
+        <BrandList>
+          {brands.map((brand) => (
+            <BrandItem
+              key={brand.id}
+              onClick={() => handleBrandSelect(brand.id)}
+            >
+              <BrandName>{brand.name}</BrandName>
+              <CheckIcon $isSelected={selectedBrand === brand.id}>
+                <svg
+                  width="14"
+                  height="10"
+                  viewBox="0 0 14 10"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M1 5L5 9L13 1"
+                    stroke="white"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </CheckIcon>
+            </BrandItem>
+          ))}
+        </BrandList>
+      </ContentSection>
 
       {selectedBrand && (
         <FixedButtonArea>
@@ -121,28 +119,13 @@ const PageContainer = styled.div`
   width: 100%;
 `;
 
-const ScrollableContent = styled.div`
-  flex: 1;
-  min-height: 0;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-  will-change: scroll-position;
-  transform: translateZ(0);
-
-  &::-webkit-scrollbar {
-    width: 0;
-    height: 0;
-  }
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-`;
-
 const ContentSection = styled.div`
   padding: 36px 24px 24px 24px;
 
   @media (max-width: ${({ theme }) => theme.font.breakpoints.mobile}) {
     padding: 24px 15px 24px 15px;
   }
+  margin-bottom: 32px;
 `;
 
 const PageTitle = styled.h1`

@@ -58,26 +58,24 @@ const PartnerStep5 = () => {
 
   return (
     <PageContainer>
-      <ScrollableContent>
-        <StepHeader
-          to={`/partner/step4/${partnerId}`}
-          currentStep={currentStep}
-          totalSteps={10}
-        />
-        <ContentSection>
-          <PageTitle>추가 요청사항이 있으신가요?</PageTitle>
+      <StepHeader
+        to={`/partner/step4/${partnerId}`}
+        currentStep={currentStep}
+        totalSteps={10}
+      />
+      <ContentSection>
+        <PageTitle>추가 요청사항이 있으신가요?</PageTitle>
 
-          <FormGroup>
-            <Label>추가 요청사항</Label>
-            <TextArea
-              value={additionalRequest}
-              onChange={handleTextChange}
-              placeholder="추가 요청사항을 입력해주세요 (선택사항)"
-              rows={6}
-            />
-          </FormGroup>
-        </ContentSection>
-      </ScrollableContent>
+        <FormGroup>
+          <Label>추가 요청사항</Label>
+          <TextArea
+            value={additionalRequest}
+            onChange={handleTextChange}
+            placeholder="추가 요청사항을 입력해주세요 (선택사항)"
+            rows={6}
+          />
+        </FormGroup>
+      </ContentSection>
 
       <FixedButtonArea>
         <Button fullWidth size="stepsize" onClick={handleNext}>
@@ -114,28 +112,13 @@ const PageContainer = styled.div`
   width: 100%;
 `;
 
-const ScrollableContent = styled.div`
-  flex: 1;
-  min-height: 0;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-  will-change: scroll-position;
-  transform: translateZ(0);
-
-  &::-webkit-scrollbar {
-    width: 0;
-    height: 0;
-  }
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-`;
-
 const ContentSection = styled.div`
   padding: 36px 24px 24px 24px;
 
   @media (max-width: ${({ theme }) => theme.font.breakpoints.mobile}) {
     padding: 24px 15px 24px 15px;
   }
+  margin-bottom: 32px;
 `;
 
 const FixedButtonArea = styled.div`
@@ -160,9 +143,7 @@ const PageTitle = styled.h1`
   }
 `;
 
-const FormGroup = styled.div`
-  margin-bottom: 24px;
-`;
+const FormGroup = styled.div``;
 
 const Label = styled.p`
   margin-bottom: 8px;

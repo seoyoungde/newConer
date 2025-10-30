@@ -8,7 +8,6 @@ import { auth } from "../../lib/firebase";
 import { useAuth } from "../../context/AuthProvider";
 import { onSnapshot } from "firebase/firestore";
 import mypagelogo from "../../assets/images/mypagelogo.png";
-import NavHeader from "../../components/common/Header/NavHeader";
 import RequestHeader from "../../components/common/Header/RequestHeader";
 
 const sections = [

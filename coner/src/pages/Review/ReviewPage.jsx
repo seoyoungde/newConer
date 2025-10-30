@@ -5,36 +5,26 @@ import { doc, setDoc } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { storage, db } from "../../lib/firebase";
 import Button from "../../components/ui/Button";
-import { FaStar, FaCamera, FaTimes } from "react-icons/fa";
-import { CiStar } from "react-icons/ci";
+import { FaTimes } from "react-icons/fa";
 import Modal from "../../components/common/Modal/Modal";
+import { IoMdStar } from "react-icons/io";
 
 // 상수들
 const MAX_RATING = 5;
 const MAX_PHOTOS = 10;
-const STAR_SIZE = 40;
-const STAR_COLOR = "#C2E1FF";
-
-const SNS_OPTIONS = [
-  "페이스북",
-  "인스타그램",
-  "카페",
-  "트위터",
-  "유튜브",
-  "카카오톡",
-  "블로그",
-  "쓰레드",
-];
+const STAR_SIZE = 30;
+const STAR_COLOR = "#004FFF";
+const MAX_TEXT_LENGTH = 100;
 
 const ReviewPage = () => {
   const [ratings, setRatings] = useState({
     partner: 0,
     service: 0,
   });
-  const [selectedSns, setSelectedSns] = useState(new Set());
+
   const [uploadedPhotos, setUploadedPhotos] = useState([]);
   const [serviceOpinion, setServiceOpinion] = useState("");
-  const [complaints, setComplaints] = useState("");
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const fileInputRef = useRef(null);
   const { requestId } = useParams(); // URL에서 의뢰서 ID 가져오기
@@ -52,6 +42,11 @@ const ReviewPage = () => {
     });
 
     return await Promise.all(uploadPromises);
+  };
+
+  // 도움이필요해요 링크
+  const handleHelpClick = () => {
+    window.open("http://pf.kakao.com/_jyhxmn/chat", "_blank");
   };
 
   //날짜 형식변환
@@ -88,12 +83,10 @@ const ReviewPage = () => {
 
       // Firestore에 저장할 데이터 구성
       const reviewData = {
-        complaints: complaints,
         partner_rating: ratings.partner.toString(),
         photo: photoUrls,
         serviceOpinion: serviceOpinion,
         service_rating: ratings.service.toString(),
-        sns: Array.from(selectedSns),
         createdAt: formatDate(new Date()),
       };
 
@@ -162,19 +155,6 @@ const ReviewPage = () => {
     setRatings((prev) => ({ ...prev, [type]: value }));
   };
 
-  // SNS 체크박스 토글
-  const toggleSns = (sns) => {
-    setSelectedSns((prev) => {
-      const newSet = new Set(prev);
-      if (newSet.has(sns)) {
-        newSet.delete(sns);
-      } else {
-        newSet.add(sns);
-      }
-      return newSet;
-    });
-  };
-
   // 별점 컴포넌트
   const StarRating = ({ rating, onRatingChange, label }) => (
     <RatingSection>
@@ -189,9 +169,9 @@ const ReviewPage = () => {
               aria-label={`${starValue}점`}
             >
               {starValue <= rating ? (
-                <FaStar size={STAR_SIZE} color={STAR_COLOR} />
+                <IoMdStar size={STAR_SIZE} color={STAR_COLOR} />
               ) : (
-                <CiStar size={STAR_SIZE} color="gray" />
+                <IoMdStar size={STAR_SIZE} color="#E2E4E9" />
               )}
             </StarButton>
           );
@@ -200,51 +180,47 @@ const ReviewPage = () => {
     </RatingSection>
   );
 
-  // 체크박스 컴포넌트
-  const CheckboxItem = ({ label, checked, onChange }) => (
-    <CheckboxWrapper>
-      <Checkbox
-        checked={checked}
-        onClick={() => onChange(label)}
-        aria-label={label}
-      />
-      <CheckboxLabel>{label}</CheckboxLabel>
-    </CheckboxWrapper>
-  );
-
   return (
     <Container>
-      <PageHeader>코너 서비스를 이용하셨나요?</PageHeader>
-      <Divider />
+      <PageHeader>
+        <HeaderTitle>코너 서비스를 이용하신 후기</HeaderTitle>
+      </PageHeader>
 
       <ReviewForm onSubmit={handleSubmitReview}>
         <RatingsContainer>
           <StarRating
             rating={ratings.partner}
             onRatingChange={(value) => updateRating("partner", value)}
-            label="업체 평점을 남겨주세요"
+            label="기사님은 어떠셨나요?"
           />
-
+        </RatingsContainer>
+        <RatingsContainer>
           <StarRating
             rating={ratings.service}
             onRatingChange={(value) => updateRating("service", value)}
-            label="코너 웹서비스 평점을 남겨주세요"
+            label="서비스는 어떠셨나요?"
           />
         </RatingsContainer>
-
         <TextAreaWrapper>
-          <TextAreaLabel>
-            서비스에 대한 의견을 나눠주세요 (칭찬도 좋아요)
-          </TextAreaLabel>
+          <TextAreaLabel>서비스에 대한 의견을 나눠주세요</TextAreaLabel>
+          <Divider />
           <StyledTextArea
-            placeholder="소중한 의견은 코너 운영팀에게 전달됩니다"
+            placeholder="나눠주신 의견을 통해 더 나은 서비스를 제공하는 코너가 되겠습니다."
             rows={4}
             value={serviceOpinion}
             onChange={(e) => setServiceOpinion(e.target.value)}
           />
+          <CharacterCount>
+            {serviceOpinion.length} | {MAX_TEXT_LENGTH}자 이내
+          </CharacterCount>
         </TextAreaWrapper>
 
         <PhotoUploadSection>
+          <PhotoUploadHeader>
+            <PhotoUploadTitle>사진을 추가하시겠습니까?</PhotoUploadTitle>
+            <PhotoUploadSubtitle>최대 10장</PhotoUploadSubtitle>
+          </PhotoUploadHeader>
+
           <input
             type="file"
             ref={fileInputRef}
@@ -258,18 +234,20 @@ const ReviewPage = () => {
             onClick={handlePhotoButtonClick}
             disabled={uploadedPhotos.length >= MAX_PHOTOS}
           >
-            <FaCamera
-              size={33}
-              color={uploadedPhotos.length >= MAX_PHOTOS ? "#ccc" : "#666"}
-            />
-            <PhotoCount>
-              {uploadedPhotos.length}/{MAX_PHOTOS}
-            </PhotoCount>
-            <PhotoUploadText>
-              {uploadedPhotos.length >= MAX_PHOTOS
-                ? "최대 업로드 완료"
-                : "사진을 추가해 보세요!"}
-            </PhotoUploadText>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 16 16"
+              fill="none"
+            >
+              <path d="M0 7.99609H16" stroke="#8D989F" strokeWidth="2" />
+              <path
+                d="M8.00293 0L8.00293 16"
+                stroke="#8D989F"
+                strokeWidth="2"
+              />
+            </svg>
           </PhotoUploadButton>
 
           {/* 업로드된 사진들 미리보기 */}
@@ -278,7 +256,10 @@ const ReviewPage = () => {
               {uploadedPhotos.map((photo) => (
                 <PhotoPreviewItem key={photo.id}>
                   <PhotoPreview src={photo.preview} alt={photo.name} />
-                  <RemoveButton onClick={() => removePhoto(photo.id)}>
+                  <RemoveButton
+                    type="button"
+                    onClick={() => removePhoto(photo.id)}
+                  >
                     <FaTimes size={12} />
                   </RemoveButton>
                 </PhotoPreviewItem>
@@ -287,40 +268,32 @@ const ReviewPage = () => {
           )}
         </PhotoUploadSection>
 
-        <TextAreaWrapper>
-          <TextAreaLabel>기타 불편사항이 있으면 적어주세요</TextAreaLabel>
-          <StyledTextArea
-            placeholder="소중한 의견은 코너 운영팀에게 전달됩니다"
-            rows={4}
-            value={complaints}
-            onChange={(e) => setComplaints(e.target.value)}
-          />
-        </TextAreaWrapper>
-
-        <SnsSection>
-          <SectionLabel>현재 이용중인 sns를 모두 선택해주세요</SectionLabel>
-          <CheckboxGrid>
-            {SNS_OPTIONS.map((sns) => (
-              <CheckboxItem
-                key={sns}
-                label={sns}
-                checked={selectedSns.has(sns)}
-                onChange={toggleSns}
-              />
-            ))}
-          </CheckboxGrid>
-        </SnsSection>
-
-        <Button
-          fullWidth
-          size="md"
-          type="submit"
-          disabled={
-            isSubmitting || ratings.partner === 0 || ratings.service === 0
-          }
-        >
-          {isSubmitting ? "저장 중..." : "후기 작성 완료"}
-        </Button>
+        <ButtonArea>
+          <Button
+            fullWidth
+            size="stepsize"
+            type="submit"
+            disabled={
+              isSubmitting || ratings.partner === 0 || ratings.service === 0
+            }
+          >
+            {isSubmitting ? "저장 중..." : "후기 작성 완료"}
+          </Button>
+          <CSButtonContainer>
+            <CSButton onClick={handleHelpClick}>
+              <CSButtonText>도움이 필요해요</CSButtonText>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="8"
+                height="14"
+                viewBox="0 0 8 14"
+                fill="none"
+              >
+                <path d="M0.999999 13L7 7L1 1" stroke="#A0A0A0" />
+              </svg>
+            </CSButton>
+          </CSButtonContainer>
+        </ButtonArea>
       </ReviewForm>
       <Modal
         open={!!popupMessage}
@@ -336,51 +309,80 @@ const ReviewPage = () => {
 
 export default ReviewPage;
 
-const Container = styled.section``;
-
-const PageHeader = styled.header`
-  text-align: center;
-  margin: 20px;
-  font-weight: bold;
+const Container = styled.section`
+  width: 100%;
 `;
 
-const Divider = styled.div`
-  height: 1px;
-  width: 100%;
-  background: #e0e0e0;
+const PageHeader = styled.header`
+  display: flex;
+  justify-content: center;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: #fff;
+  box-shadow: 0 0 6px 0 rgba(0, 0, 0, 0.15);
+  height: 72px;
+  flex-shrink: 0;
+  align-items: center;
+`;
+const HeaderTitle = styled.h1`
+  font-size: ${({ theme }) => theme.font.size.h3};
+  line-height: ${({ theme }) => theme.font.lineHeight.h3};
+  font-weight: ${({ theme }) => theme.font.weight.bold};
 `;
 
 const ReviewForm = styled.form`
   width: 100%;
-  padding: 20px 0;
+  padding: 36px 24px 24px 24px;
+  @media (max-width: ${({ theme }) => theme.font.breakpoints.mobile}) {
+    padding: 24px 15px 24px 15px;
+  }
 `;
 
 const RatingsContainer = styled.div`
-  text-align: center;
-  padding: 15px 0;
+  background-color: white;
+  margin-bottom: 16px;
+  border-radius: 10px;
+  padding: 23px 26px;
+
+  @media (max-width: ${({ theme }) => theme.font.breakpoints.mobile}) {
+    padding: 16px 19px;
+  }
 `;
 
 const RatingSection = styled.div`
-  margin-bottom: 20px;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+
+  @media (max-width: ${({ theme }) => theme.font.breakpoints.smobile}) {
+    flex-direction: column;
+    gap: 9px;
+  }
 `;
 
 const RatingLabel = styled.p`
-  font-weight: 600;
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
 `;
 
 const StarContainer = styled.div`
   display: flex;
   justify-content: center;
-  gap: 10px;
-  margin: 10px 0;
+  gap: 7px;
 `;
 
 const StarButton = styled.button`
   background: none;
   border: none;
   cursor: pointer;
-  padding: 5px;
+  padding: 0;
   transition: transform 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 
   &:hover {
     transform: scale(1.1);
@@ -392,18 +394,91 @@ const StarButton = styled.button`
   }
 `;
 
+const TextAreaWrapper = styled.div`
+  background-color: white;
+  padding: 23px 26px;
+  border-radius: 10px;
+  margin-bottom: 16px;
+
+  @media (max-width: ${({ theme }) => theme.font.breakpoints.mobile}) {
+    padding: 16px 19px;
+  }
+`;
+
+const TextAreaLabel = styled.label`
+  display: block;
+  margin-bottom: 16px;
+  font-size: 16px;
+  font-weight: 700;
+`;
+
+const Divider = styled.div`
+  height: 1px;
+  background-color: #a2afb7;
+  margin-bottom: 16px;
+`;
+const StyledTextArea = styled.textarea`
+  width: 100%;
+  border: none;
+  background: white;
+  color: #333;
+  font-size: 16px;
+  font-family: inherit;
+  resize: none;
+  min-height: 100px;
+  word-wrap: break-word;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  white-space: pre-wrap;
+  line-height: 1.5;
+
+  &:focus {
+    outline: none;
+  }
+
+  &::placeholder {
+    color: #8d989f;
+  }
+`;
+const CharacterCount = styled.div`
+  text-align: right;
+  font-size: 14px;
+  color: #8d989f;
+  margin-top: 8px;
+`;
+
 const PhotoUploadSection = styled.div`
   display: flex;
   flex-direction: column;
-  margin: 20px 0;
-  gap: 15px;
-`;
+  background-color: white;
+  border-radius: 10px;
+  padding: 23px 26px;
+  margin-bottom: 16px;
 
+  @media (max-width: ${({ theme }) => theme.font.breakpoints.mobile}) {
+    padding: 16px 19px;
+  }
+`;
+const PhotoUploadHeader = styled.div`
+  display: flex;
+  align-items: center;
+  margin-bottom: 16px;
+  gap: 12px;
+`;
+const PhotoUploadTitle = styled.p`
+  font-size: 16px;
+  font-weight: 700;
+  margin: 0;
+`;
+const PhotoUploadSubtitle = styled.p`
+  font-size: 14px;
+  color: #8d989f;
+  margin: 0;
+`;
 const PhotoUploadButton = styled.div`
-  border: 1px solid #e0e0e0;
-  border-radius: 6px;
-  width: 120px;
-  height: 120px;
+  border-radius: 4px;
+  width: 96px;
+  height: 96px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -412,7 +487,7 @@ const PhotoUploadButton = styled.div`
   transition: background-color 0.2s ease;
   gap: 8px;
   opacity: ${(props) => (props.disabled ? 0.6 : 1)};
-  align-self: flex-start;
+  background: #e2e4e9;
 
   &:hover {
     background-color: ${(props) =>
@@ -420,25 +495,11 @@ const PhotoUploadButton = styled.div`
   }
 `;
 
-const PhotoCount = styled.p`
-  font-size: 12px;
-  margin: 0;
-  color: #666;
-`;
-
-const PhotoUploadText = styled.p`
-  font-size: 12px;
-  color: #666;
-  margin: 0;
-  text-align: center;
-  line-height: 1.2;
-`;
-
 const PhotoPreviewContainer = styled.div`
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
-  margin-top: 10px;
+  margin-top: 16px;
 `;
 
 const PhotoPreviewItem = styled.div`
@@ -477,97 +538,25 @@ const RemoveButton = styled.button`
   }
 `;
 
-const SnsSection = styled.div`
-  margin: 30px 0;
+const ButtonArea = styled.div`
+  margin-top: 64px;
 `;
-
-const SectionLabel = styled.p`
-  font-size: 14px;
-  font-weight: 600;
-  margin-bottom: 15px;
+const CSButtonContainer = styled.div`
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
 `;
-
-const CheckboxGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-  gap: 15px;
-`;
-
-const CheckboxWrapper = styled.div`
+const CSButton = styled.button`
+  color: ${({ theme }) => theme.colors.text};
   display: flex;
   align-items: center;
   gap: 8px;
-`;
-
-const Checkbox = styled.div`
-  width: 16px;
-  height: 16px;
-  border: 2px solid ${(props) => (props.checked ? STAR_COLOR : "#ccc")};
-  background-color: ${(props) => (props.checked ? STAR_COLOR : "transparent")};
-  border-radius: 3px;
+  background: none;
+  border: none;
   cursor: pointer;
-  transition: all 0.2s ease;
-  position: relative;
-
-  &:hover {
-    border-color: ${STAR_COLOR};
-  }
-
-  ${(props) =>
-    props.checked &&
-    `
-    &::after {
-      content: '✓';
-      position: absolute;
-      top: -6px;
-      left: 1.5px;
-      color: white;
-      font-size: 12px;
-      font-weight: bold;
-    }
-  `}
 `;
-
-const CheckboxLabel = styled.label`
-  font-size: 14px;
-  cursor: pointer;
-  user-select: none;
-`;
-
-const TextAreaWrapper = styled.div`
-  margin: 20px 0;
-`;
-
-const TextAreaLabel = styled.label`
-  display: block;
-  font-weight: 600;
-  margin-bottom: 8px;
-  font-size: 14px;
-`;
-
-const StyledTextArea = styled.textarea`
-  width: 100%;
-  padding: 12px;
-  border: 1px solid #e0e0e0;
-  background: white;
-  color: #333;
-  border-radius: 6px;
-  font-size: 14px;
-  font-family: inherit;
-  resize: vertical;
-  min-height: 100px;
-  word-wrap: break-word;
-  word-break: break-word;
-  overflow-wrap: break-word;
-  white-space: pre-wrap;
-
-  &:focus {
-    outline: none;
-    border-color: ${STAR_COLOR};
-    box-shadow: 0 0 0 2px ${STAR_COLOR}20;
-  }
-
-  &::placeholder {
-    color: #999;
-  }
+const CSButtonText = styled.p`
+  margin: 0;
+  font-size: ${({ theme }) => theme.font.size.bodyLarge};
+  color: #a0a0a0;
 `;

@@ -8,6 +8,7 @@ import InputGroup from "../../components/ui/formControls/InputGroup";
 import { db } from "../../lib/firebase";
 import axios from "axios";
 import { doc, setDoc, collection } from "firebase/firestore";
+import RequestHeader from "../../components/common/Header/RequestHeader";
 
 import AddressModal, {
   SERVICE_AREAS,
@@ -509,24 +510,27 @@ const PartnerApply = () => {
 
   return (
     <Container>
-      <NavHeader to="/" title="협력업체 신청하기" />
-
-      <NoticeBox>
-        <p>신청 후 7일 영업일 이내에 담당자가 연락드릴 예정입니다.</p>
-        <NoticeLink
-          href="https://www.notion.so/harvies/CONER-21d5c6005f1280d5a479ccd4bf9b6c4c"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          코너 협력업체 서비스 안내 보러가기 →
-        </NoticeLink>
-      </NoticeBox>
+      <RequestHeader
+        showPrevButton={false}
+        userName="협력업체 신청하기"
+        to="/"
+      />
 
       <FormBox>
+        <NoticeBox>
+          <p>신청 후 7일 영업일 이내에 담당자가 연락드릴 예정입니다.</p>
+          <NoticeLink
+            href="https://www.notion.so/harvies/CONER-21d5c6005f1280d5a479ccd4bf9b6c4c"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            코너 협력업체 서비스 안내 보러가기 →
+          </NoticeLink>
+        </NoticeBox>
         <FormGroup>
           <TextField
             label="업체명"
-            size="sm"
+            size="stepsize"
             placeholder="업체명 입력"
             value={companyName}
             onChange={(e) => setCompanyName(e.target.value)}
@@ -536,7 +540,7 @@ const PartnerApply = () => {
         <FormGroup>
           <TextField
             label="업체주소"
-            size="sm"
+            size="stepsize"
             placeholder="클릭하여 주소 검색"
             readOnly
             value={companyAddress}
@@ -545,7 +549,7 @@ const PartnerApply = () => {
           <div style={{ height: "5px" }} />
           <TextField
             placeholder="상세주소 입력"
-            size="sm"
+            size="stepsize"
             value={companyAddressDetail}
             onChange={(e) => setCompanyAddressDetail(e.target.value)}
           />
@@ -554,7 +558,7 @@ const PartnerApply = () => {
         <FormGroup>
           <TextField
             label="업체경력"
-            size="sm"
+            size="stepsize"
             placeholder="예) 10"
             value={companyCareer}
             onChange={(e) => {
@@ -567,7 +571,7 @@ const PartnerApply = () => {
         <FormGroup>
           <TextField
             label="서비스 가능 지역"
-            size="sm"
+            size="stepsize"
             placeholder="예) 동작구 동대문군, 중랑구 ... 가능지역 전부 입력해주세요"
             value={serviceAreas}
             onChange={(e) => setServiceAreas(e.target.value)}
@@ -577,7 +581,7 @@ const PartnerApply = () => {
         <FormGroup>
           <TextField
             label="대표님 성함"
-            size="sm"
+            size="stepsize"
             placeholder="대표님 성함 입력"
             value={ceoName}
             onChange={(e) => setCeoName(e.target.value)}
@@ -586,10 +590,14 @@ const PartnerApply = () => {
 
         <FormGroup>
           <LabelRow>
-            <span>대표님 휴대전화번호</span>
+            <span
+              style={{ fontWeight: "500", fontSize: "12px", color: "#8f8f8f" }}
+            >
+              대표님 휴대전화번호
+            </span>
           </LabelRow>
           <InputGroup
-            size="sm"
+            size="stepsize"
             inputProps={{
               placeholder: "전화번호 입력",
               inputMode: "numeric",
@@ -607,7 +615,7 @@ const PartnerApply = () => {
         <FormGroup>
           <TextField
             label="인증번호 입력"
-            size="sm"
+            size="stepsize"
             placeholder="6자리 인증번호 입력"
             maxLength={6}
             value={passPhone}
@@ -636,6 +644,16 @@ const PartnerApply = () => {
             약관 보기
           </Button>
         </TermsSection>
+
+        <Button
+          fullWidth
+          size="stepsize"
+          style={{ marginTop: 20, marginBottom: 24 }}
+          onClick={handleCreataccount}
+          disabled={isSubmitting || !allRequiredAgreed}
+        >
+          {isSubmitting ? "신청 중..." : "신청하기"}
+        </Button>
       </FormBox>
 
       {/* 주소 검색 모달 */}
@@ -668,16 +686,6 @@ const PartnerApply = () => {
           setOpenTermsModal(false);
         }}
       />
-
-      <Button
-        fullWidth
-        size="md"
-        style={{ marginTop: 20, marginBottom: 24 }}
-        onClick={handleCreataccount}
-        disabled={isSubmitting || !allRequiredAgreed}
-      >
-        {isSubmitting ? "신청 중..." : "신청하기"}
-      </Button>
     </Container>
   );
 };
@@ -687,14 +695,13 @@ export default PartnerApply;
 const Container = styled.div``;
 
 const NoticeBox = styled.div`
-  margin-top: 16px;
   padding: 14px 12px;
   background: #f9fbff;
   border: 1px solid #e0e6f5;
   border-radius: 8px;
   text-align: center;
-
-  p {
+  margin-bottom: 15px;
+  l p {
     font-size: ${({ theme }) => theme.font.size.bodySmall};
     color: #333;
     margin-bottom: 8px;
@@ -710,14 +717,12 @@ const NoticeLink = styled.a`
 `;
 
 const FormBox = styled.div`
-  margin-top: 10px;
-
   border-radius: 8px;
-  padding: 20px 12px;
 
-  @media (max-width: ${({ theme }) => theme.font.breakpoints.smobile}) {
-    border: none;
-    padding: 0px;
+  padding: 36px 24px 24px 24px;
+
+  @media (max-width: ${({ theme }) => theme.font.breakpoints.mobile}) {
+    padding: 24px 15px 24px 15px;
   }
 `;
 

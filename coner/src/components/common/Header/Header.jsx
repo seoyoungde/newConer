@@ -35,8 +35,9 @@ const HeaderBar = styled.header`
   width: 100%;
   justify-content: space-between;
   align-items: center;
-  height: 55px;
+  height: 72px;
   padding: 0px 34px;
+  box-shadow: 0 0 6px 0 rgba(0, 0, 0, 0.15);
 
   background: white;
   @media (max-width: ${({ theme }) => theme.font.breakpoints.mobile}) {

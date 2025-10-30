@@ -187,6 +187,11 @@ const InputBox = styled.div`
   margin-top: 80px;
   margin-bottom: 64px;
   box-sizing: border-box;
+
+  @media (max-width: ${({ theme }) => theme.font.breakpoints.mobile}) {
+    margin-top: 40px;
+    margin-bottom: 44px;
+  }
 `;
 const PasswordField = styled.div``;
 

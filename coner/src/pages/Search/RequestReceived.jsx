@@ -309,30 +309,34 @@ const RequestReceived = ({
   };
 
   const handleCancelRequestPopup = (requestId) => {
-    setCancelRequestId(requestId);
-    setIsCancelPopupOpen(true);
+    navigate(`/cancelform/${requestId}`);
   };
 
-  const handleCancelRequest = async () => {
-    if (!cancelRequestId) return;
+  // const handleCancelRequestPopup = (requestId) => {
+  //   setCancelRequestId(requestId);
+  //   setIsCancelPopupOpen(true);
+  // };
 
-    try {
-      const cancelRef = doc(db, "Request", cancelRequestId);
-      await updateDoc(cancelRef, { status: 0 });
+  // const handleCancelRequest = async () => {
+  //   if (!cancelRequestId) return;
 
-      updateRequestData(cancelRequestId, null);
+  //   try {
+  //     const cancelRef = doc(db, "Request", cancelRequestId);
+  //     await updateDoc(cancelRef, { status: 0 });
 
-      setIsCancelPopupOpen(false);
-      setCancelRequestId(null);
+  //     updateRequestData(cancelRequestId, null);
 
-      if (onDeleteRequest && typeof onDeleteRequest === "function") {
-        onDeleteRequest(cancelRequestId);
-      }
-    } catch (error) {
-      console.error("Firestore 삭제 중 오류 발생:", error);
-      alert("⚠️ 의뢰 취소 중 오류가 발생했습니다.");
-    }
-  };
+  //     setIsCancelPopupOpen(false);
+  //     setCancelRequestId(null);
+
+  //     if (onDeleteRequest && typeof onDeleteRequest === "function") {
+  //       onDeleteRequest(cancelRequestId);
+  //     }
+  //   } catch (error) {
+  //     console.error("Firestore 삭제 중 오류 발생:", error);
+  //     alert("⚠️ 의뢰 취소 중 오류가 발생했습니다.");
+  //   }
+  // };
 
   const formatPhoneForDisplay = (number) => {
     if (!number) return "";
@@ -825,34 +829,6 @@ const RequestReceived = ({
           </ButtonGroup>
         )}
       </RequestBox>
-
-      {isCancelPopupOpen && (
-        <Modal
-          open={isCancelPopupOpen}
-          onClose={() => setIsCancelPopupOpen(false)}
-          title="의뢰 취소"
-          width={360}
-          containerId="rightbox-modal-root"
-          footer={
-            <PopupButtons>
-              <CloseButton
-                onClick={handleCancelRequest}
-                style={{ backgroundColor: "red" }}
-              >
-                의뢰 취소
-              </CloseButton>
-              <CloseButton
-                onClick={() => setIsCancelPopupOpen(false)}
-                style={{ backgroundColor: "gray" }}
-              >
-                닫기
-              </CloseButton>
-            </PopupButtons>
-          }
-        >
-          <PopupMessage>정말로 의뢰를 취소하시겠습니까?</PopupMessage>
-        </Modal>
-      )}
 
       {/* 주소검색 모달 */}
       <Modal

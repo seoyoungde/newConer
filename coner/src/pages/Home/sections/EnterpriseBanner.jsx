@@ -4,7 +4,7 @@ import EnterpriseImage from "../../../assets/EnterpriseImage/enterprise.png";
 
 const EnterpriseBanner = ({
   imageUrl = EnterpriseImage,
-  consultUrl = "https://pf.kakao.com/_jyhxmn/chat",
+  consultUrl = "https://pf.kakao.com/_jyhxmn",
   boldText = "대량 서비스",
   lightText = "가 필요하신가요?",
   buttonText = "기업 구매 상담받기",

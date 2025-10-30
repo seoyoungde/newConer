@@ -61,7 +61,7 @@ const Footer = () => {
 
       {/* 자주묻는 질문과 소셜 미디어 링크 섹션 */}
       <FAQSocialRow>
-        <FAQLink href="/qna">자주묻는 질문</FAQLink>
+        <FAQLink to="/qna">자주묻는 질문</FAQLink>
         <SocialLinksWrapper>
           <SocialLink
             href="https://blog.naver.com/story_coner"
@@ -108,6 +108,11 @@ const Footer = () => {
           <BusinessInfoRow>
             <BusinessInfoLabel>전화번호</BusinessInfoLabel>
             <BusinessInfoValue>010-5543-0636</BusinessInfoValue>
+          </BusinessInfoRow>
+
+          <BusinessInfoRow>
+            <BusinessInfoLabel>이메일</BusinessInfoLabel>
+            <BusinessInfoValue>ceo@coner.kr</BusinessInfoValue>
           </BusinessInfoRow>
 
           <BusinessInfoRow>
@@ -276,7 +281,7 @@ const FAQSocialRow = styled.div`
   width: 100%;
 `;
 
-const FAQLink = styled.a`
+const FAQLink = styled(Link)`
   font-size: ${({ theme }) => theme.font.size.small};
   font-weight: ${({ theme }) => theme.font.weight.medium};
   color: ${({ theme }) => theme.colors.text};

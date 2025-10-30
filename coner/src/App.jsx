@@ -75,22 +75,8 @@ export default function App() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/auth/addressmodal" element={<AuthAddressPage />} />
 
-          <Route path="/partner/apply" element={<PartnerApply />} />
-
-          <Route path="/qna" element={<QnaPage />} />
-          <Route path="/mypage/modify" element={<ModifyPage />} />
-          <Route path="/mypage/withdraw" element={<WithdrawPage />} />
-          <Route path="/request/modify" element={<RequestModifyPage />} />
-          <Route
-            path="/partner/modify/:partnerId"
-            element={<PartnerModifyPage />}
-          />
-          <Route path="/pay/:requestId" element={<PayPage />} />
-
           <Route path="/pay/success/:requestId" element={<SuccessPage />} />
           <Route path="/pay/fail/:requestId" element={<FailPage />} />
-          <Route path="/reviewform/:requestId" element={<ReviewPage />} />
-          <Route path="/cancelform/:requestId" element={<CancelReviewPage />} />
         </Route>
         <Route element={<StepLayout />}>
           {/* 단계리뉴얼디자인 */}
@@ -124,9 +110,23 @@ export default function App() {
           <Route path="/search/sms/:requestId" element={<SmsRequestPage />} />
           <Route path="/search/request" element={<RequestSearchPage />} />
           <Route path="/signup" element={<SignupPage />} />
-
           <Route path="/price" element={<PricingPage />} />
           <Route path="/mypage" element={<MyPage />} />
+          <Route path="/mypage/modify" element={<ModifyPage />} />
+          <Route path="/request/modify" element={<RequestModifyPage />} />
+          <Route
+            path="/partner/modify/:partnerId"
+            element={<PartnerModifyPage />}
+          />
+
+          <Route path="/qna" element={<QnaPage />} />
+          <Route path="/reviewform/:requestId" element={<ReviewPage />} />
+          <Route path="/cancelform/:requestId" element={<CancelReviewPage />} />
+          <Route path="/partner/apply" element={<PartnerApply />} />
+
+          <Route path="/mypage/withdraw" element={<WithdrawPage />} />
+
+          <Route path="/pay/:requestId" element={<PayPage />} />
         </Route>
       </Routes>
       <RequestDraftResetter />

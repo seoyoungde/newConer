@@ -57,35 +57,33 @@ const PartnerStep2 = () => {
 
   return (
     <PageContainer>
-      <ScrollableContent>
-        <StepHeader
-          to={`/partner/step1/${partnerId}`}
-          currentStep={currentStep}
-          totalSteps={10}
-        />
-        <ContentSection>
-          <PageTitle>{title}</PageTitle>
+      <StepHeader
+        to={`/partner/step1/${partnerId}`}
+        currentStep={currentStep}
+        totalSteps={10}
+      />
+      <ContentSection>
+        <PageTitle>{title}</PageTitle>
 
-          <FormGroup>
-            <TypeContainer>
-              {airconTypes.map((type) => (
-                <Type
-                  key={type.id}
+        <FormGroup>
+          <TypeContainer>
+            {airconTypes.map((type) => (
+              <Type
+                key={type.id}
+                $isSelected={selectedType === type.id}
+                onClick={() => handleTypeSelect(type.id)}
+              >
+                <TypeImg
+                  src={type.icon}
+                  alt={type.name}
                   $isSelected={selectedType === type.id}
-                  onClick={() => handleTypeSelect(type.id)}
-                >
-                  <TypeImg
-                    src={type.icon}
-                    alt={type.name}
-                    $isSelected={selectedType === type.id}
-                  />
-                  {type.name}
-                </Type>
-              ))}
-            </TypeContainer>
-          </FormGroup>
-        </ContentSection>
-      </ScrollableContent>
+                />
+                {type.name}
+              </Type>
+            ))}
+          </TypeContainer>
+        </FormGroup>
+      </ContentSection>
 
       {selectedType && (
         <FixedButtonArea>
@@ -121,28 +119,13 @@ const PageContainer = styled.div`
   width: 100%;
 `;
 
-const ScrollableContent = styled.div`
-  flex: 1;
-  min-height: 0;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-  will-change: scroll-position;
-  transform: translateZ(0);
-
-  &::-webkit-scrollbar {
-    width: 0;
-    height: 0;
-  }
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-`;
-
 const ContentSection = styled.div`
   padding: 36px 24px 24px 24px;
 
   @media (max-width: ${({ theme }) => theme.font.breakpoints.mobile}) {
     padding: 24px 15px 24px 15px;
   }
+  margin-bottom: 32px;
 `;
 
 const PageTitle = styled.h1`
@@ -155,9 +138,7 @@ const PageTitle = styled.h1`
   }
 `;
 
-const FormGroup = styled.div`
-  margin-bottom: 24px;
-`;
+const FormGroup = styled.div``;
 
 const TypeContainer = styled.div`
   display: grid;

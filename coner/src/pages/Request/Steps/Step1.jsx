@@ -245,79 +245,75 @@ const Step1 = () => {
 
   return (
     <PageContainer>
-      <ScrollableContent>
-        <StepHeader to="/" currentStep={currentStep} totalSteps={9} />
-        <ContentSection>
-          <PageTitle>{getTitle()}</PageTitle>
+      <StepHeader to="/" currentStep={currentStep} totalSteps={9} />
+      <ContentSection>
+        <PageTitle>{getTitle()}</PageTitle>
 
-          {/* 날짜가 선택된 후 시간 선택 (위쪽에 표시) */}
-          {selectedDate && (
-            <SectionContainer>
-              <SectionLabel>희망 시간</SectionLabel>
-              <CustomTimeDropdown
-                value={selectedTime}
-                onChange={handleTimeChange}
-                options={availableTimeOptions}
-                placeholder="시간을 선택해주세요"
-              />
-              {availableTimeOptions.length === 0 && (
-                <NoTimeAvailable>
-                  오늘은 선택 가능한 시간이 없습니다.
-                </NoTimeAvailable>
-              )}
-            </SectionContainer>
-          )}
-
-          {/* 희망 날짜 선택 (항상 표시) */}
+        {/* 날짜가 선택된 후 시간 선택 (위쪽에 표시) */}
+        {selectedDate && (
           <SectionContainer>
-            <SectionLabel style={{ marginBottom: "2px" }}>
-              희망 날짜
-            </SectionLabel>
-            <DateHeader>
-              <SelectedDateText>
-                {formatSelectedDate(selectedDate) || "날짜를 선택해주세요"}
-              </SelectedDateText>
-              <CalendarIconButton onClick={handleCalendarClick}>
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="18"
-                  height="20"
-                  viewBox="0 0 18 20"
-                  fill="none"
-                >
-                  <path
-                    d="M16 2H15V0H13V2H5V0H3V2H2C0.89 2 0.00999999 2.9 0.00999999 4L0 18C0 18.5304 0.210714 19.0391 0.585786 19.4142C0.960859 19.7893 1.46957 20 2 20H16C17.1 20 18 19.1 18 18V4C18 2.9 17.1 2 16 2ZM16 18H2V8H16V18ZM6 12H4V10H6V12ZM10 12H8V10H10V12ZM14 12H12V10H14V12ZM6 16H4V14H6V16ZM10 16H8V14H10V16ZM14 16H12V14H14V16Z"
-                    fill="#A0A0A0"
-                  />
-                </svg>
-              </CalendarIconButton>
-            </DateHeader>
-
-            <DateButtonsContainer>
-              {getDateButtons().map((item, index) => (
-                <DateButton
-                  key={index}
-                  $isSelected={
-                    selectedDate &&
-                    selectedDate.getDate() === item.day &&
-                    selectedDate.getMonth() === item.date.getMonth()
-                  }
-                  $isToday={item.isToday}
-                  onClick={() => handleDateSelect(item.date)}
-                >
-                  <DateNumber>{item.day}</DateNumber>
-                  <DayName>{item.dayName}</DayName>
-                </DateButton>
-              ))}
-            </DateButtonsContainer>
-
-            {/* 당일 신청 안내 문구 */}
-            <NoticeText>
-              당일신청시 기사님과 일정조율이 필요할 수 있습니다.
-            </NoticeText>
+            <SectionLabel>희망 시간</SectionLabel>
+            <CustomTimeDropdown
+              value={selectedTime}
+              onChange={handleTimeChange}
+              options={availableTimeOptions}
+              placeholder="시간을 선택해주세요"
+            />
+            {availableTimeOptions.length === 0 && (
+              <NoTimeAvailable>
+                오늘은 선택 가능한 시간이 없습니다.
+              </NoTimeAvailable>
+            )}
           </SectionContainer>
-        </ContentSection>
-      </ScrollableContent>
+        )}
+
+        {/* 희망 날짜 선택 (항상 표시) */}
+        <SectionContainer>
+          <SectionLabel style={{ marginBottom: "2px" }}>희망 날짜</SectionLabel>
+          <DateHeader>
+            <SelectedDateText>
+              {formatSelectedDate(selectedDate) || "날짜를 선택해주세요"}
+            </SelectedDateText>
+            <CalendarIconButton onClick={handleCalendarClick}>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="18"
+                height="20"
+                viewBox="0 0 18 20"
+                fill="none"
+              >
+                <path
+                  d="M16 2H15V0H13V2H5V0H3V2H2C0.89 2 0.00999999 2.9 0.00999999 4L0 18C0 18.5304 0.210714 19.0391 0.585786 19.4142C0.960859 19.7893 1.46957 20 2 20H16C17.1 20 18 19.1 18 18V4C18 2.9 17.1 2 16 2ZM16 18H2V8H16V18ZM6 12H4V10H6V12ZM10 12H8V10H10V12ZM14 12H12V10H14V12ZM6 16H4V14H6V16ZM10 16H8V14H10V16ZM14 16H12V14H14V16Z"
+                  fill="#A0A0A0"
+                />
+              </svg>
+            </CalendarIconButton>
+          </DateHeader>
+
+          <DateButtonsContainer>
+            {getDateButtons().map((item, index) => (
+              <DateButton
+                key={index}
+                $isSelected={
+                  selectedDate &&
+                  selectedDate.getDate() === item.day &&
+                  selectedDate.getMonth() === item.date.getMonth()
+                }
+                $isToday={item.isToday}
+                onClick={() => handleDateSelect(item.date)}
+              >
+                <DateNumber>{item.day}</DateNumber>
+                <DayName>{item.dayName}</DayName>
+              </DateButton>
+            ))}
+          </DateButtonsContainer>
+
+          {/* 당일 신청 안내 문구 */}
+          <NoticeText>
+            당일신청시 기사님과 일정조율이 필요할 수 있습니다.
+          </NoticeText>
+        </SectionContainer>
+      </ContentSection>
 
       {/* 하단 고정 버튼 영역 - 조건부 렌더링 */}
       {selectedDate &&
@@ -369,28 +365,13 @@ const PageContainer = styled.div`
   width: 100%;
 `;
 
-const ScrollableContent = styled.div`
-  flex: 1;
-  min-height: 0;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-  will-change: scroll-position;
-  transform: translateZ(0);
-
-  &::-webkit-scrollbar {
-    width: 0;
-    height: 0;
-  }
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-`;
-
 const ContentSection = styled.div`
   padding: 36px 24px 24px 24px;
 
   @media (max-width: ${({ theme }) => theme.font.breakpoints.mobile}) {
     padding: 24px 15px 24px 15px;
   }
+  margin-bottom: 32px;
 `;
 
 const FixedButtonArea = styled.div`
@@ -414,9 +395,7 @@ const PageTitle = styled.h1`
   }
 `;
 
-const SectionContainer = styled.div`
-  margin-bottom: 32px;
-`;
+const SectionContainer = styled.div``;
 
 const SectionLabel = styled.p`
   font-size: ${({ theme }) => theme.font.size.bodySmall};
@@ -424,6 +403,7 @@ const SectionLabel = styled.p`
   color: ${({ theme }) => theme.colors.subtext};
   margin-bottom: 8px;
   margin: 0;
+  margin-top: 24px;
 `;
 
 const DropdownContainer = styled.div`
@@ -515,6 +495,7 @@ const DateButtonsContainer = styled.div`
   gap: 12px;
   overflow-x: auto;
   padding: 4px 0 8px 0;
+
   -webkit-overflow-scrolling: touch;
 
   &::-webkit-scrollbar {

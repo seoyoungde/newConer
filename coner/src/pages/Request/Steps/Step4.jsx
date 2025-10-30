@@ -163,80 +163,78 @@ const Step4 = () => {
 
   return (
     <PageContainer>
-      <ScrollableContent>
-        <StepHeader
-          to="/request/step3"
-          currentStep={currentStep}
-          totalSteps={9}
-        />
-        <ContentSection>
-          <PageTitle>{title}</PageTitle>
+      <StepHeader
+        to="/request/step3"
+        currentStep={currentStep}
+        totalSteps={9}
+      />
+      <ContentSection>
+        <PageTitle>{title}</PageTitle>
 
-          {/* 로그인 사용자 정보 수정 링크 */}
-          {isReadOnly && (
-            <ModifyLink
-              onClick={() =>
-                navigate("/request/modify", { state: { from: "step4" } })
-              }
-            >
-              내 정보 (주소 / 고객유형) 수정하러가기
-            </ModifyLink>
-          )}
+        {/* 로그인 사용자 정보 수정 링크 */}
+        {isReadOnly && (
+          <ModifyLink
+            onClick={() =>
+              navigate("/request/modify", { state: { from: "step4" } })
+            }
+          >
+            내 정보 (주소 / 고객유형) 수정하러가기
+          </ModifyLink>
+        )}
 
-          {/* 3단계: 의뢰인 유형 */}
-          {currentStep >= 6 && (
-            <FormGroup>
-              <Label>의뢰인 유형</Label>
-              <StepSegmentedToggle
-                value={customerType}
-                onChange={handleCustomerTypeChange}
-                options={[
-                  { label: "사업장(기업/매장)", value: "사업장(기업/매장)" },
-                  { label: "개인(가정)", value: "개인(가정)" },
-                ]}
-                disabled={isReadOnly}
-              />
-            </FormGroup>
-          )}
-
-          {/* 2단계: 주소 */}
-          {currentStep >= 5 && (
-            <FormGroup>
-              <ClickableTextField
-                label="주소"
-                size="stepsize"
-                value={address}
-                placeholder="주소를 입력해주세요"
-                onClick={handleAddressClick}
-                readOnly
-              />
-              <p style={{ marginBottom: "5px" }}></p>
-              <TextField
-                size="stepsize"
-                value={detailaddress}
-                onChange={handleDetailAddressChange}
-                placeholder="상세주소를 입력해주세요"
-                readOnly={isReadOnly}
-              />
-              {/* 서울 지역 제한 안내 */}
-              <HelperText>서울 지역으로만 제한되어 있습니다.</HelperText>
-            </FormGroup>
-          )}
-
-          {/* 1단계: 휴대폰 번호 (항상 표시) */}
+        {/* 3단계: 의뢰인 유형 */}
+        {currentStep >= 6 && (
           <FormGroup>
-            <TextField
-              label="휴대폰 번호"
-              size="stepsize"
-              value={phone}
-              onChange={handlePhoneChange}
-              placeholder="000-0000-0000"
-              maxLength={13}
-              readOnly={isReadOnly}
+            <Label>의뢰인 유형</Label>
+            <StepSegmentedToggle
+              value={customerType}
+              onChange={handleCustomerTypeChange}
+              options={[
+                { label: "사업장(기업/매장)", value: "사업장(기업/매장)" },
+                { label: "개인(가정)", value: "개인(가정)" },
+              ]}
+              disabled={isReadOnly}
             />
           </FormGroup>
-        </ContentSection>
-      </ScrollableContent>
+        )}
+
+        {/* 2단계: 주소 */}
+        {currentStep >= 5 && (
+          <FormGroup>
+            <ClickableTextField
+              label="주소"
+              size="stepsize"
+              value={address}
+              placeholder="주소를 입력해주세요"
+              onClick={handleAddressClick}
+              readOnly
+            />
+            <p style={{ marginBottom: "5px" }}></p>
+            <TextField
+              size="stepsize"
+              value={detailaddress}
+              onChange={handleDetailAddressChange}
+              placeholder="상세주소를 입력해주세요"
+              readOnly={isReadOnly}
+            />
+            {/* 서울 지역 제한 안내 */}
+            <HelperText>서울 지역으로만 제한되어 있습니다.</HelperText>
+          </FormGroup>
+        )}
+
+        {/* 1단계: 휴대폰 번호 (항상 표시) */}
+        <FormGroup>
+          <TextField
+            label="휴대폰 번호"
+            size="stepsize"
+            value={phone}
+            onChange={handlePhoneChange}
+            placeholder="000-0000-0000"
+            maxLength={13}
+            readOnly={isReadOnly}
+          />
+        </FormGroup>
+      </ContentSection>
 
       {/* 하단 고정 버튼 - 조건부 렌더링 */}
       {currentStep === 7 && (
@@ -292,28 +290,13 @@ const PageContainer = styled.div`
   width: 100%;
 `;
 
-const ScrollableContent = styled.div`
-  flex: 1;
-  min-height: 0;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-  will-change: scroll-position;
-  transform: translateZ(0);
-
-  &::-webkit-scrollbar {
-    width: 0;
-    height: 0;
-  }
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-`;
-
 const ContentSection = styled.div`
   padding: 36px 24px 24px 24px;
 
   @media (max-width: ${({ theme }) => theme.font.breakpoints.mobile}) {
     padding: 24px 15px 24px 15px;
   }
+  margin-bottom: 32px;
 `;
 
 const FixedButtonArea = styled.div`

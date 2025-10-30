@@ -47,9 +47,12 @@ const PartnerSection = () => {
               logo_image_url: partner.logo_image_url,
               area: partner.Area || [],
               count: partner.completed_request_count || 0,
+              status: partner.status,
             };
           })
-          .filter((p) => p.partner_id !== OUR_STAFF_PARTNER_ID);
+          .filter(
+            (p) => p.partner_id !== OUR_STAFF_PARTNER_ID && p.status === 1
+          );
 
         const sortedByCount = partners.sort((a, b) => b.count - a.count);
         const selected = sortedByCount.slice(0, 8);

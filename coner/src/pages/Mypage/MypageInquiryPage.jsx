@@ -130,7 +130,7 @@ const MypageInquiryPage = () => {
     <Container>
       <RequestHeader
         showPrevButton={true}
-        userName="고객님의 "
+        userName="고객님의 의뢰서"
         to={"/mypage"}
         prevRequestTo="/search/completed"
         prevRequestState={{

@@ -23,6 +23,20 @@ const BlogSection = () => {
     return shuffled;
   };
 
+  //이미지 프리로드 함수
+  const preloadImages = (imageUrls, priority = "high") => {
+    imageUrls.forEach((url, index) => {
+      const img = new Image();
+
+      if (index < 3) {
+        img.fetchPriority = "high";
+      } else {
+        img.fetchPriority = "low";
+      }
+      img.src = url;
+    });
+  };
+
   useEffect(() => {
     const fetchBlogs = async () => {
       try {
@@ -45,6 +59,19 @@ const BlogSection = () => {
         // 랜덤으로 섞기
         const shuffledBlogs = shuffleArray(blogList);
         setBlogs(shuffledBlogs);
+
+        //3개만 초고속 로딩
+        shuffledBlogs.slice(0, 3).forEach((blog) => {
+          const link = document.createElement("link");
+          link.rel = "preload";
+          link.as = "image";
+          link.href = blog.imageUrl;
+          document.head.appendChild(link);
+        });
+
+        // 이미지 프리로드
+        const imageUrls = shuffledBlogs.slice(3).map((blog) => blog.imageUrl);
+        preloadImages(imageUrls);
       } catch (err) {
         console.error("블로그 데이터를 불러오는 데 실패했습니다:", err);
       }
@@ -130,7 +157,7 @@ const BlogSection = () => {
             <BlogImage
               src={blog.imageUrl}
               alt={blog.title}
-              loading="lazy"
+              loading="eager"
               decoding="async"
             />
             <BlogContent>

@@ -160,7 +160,7 @@ const PrimaryLink = styled(Link)`
   }
   @media (max-width: ${({ theme }) => theme.font.breakpoints.mobile}) {
     flex: 3;
-    font-size: ${({ theme }) => theme.font.size.body};
+    font-size: 17px;
   }
 `;
 
