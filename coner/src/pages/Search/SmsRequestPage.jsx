@@ -54,7 +54,11 @@ const SmsRequestPage = () => {
   if (loading) {
     return (
       <Container>
-        <RequestHeader showPrevButton={false} userName="고객님의 " to={"/"} />
+        <RequestHeader
+          showPrevButton={false}
+          userName="고객님의 의뢰서"
+          to={"/"}
+        />
         <CenteredContent>로딩 중...</CenteredContent>
       </Container>
     );
@@ -63,7 +67,11 @@ const SmsRequestPage = () => {
   if (error || !requestData) {
     return (
       <Container>
-        <RequestHeader showPrevButton={false} userName="고객님의 " to={"/"} />
+        <RequestHeader
+          showPrevButton={false}
+          userName="고객님의 의뢰서"
+          to={"/"}
+        />
         <CenteredContent>
           {error || "의뢰서를 찾을 수 없습니다."}
         </CenteredContent>
@@ -76,7 +84,11 @@ const SmsRequestPage = () => {
 
   return (
     <Container>
-      <RequestHeader showPrevButton={false} userName="고객님의 " to={"/"} />
+      <RequestHeader
+        showPrevButton={false}
+        userName="고객님의 의뢰서"
+        to={"/"}
+      />
       <RequestSection>
         <RequestReceived
           requestData={requestData}

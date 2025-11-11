@@ -98,8 +98,9 @@ const PartnerStep1 = () => {
 
   const timeOptions = [
     "오전9시 ~ 오전12시",
-    "오후1시 ~ 오후4시",
-    "오후5시 ~ 오후8시",
+    "오전12시 ~ 오후3시",
+    "오후3시 ~ 오후6시",
+    "오후6시 ~ 오후8시",
   ];
 
   const formatDate = (date) => {
@@ -112,8 +113,9 @@ const PartnerStep1 = () => {
 
   const getTimeOptionStartHour = (timeOption) => {
     if (timeOption === "오전9시 ~ 오전12시") return 9;
-    if (timeOption === "오후1시 ~ 오후4시") return 13;
-    if (timeOption === "오후5시 ~ 오후8시") return 17;
+    if (timeOption === "오전12시 ~ 오후3시") return 12;
+    if (timeOption === "오후3시 ~ 오후6시") return 15;
+    if (timeOption === "오후6시 ~ 오후8시") return 18;
     return 0;
   };
 

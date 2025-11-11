@@ -61,7 +61,7 @@ const CancelReviewPage = () => {
         cancel: Array.from(selectedCancel),
         complaints: complaints,
         cancelelse: selectedElse,
-        createdAt: formatDate(new Date()),
+        created_at: formatDate(new Date()),
       };
 
       // CancelReview 컬렉션에 취소 리뷰 저장

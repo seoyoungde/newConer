@@ -1,5 +1,5 @@
-import { lazy } from "react";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { lazy, useEffect } from "react";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import Layout from "./Layout.jsx";
 import Home from "./pages/Home/Home.jsx";
 import LoginPage from "./pages/Auth/LoginPage.jsx";
@@ -20,6 +20,7 @@ import SmsRequestPage from "./pages/Search/SmsRequestPage.jsx";
 import CompletedRequests from "./pages/Search/CompletedRequests.jsx";
 import InProgressRequest from "./pages/Search/InProgressRequest.jsx";
 import RequestSearchLayout from "./RequestSearchLayout.jsx";
+import Sticker from "./pages/Sticker/Sticker.jsx";
 
 // 단계 리뉴얼 디자인
 import Step0 from "./pages/Request/Steps/Step0.jsx";
@@ -59,11 +60,37 @@ function PageViewTracker() {
   usePageView();
   return null;
 }
+function SourceTracker() {
+  const location = useLocation();
 
+  useEffect(() => {
+    const urlParams = new URLSearchParams(location.search);
+    const source = urlParams.get("source");
+    if (source) {
+      sessionStorage.setItem("userSource", source);
+    }
+    const n_keyword = urlParams.get("n_keyword");
+    const n_ad = urlParams.get("n_ad");
+    const n_rank = urlParams.get("n_rank");
+
+    if (n_keyword) {
+      sessionStorage.setItem("n_keyword", n_keyword);
+    }
+    if (n_ad) {
+      sessionStorage.setItem("n_ad", n_ad);
+    }
+    if (n_rank) {
+      sessionStorage.setItem("n_rank", n_rank);
+    }
+  }, [location.search]);
+
+  return null;
+}
 export default function App() {
   return (
     <BrowserRouter>
       <PageViewTracker />
+      <SourceTracker />
       <Routes>
         <Route element={<Layout />}>
           <Route index path="/" element={<Home />} />
@@ -127,6 +154,7 @@ export default function App() {
           <Route path="/mypage/withdraw" element={<WithdrawPage />} />
 
           <Route path="/pay/:requestId" element={<PayPage />} />
+          <Route index path="/sticker" element={<Sticker />} />
         </Route>
       </Routes>
       <RequestDraftResetter />

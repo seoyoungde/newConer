@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import styled from "styled-components";
 import { useLocation, useNavigate } from "react-router-dom";
 
@@ -7,6 +7,11 @@ const SubmitSuccess = () => {
   const location = useLocation();
 
   const { customer_phone, requestId } = location.state || {};
+
+  useEffect(() => {
+    // 성공 페이지 진입 시 확실하게 삭제
+    sessionStorage.removeItem("requestSource");
+  }, []);
 
   const handleClose = () => {
     navigate("/");
@@ -37,6 +42,8 @@ const SubmitSuccess = () => {
       </CloseButton>
 
       <SubmitSection>
+        <SuccessText>견적 의뢰가 완료되었습니다!</SuccessText>
+        <SubText>평균 1일 안으로 기사님과 통화할 수 있어요.</SubText>
         <svg
           xmlns="http://www.w3.org/2000/svg"
           width="110"
@@ -52,7 +59,6 @@ const SubmitSuccess = () => {
           />
         </svg>
         <TextSection>
-          <SuccessText>의뢰가 완료되었습니다!</SuccessText>
           <RequestButton onClick={handleViewRequest}>
             내 의뢰 보러가기
             <svg
@@ -109,10 +115,14 @@ const SubmitSection = styled.section`
   flex-direction: column;
   justify-content: space-between;
   align-items: center;
-  width: 225px;
+  width: 280px;
   height: 223px;
 `;
-
+const SubText = styled.p`
+  color: #939393;
+  font-weight: 600;
+  font-size: 16px;
+`;
 const RequestButton = styled.button`
   color: #a0a0a0;
   font-size: 18px;

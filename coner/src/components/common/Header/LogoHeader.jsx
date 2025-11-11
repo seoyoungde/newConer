@@ -14,12 +14,21 @@ const LogoHeader = () => {
 };
 export default LogoHeader;
 const HeaderBar = styled.header`
+  position: sticky;
+  top: 0;
+  z-index: 10;
   display: flex;
   width: 100%;
   justify-content: space-between;
   align-items: center;
   height: 72px;
-  border-bottom: 1px solid #d4d4d4;
+  box-shadow: 0 0 6px 0 rgba(0, 0, 0, 0.15);
+  background: white;
+  padding: 0 24px;
+
+  @media (max-width: ${({ theme }) => theme.font.breakpoints.mobile}) {
+    padding: 0 15px;
+  }
 `;
 const LogoLink = styled(Link)`
   display: inline-flex;

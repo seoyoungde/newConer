@@ -4,14 +4,12 @@ import styled from "styled-components";
 import { useNavigate, useParams } from "react-router-dom";
 import { useRequest } from "../../../context/context";
 import { useFunnelStep } from "../../../analytics/useFunnelStep";
-import Button from "../../../components/ui/Button";
 
 const PartnerStep0 = () => {
   const navigate = useNavigate();
   const { requestData, updateRequestData } = useRequest();
   const { partnerId } = useParams();
 
-  // 퍼널 0단계
   const { onAdvance } = useFunnelStep({ step: 0 });
   const [selectedServiceType, setSelectedServiceType] = useState(
     requestData.service_type || ""
@@ -28,16 +26,17 @@ const PartnerStep0 = () => {
   const handleServiceTypeSelect = (serviceTypeId) => {
     setSelectedServiceType(serviceTypeId);
     updateRequestData("service_type", serviceTypeId);
-  };
 
-  const handleNext = () => {
-    onAdvance(1);
+    // 0.5초 후 자동으로 다음 페이지로 이동
+    setTimeout(() => {
+      onAdvance(1);
 
-    if (selectedServiceType === "설치 및 구매") {
-      navigate(`/partner/step0/purchase/${partnerId}`);
-    } else {
-      navigate(`/partner/step1/${partnerId}`);
-    }
+      if (serviceTypeId === "설치 및 구매") {
+        navigate(`/partner/step0/purchase/${partnerId}`);
+      } else {
+        navigate(`/partner/step1/${partnerId}`);
+      }
+    }, 400);
   };
 
   const handleHelpClick = () => {
@@ -51,11 +50,9 @@ const PartnerStep0 = () => {
     }
   };
 
-  const currentStep = selectedServiceType ? 1 : 0;
-
   return (
     <PageContainer>
-      <StepHeader to="/" currentStep={currentStep} totalSteps={10} />
+      <StepHeader to="/" currentStep={0} totalSteps={10} />
 
       <ContentSection>
         <PageTitle>받고 싶은 서비스 유형을 선택해주세요.</PageTitle>
@@ -90,29 +87,23 @@ const PartnerStep0 = () => {
             </ServiceTypeItem>
           ))}
         </ServiceTypeList>
-      </ContentSection>
 
-      {selectedServiceType && (
-        <FixedButtonArea>
-          <Button fullWidth size="stepsize" onClick={handleNext}>
-            확인
-          </Button>
-          <CSButtonContainer>
-            <CSButton onClick={handleHelpClick}>
-              <CSButtonText>도움이 필요해요</CSButtonText>
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="8"
-                height="14"
-                viewBox="0 0 8 14"
-                fill="none"
-              >
-                <path d="M0.999999 13L7 7L1 1" stroke="#A0A0A0" />
-              </svg>
-            </CSButton>
-          </CSButtonContainer>
-        </FixedButtonArea>
-      )}
+        {/* 도움 버튼 */}
+        <CSButtonContainer>
+          <CSButton onClick={handleHelpClick}>
+            <CSButtonText>도움이 필요해요</CSButtonText>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="8"
+              height="14"
+              viewBox="0 0 8 14"
+              fill="none"
+            >
+              <path d="M0.999999 13L7 7L1 1" stroke="#A0A0A0" />
+            </svg>
+          </CSButton>
+        </CSButtonContainer>
+      </ContentSection>
     </PageContainer>
   );
 };
@@ -192,21 +183,10 @@ const CheckIcon = styled.div`
   flex-shrink: 0;
 `;
 
-const FixedButtonArea = styled.div`
-  flex-shrink: 0;
-  margin-bottom: 87px;
-  padding: 16px 24px;
-
-  @media (max-width: ${({ theme }) => theme.font.breakpoints.mobile}) {
-    padding: 15px;
-    margin-bottom: 10px;
-  }
-`;
-
 const CSButtonContainer = styled.div`
   display: flex;
   justify-content: center;
-  margin-top: 20px;
+  margin-top: 40px;
 `;
 
 const CSButton = styled.div`

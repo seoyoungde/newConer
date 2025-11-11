@@ -3,19 +3,103 @@ import styled from "styled-components";
 import { collection, getDocs } from "firebase/firestore";
 import { db } from "../../../lib/firebase";
 import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 
 import 청우냉열 from "../../../assets/partnerimages/청우냉열.jpg";
 import 에스디에어시스템 from "../../../assets/partnerimages/에스디에어시스템.jpg";
 import 예은공조 from "../../../assets/partnerimages/예은공조.jpg";
 import 이룸에어컨 from "../../../assets/partnerimages/이룸에어컨.jpg";
 import 쿨가이 from "../../../assets/partnerimages/쿨가이.jpg";
+import 스마트공조시스템 from "../../../assets/partnerimages/스마트공조시스템.jpg";
+import 이원공조 from "../../../assets/partnerimages/이원공조.jpeg";
+import 깔끔히홈케어 from "../../../assets/partnerimages/깔끔히홈케어.jpg";
+import 수공조시스템 from "../../../assets/partnerimages/수공조시스템.jpeg";
 
 const partnerImages = {
-  IRoQdhzbK6dqvxME2xLh: 청우냉열,
-  qCpXWRHg5BhzemDgZ59y: 에스디에어시스템,
-  jNWEwUFfuiTLmfHilNpP: 예은공조,
-  DJzycy4MlxD98rzaiQ8M: 이룸에어컨,
-  IOPG8XV80Z8VKT95LzgW: 쿨가이,
+  partner_IRoQdhzbK6dqvxME2xLh: 청우냉열,
+  partner_qCpXWRHg5BhzemDgZ59y: 에스디에어시스템,
+  partner_jNWEwUFfuiTLmfHilNpP: 예은공조,
+  partner_DJzycy4MlxD98rzaiQ8M: 이룸에어컨,
+  partner_IOPG8XV80Z8VKT95LzgW: 쿨가이,
+  partner_H6iMH3sxiHdtD59wrbMm: 스마트공조시스템,
+  partner_2t7WiRLVHXJdNYnxPSPy: 이원공조,
+  partner_4jG7dd2lAoi7k0nOlckT: 깔끔히홈케어,
+  partner_EuIvYioQRQYSGMyCosjk: 수공조시스템,
+};
+
+// 서울 전체 25개 구
+const SEOUL_ALL_DISTRICTS = [
+  "강남구",
+  "강동구",
+  "강북구",
+  "강서구",
+  "관악구",
+  "광진구",
+  "구로구",
+  "금천구",
+  "노원구",
+  "도봉구",
+  "동대문구",
+  "동작구",
+  "마포구",
+  "서대문구",
+  "서초구",
+  "성동구",
+  "성북구",
+  "송파구",
+  "양천구",
+  "영등포구",
+  "용산구",
+  "은평구",
+  "종로구",
+  "중구",
+  "중랑구",
+];
+
+// 서울 강북지역 10개 구
+const SEOUL_GANGBUK_DISTRICTS = [
+  "강북구",
+  "광진구",
+  "노원구",
+  "도봉구",
+  "동대문구",
+  "마포구",
+  "성북구",
+  "은평구",
+  "종로구",
+  "중랑구",
+];
+
+const getAreaDisplayText = (areaArray) => {
+  if (!areaArray || areaArray.length === 0) return "";
+
+  // 서울 전지역인지 확인 (25개 구 모두 포함)
+  const hasAllSeoulDistricts = SEOUL_ALL_DISTRICTS.every((district) =>
+    areaArray.includes(district)
+  );
+
+  if (hasAllSeoulDistricts) {
+    return "서울전지역";
+  }
+
+  // 서울 강북지역인지 확인 (강북 10개 구만 포함)
+  const hasAllGangbukDistricts = SEOUL_GANGBUK_DISTRICTS.every((district) =>
+    areaArray.includes(district)
+  );
+  const hasOnlyGangbukDistricts = areaArray.every((district) =>
+    SEOUL_GANGBUK_DISTRICTS.includes(district)
+  );
+
+  if (
+    hasAllGangbukDistricts &&
+    hasOnlyGangbukDistricts &&
+    areaArray.length === 10
+  ) {
+    return "서울강북지역";
+  }
+
+  // 그 외의 경우 첫 번째 지역 표시
+  return areaArray[0];
 };
 
 const PartnerSection = () => {
@@ -45,7 +129,7 @@ const PartnerSection = () => {
               career: partner.career,
               address: partner.address,
               logo_image_url: partner.logo_image_url,
-              area: partner.Area || [],
+              area: partner.area || [],
               count: partner.completed_request_count || 0,
               status: partner.status,
             };
@@ -55,7 +139,7 @@ const PartnerSection = () => {
           );
 
         const sortedByCount = partners.sort((a, b) => b.count - a.count);
-        const selected = sortedByCount.slice(0, 8);
+        const selected = sortedByCount.slice(0, 20);
 
         setTechnicians(selected);
       } catch (err) {
@@ -99,8 +183,10 @@ const PartnerSection = () => {
 
   return (
     <PartnerSelectContainer>
-      <Title>내게 맞는 전문가 바로 예약</Title>
-
+      <TitleBox>
+        <Title>내게 맞는 전문가 바로 예약</Title>
+        <MoreLink to="/sticker">+더보기</MoreLink>
+      </TitleBox>
       <ScrollContainer
         ref={scrollContainerRef}
         onMouseDown={handleMouseDown}
@@ -118,15 +204,18 @@ const PartnerSection = () => {
                 return;
               }
               navigate(`/partner/step0/${tech.id}`, {
-                state: { flowType: "fromTechnician", selectedTechnician: tech },
+                state: {
+                  flowType: "fromTechnician",
+                  selectedTechnician: tech,
+                },
               });
             }}
             $isDragging={isDragging}
           >
             <CardImage
               src={
-                partnerImages[tech.id] ||
-                partnerImages[tech.partner_id] ||
+                partnerImages[`partner_${tech.id}`] ||
+                partnerImages[`partner_${tech.partner_id}`] ||
                 "/default-profile.png"
               }
               alt={tech.name}
@@ -159,9 +248,7 @@ const PartnerSection = () => {
 
                 <PartnerName>{tech.name}</PartnerName>
                 <AreaTags>
-                  {tech.area.slice(0, 1).map((area, idx) => (
-                    <AreaTag key={idx}>#{area}</AreaTag>
-                  ))}
+                  <AreaTag>#{getAreaDisplayText(tech.area)}</AreaTag>
                 </AreaTags>
               </BottomInfo>
             </CardContent>
@@ -178,11 +265,14 @@ const PartnerSelectContainer = styled.section`
   margin-bottom: 60px;
   width: 100%;
 `;
-
+const TitleBox = styled.div`
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+`;
 const Title = styled.h2`
   font-size: 24px;
   font-weight: bold;
-  margin-bottom: 20px;
   color: ${({ theme }) => theme.colors.text || "#000"};
 
   @media (max-width: ${({ theme }) => theme.font.breakpoints.mobile}) {
@@ -190,10 +280,17 @@ const Title = styled.h2`
     margin-bottom: 16px;
   }
 `;
-
+const MoreLink = styled(Link)`
+  color: black;
+  line-height: 35px;
+  @media (max-width: ${({ theme }) => theme.font.breakpoints.mobile}) {
+    font-size: 14px;
+  }
+`;
 const ScrollContainer = styled.div`
   display: flex;
   gap: 8px;
+  margin-top: 20px;
   overflow-x: auto;
   overflow-y: hidden;
   padding: 4px 0;

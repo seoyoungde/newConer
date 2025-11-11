@@ -42,7 +42,7 @@ const Step6 = () => {
       address: `${requestData.customer_address || ""} ${
         requestData.customer_address_detail || ""
       }`.trim(),
-      customerType: requestData.customer_type || "",
+      customer_type: requestData.customer_type || "",
       date: requestData.service_date || "",
       datetime: requestData.service_time || "",
       airconType: requestData.aircon_type || "",
@@ -76,7 +76,6 @@ const Step6 = () => {
 
     for (const [key, message] of requiredFields) {
       if (!requestData[key]) {
-        console.error(`필수 데이터 누락: ${key} = ${requestData[key]}`);
         setPopupMessage(message);
         return;
       }
@@ -93,6 +92,9 @@ const Step6 = () => {
       const n_keyword = sessionStorage.getItem("n_keyword") || "";
       const n_ad = sessionStorage.getItem("n_ad") || "";
       const n_rank = sessionStorage.getItem("n_rank") || "";
+
+      const userSource = sessionStorage.getItem("userSource") || "direct";
+
       const trackingInfo = [
         `n_keyword=${n_keyword}`,
         `n_ad=${n_ad}`,
@@ -101,6 +103,7 @@ const Step6 = () => {
       const updatedSprint = [
         ...(requestData.sprint || []),
         JSON.stringify(trackingInfo),
+        userSource,
       ];
 
       const payload = {
@@ -108,11 +111,16 @@ const Step6 = () => {
         customer_uid: clientId,
         sprint: updatedSprint,
         customer_phone: digitsPhone,
-
         service_type: requestData.service_type,
+        customer_type: requestData.customer_type,
       };
 
       const requestId = await submitRequest(payload);
+
+      sessionStorage.removeItem("userSource");
+      sessionStorage.removeItem("n_keyword");
+      sessionStorage.removeItem("n_ad");
+      sessionStorage.removeItem("n_rank");
 
       // SMS 알림 전송 시도
       try {
@@ -124,6 +132,7 @@ const Step6 = () => {
           service_type: payload.service_type,
           customer_address: requestData.customer_address,
           customer_phone: digitsPhone,
+          customer_type: requestData.customer_type,
         });
       } catch (err) {
         console.error("❌ 알림 전송 실패:", err.response?.data || err.message);
@@ -138,7 +147,6 @@ const Step6 = () => {
         state: { customer_phone: digitsPhone, requestId },
       });
     } catch (error) {
-      console.error("제출 오류:", error);
       setPopupMessage("제출 중 오류가 발생했습니다. 다시 시도해주세요.");
     } finally {
       setIsSubmitting(false);
@@ -203,7 +211,7 @@ const Step6 = () => {
             <div>
               <SectionTitle>의뢰인 유형</SectionTitle>
               <Section>
-                <ValueBox>{confirmationData.customerType}</ValueBox>
+                <ValueBox>{confirmationData.customer_type}</ValueBox>
               </Section>
             </div>
           </TwoColumnGrid>
@@ -230,7 +238,7 @@ const Step6 = () => {
           onClick={handleSubmit}
           disabled={!agreementsOK || isSubmitting}
         >
-          {isSubmitting ? "제출 중..." : "의뢰하기"}
+          {isSubmitting ? "제출 중..." : "견적 의뢰하기"}
         </Button>
         <HelpButton onClick={handleHelpClick}>
           <HelpText>도움이 필요해요</HelpText>

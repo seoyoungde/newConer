@@ -117,7 +117,6 @@ const PartnerStep6 = () => {
 
     for (const [key, message] of requiredFields) {
       if (!requestData[key]) {
-        console.error(`필수 데이터 누락: ${key} = ${requestData[key]}`);
         setPopupMessage(message);
         return;
       }
@@ -139,9 +138,10 @@ const PartnerStep6 = () => {
         `n_ad=${n_ad}`,
         `n_rank=${n_rank}`,
       ];
+      const userSource = sessionStorage.getItem("userSource") || "direct";
       const updatedSprint = [
-        ...(requestData.sprint || []),
-        JSON.stringify(trackingInfo),
+        JSON.stringify(trackingInfo), // sprint[0]에 추적 정보
+        userSource, // sprint[1]에 source 저장
       ];
 
       const payload = {
@@ -154,6 +154,7 @@ const PartnerStep6 = () => {
       };
 
       const requestId = await submitRequest(payload);
+      sessionStorage.removeItem("userSource");
 
       // SMS 알림 전송 시도
       // 파트너 선택되어 있으면 해당 업체 알림, 아니면 일반 알림
@@ -179,6 +180,7 @@ const PartnerStep6 = () => {
             service_type: requestData.service_type,
             customer_address: requestData.customer_address,
             customer_phone: digitsPhone,
+            customer_type: requestData.customer_type,
             partner_id: validPartnerId || requestData?.partner_uid || "",
           });
         } else {
@@ -190,6 +192,7 @@ const PartnerStep6 = () => {
             service_type: requestData.service_type,
             customer_address: requestData.customer_address,
             customer_phone: digitsPhone,
+            customer_type: requestData.customer_type,
           });
         }
       } catch (err) {
@@ -205,7 +208,6 @@ const PartnerStep6 = () => {
         state: { customer_phone: digitsPhone, requestId },
       });
     } catch (error) {
-      console.error("제출 오류:", error);
       setPopupMessage("제출 중 오류가 발생했습니다. 다시 시도해주세요.");
     } finally {
       setIsSubmitting(false);
@@ -304,7 +306,7 @@ const PartnerStep6 = () => {
           onClick={handleSubmit}
           disabled={!agreementsOK || isSubmitting}
         >
-          {isSubmitting ? "제출 중..." : "의뢰하기"}
+          {isSubmitting ? "제출 중..." : "견적 의뢰하기"}
         </Button>
         <HelpButton onClick={handleHelpClick}>
           <HelpText>도움이 필요해요</HelpText>

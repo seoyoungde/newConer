@@ -23,7 +23,7 @@ const ReviewPage = () => {
   });
 
   const [uploadedPhotos, setUploadedPhotos] = useState([]);
-  const [serviceOpinion, setServiceOpinion] = useState("");
+  const [service_opinion, setService_opinion] = useState("");
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const fileInputRef = useRef(null);
@@ -85,9 +85,9 @@ const ReviewPage = () => {
       const reviewData = {
         partner_rating: ratings.partner.toString(),
         photo: photoUrls,
-        serviceOpinion: serviceOpinion,
+        service_opinion: service_opinion,
         service_rating: ratings.service.toString(),
-        createdAt: formatDate(new Date()),
+        created_at: formatDate(new Date()),
       };
 
       // Firestore의 Review 컬렉션에 저장 (문서 ID는 requestId)
@@ -207,11 +207,11 @@ const ReviewPage = () => {
           <StyledTextArea
             placeholder="나눠주신 의견을 통해 더 나은 서비스를 제공하는 코너가 되겠습니다."
             rows={4}
-            value={serviceOpinion}
-            onChange={(e) => setServiceOpinion(e.target.value)}
+            value={service_opinion}
+            onChange={(e) => setService_opinion(e.target.value)}
           />
           <CharacterCount>
-            {serviceOpinion.length} | {MAX_TEXT_LENGTH}자 이내
+            {service_opinion.length} | {MAX_TEXT_LENGTH}자 이내
           </CharacterCount>
         </TextAreaWrapper>
 
