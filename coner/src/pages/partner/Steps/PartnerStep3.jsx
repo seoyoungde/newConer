@@ -4,14 +4,12 @@ import StepHeader from "../../../components/common/Header/StepHeader";
 import { useNavigate, useParams } from "react-router-dom";
 import { useRequest } from "../../../context/context";
 import { useFunnelStep } from "../../../analytics/useFunnelStep";
-import Button from "../../../components/ui/Button";
 
 const PartnerStep3 = () => {
   const navigate = useNavigate();
   const { partnerId } = useParams();
   const { requestData, updateRequestData } = useRequest();
 
-  // 퍼널: 3단계
   const { onAdvance } = useFunnelStep({ step: 3 });
 
   const [selectedBrand, setSelectedBrand] = useState(requestData.brand || "");
@@ -33,24 +31,23 @@ const PartnerStep3 = () => {
   const handleBrandSelect = (brandId) => {
     setSelectedBrand(brandId);
     updateRequestData("brand", brandId);
-  };
 
-  const handleNext = () => {
-    onAdvance(4);
-    navigate(`/partner/step4/${partnerId}`);
+    // 0.5초 후 자동으로 다음 페이지로 이동
+    setTimeout(() => {
+      onAdvance(4);
+      navigate(`/partner/step4/${partnerId}`);
+    }, 400);
   };
 
   const handleHelpClick = () => {
     window.open("http://pf.kakao.com/_jyhxmn/chat", "_blank");
   };
 
-  const currentStep = selectedBrand ? 5 : 4;
-
   return (
     <PageContainer>
       <StepHeader
         to={`/partner/step2/${partnerId}`}
-        currentStep={currentStep}
+        currentStep={4}
         totalSteps={10}
       />
       <ContentSection>
@@ -83,29 +80,23 @@ const PartnerStep3 = () => {
             </BrandItem>
           ))}
         </BrandList>
-      </ContentSection>
 
-      {selectedBrand && (
-        <FixedButtonArea>
-          <Button fullWidth size="stepsize" onClick={handleNext}>
-            확인
-          </Button>
-          <CSButtonContainer>
-            <CSButton onClick={handleHelpClick}>
-              <CSButtonText>도움이 필요해요</CSButtonText>
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="8"
-                height="14"
-                viewBox="0 0 8 14"
-                fill="none"
-              >
-                <path d="M0.999999 13L7 7L1 1" stroke="#A0A0A0" />
-              </svg>
-            </CSButton>
-          </CSButtonContainer>
-        </FixedButtonArea>
-      )}
+        {/* 도움 버튼 */}
+        <CSButtonContainer>
+          <CSButton onClick={handleHelpClick}>
+            <CSButtonText>도움이 필요해요</CSButtonText>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="8"
+              height="14"
+              viewBox="0 0 8 14"
+              fill="none"
+            >
+              <path d="M0.999999 13L7 7L1 1" stroke="#A0A0A0" />
+            </svg>
+          </CSButton>
+        </CSButtonContainer>
+      </ContentSection>
     </PageContainer>
   );
 };
@@ -175,10 +166,11 @@ const CheckIcon = styled.div`
   transition: all 0.2s ease;
   flex-shrink: 0;
 `;
+
 const CSButtonContainer = styled.div`
   display: flex;
   justify-content: center;
-  margin-top: 20px;
+  margin-top: 40px;
 `;
 
 const CSButton = styled.button`
@@ -195,14 +187,4 @@ const CSButtonText = styled.p`
   margin: 0;
   font-size: ${({ theme }) => theme.font.size.bodyLarge};
   color: #a0a0a0;
-`;
-const FixedButtonArea = styled.div`
-  flex-shrink: 0;
-  margin-bottom: 87px;
-  padding: 16px 24px;
-
-  @media (max-width: ${({ theme }) => theme.font.breakpoints.mobile}) {
-    padding: 15px;
-    margin-bottom: 10px;
-  }
 `;

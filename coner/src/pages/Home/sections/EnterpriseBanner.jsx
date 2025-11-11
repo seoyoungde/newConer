@@ -138,8 +138,8 @@ const BoldText = styled.span`
   line-height: 150%;
   transform: translateY(-0.25em);
 
-  @media (max-width: 580px) {
-    font-size: 24px;
+  @media (max-width: 600px) {
+    font-size: 22px;
   }
 
   @media (max-width: ${({ theme }) => theme.font.breakpoints.mobile}) {

@@ -4,7 +4,6 @@ import StepHeader from "../../../components/common/Header/StepHeader";
 import { useNavigate, useParams } from "react-router-dom";
 import { useRequest } from "../../../context/context";
 import { useFunnelStep } from "../../../analytics/useFunnelStep";
-import Button from "../../../components/ui/Button";
 
 import Type1Icon from "../../../assets/servicetype/servicesType_1.png";
 import Type3Icon from "../../../assets/servicetype/servicesType_3.png";
@@ -16,7 +15,6 @@ const PartnerStep2 = () => {
   const { partnerId } = useParams();
   const { requestData, updateRequestData } = useRequest();
 
-  // 퍼널: 2단계
   const { onAdvance } = useFunnelStep({ step: 2 });
 
   const [selectedType, setSelectedType] = useState(
@@ -39,27 +37,25 @@ const PartnerStep2 = () => {
   const handleTypeSelect = (typeId) => {
     setSelectedType(typeId);
     updateRequestData("aircon_type", typeId);
+
+    // 0.5초 후 자동으로 다음 페이지로 이동
+    setTimeout(() => {
+      onAdvance(3);
+      navigate(`/partner/step3/${partnerId}`);
+    }, 400);
   };
 
-  const handleNext = () => {
-    // 에어컨 종류 선택 즉시 다음 페이지로 이동
-    onAdvance(3);
-    navigate(`/partner/step3/${partnerId}`);
-  };
   const handleHelpClick = () => {
     window.open("http://pf.kakao.com/_jyhxmn/chat", "_blank");
   };
 
-  const currentStep = selectedType ? 4 : 3;
-
-  // 선택 단계에 따라 타이틀 변경
-  let title = "에어컨 종류를 선택해주세요.";
+  const title = "에어컨 종류를 선택해주세요.";
 
   return (
     <PageContainer>
       <StepHeader
         to={`/partner/step1/${partnerId}`}
-        currentStep={currentStep}
+        currentStep={3}
         totalSteps={10}
       />
       <ContentSection>
@@ -83,29 +79,23 @@ const PartnerStep2 = () => {
             ))}
           </TypeContainer>
         </FormGroup>
-      </ContentSection>
 
-      {selectedType && (
-        <FixedButtonArea>
-          <Button fullWidth size="stepsize" onClick={handleNext}>
-            확인
-          </Button>
-          <CSButtonContainer>
-            <CSButton onClick={handleHelpClick}>
-              <CSButtonText>도움이 필요해요</CSButtonText>
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="8"
-                height="14"
-                viewBox="0 0 8 14"
-                fill="none"
-              >
-                <path d="M0.999999 13L7 7L1 1" stroke="#A0A0A0" />
-              </svg>
-            </CSButton>
-          </CSButtonContainer>
-        </FixedButtonArea>
-      )}
+        {/* 도움 버튼 */}
+        <CSButtonContainer>
+          <CSButton onClick={handleHelpClick}>
+            <CSButtonText>도움이 필요해요</CSButtonText>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="8"
+              height="14"
+              viewBox="0 0 8 14"
+              fill="none"
+            >
+              <path d="M0.999999 13L7 7L1 1" stroke="#A0A0A0" />
+            </svg>
+          </CSButton>
+        </CSButtonContainer>
+      </ContentSection>
     </PageContainer>
   );
 };
@@ -210,10 +200,11 @@ const TypeImg = styled.img`
     height: 78px;
   }
 `;
+
 const CSButtonContainer = styled.div`
   display: flex;
   justify-content: center;
-  margin-top: 20px;
+  margin-top: 40px;
 `;
 
 const CSButton = styled.button`
@@ -230,14 +221,4 @@ const CSButtonText = styled.p`
   margin: 0;
   font-size: ${({ theme }) => theme.font.size.bodyLarge};
   color: #a0a0a0;
-`;
-const FixedButtonArea = styled.div`
-  flex-shrink: 0;
-  margin-bottom: 87px;
-  padding: 16px 24px;
-
-  @media (max-width: ${({ theme }) => theme.font.breakpoints.mobile}) {
-    padding: 15px;
-    margin-bottom: 10px;
-  }
 `;

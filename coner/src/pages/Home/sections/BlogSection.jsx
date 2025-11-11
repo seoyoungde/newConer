@@ -40,17 +40,17 @@ const BlogSection = () => {
   useEffect(() => {
     const fetchBlogs = async () => {
       try {
-        const blogQuery = query(collection(db, "Blog"), limit(10));
+        const blogQuery = query(collection(db, "Blog"), limit(6));
         const blogSnapshot = await getDocs(blogQuery);
 
         const blogList = blogSnapshot.docs.map((doc) => {
           const blog = doc.data();
 
           return {
-            id: doc.id,
+            blog_id: doc.id,
             title: blog.title || "",
             imageUrl: blog.imageUrl || "/default-blog.png",
-            createdAt: blog.createdAt || "",
+            created_at: blog.created_at || "",
             author: blog.author || "",
             link: blog.link || "",
           };
@@ -118,6 +118,11 @@ const BlogSection = () => {
     }
   };
 
+  const handleViewMoreClick = () => {
+    if (hasMoved) return;
+    navigate("/blog");
+  };
+
   const formatDate = (dateString) => {
     if (!dateString) return "";
 
@@ -144,7 +149,7 @@ const BlogSection = () => {
       >
         {blogs.map((blog) => (
           <BlogCard
-            key={blog.id}
+            key={blog.blog_id}
             onClick={(e) => {
               if (hasMoved) {
                 e.preventDefault();
@@ -178,7 +183,7 @@ const BlogSection = () => {
                       />
                     </svg>
                   </ClockIcon>
-                  <MetaText>{formatDate(blog.createdAt)} | </MetaText>
+                  <MetaText>{formatDate(blog.created_at)} | </MetaText>
                 </MetaItem>
                 <MetaItem>
                   <AuthorIcon>
@@ -201,6 +206,44 @@ const BlogSection = () => {
             </BlogContent>
           </BlogCard>
         ))}
+
+        {/* 블로그 더 둘러보기 카드 */}
+        <ViewMoreCard
+          onClick={(e) => {
+            if (hasMoved) {
+              e.preventDefault();
+              return;
+            }
+            handleViewMoreClick();
+          }}
+          $isDragging={isDragging}
+        >
+          <ViewMoreContent>
+            <ViewMoreIcon>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="40"
+                height="40"
+                viewBox="0 0 40 40"
+                fill="none"
+              >
+                <circle cx="20" cy="20" r="20" fill="#F5F5F5" />
+                <path
+                  d="M20 14V26M14 20H26"
+                  stroke="#666"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                />
+              </svg>
+            </ViewMoreIcon>
+            <ViewMoreTitle>블로그 더 둘러보기</ViewMoreTitle>
+            <ViewMoreDescription>
+              코너의 다양한 이야기를
+              <br />
+              만나보세요
+            </ViewMoreDescription>
+          </ViewMoreContent>
+        </ViewMoreCard>
       </ScrollContainer>
     </BlogContainer>
   );
@@ -303,8 +346,54 @@ const MetaText = styled.span`
   color: #8b8b8b;
   font-size: 10px;
 `;
+
 const AuthorIcon = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
+`;
+
+// 블로그 더보기 카드 스타일
+const ViewMoreCard = styled.div`
+  min-width: 233px;
+  height: 198px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  cursor: ${({ $isDragging }) => ($isDragging ? "grabbing" : "pointer")};
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  border: 2px dashed #dee2e6;
+`;
+
+const ViewMoreContent = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 20px;
+`;
+
+const ViewMoreIcon = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+`;
+
+const ViewMoreTitle = styled.h3`
+  font-size: 16px;
+  font-weight: bold;
+  color: #333;
+  margin: 0;
+  text-align: center;
+`;
+
+const ViewMoreDescription = styled.p`
+  font-size: 12px;
+  color: #666;
+  margin: 0;
+  text-align: center;
+  line-height: 1.5;
 `;

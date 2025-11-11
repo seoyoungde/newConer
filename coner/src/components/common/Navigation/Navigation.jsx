@@ -1,10 +1,9 @@
-import React, { useState } from "react";
+import React from "react";
 import styled from "styled-components";
 import { useParams } from "react-router-dom";
 import { FaPhoneAlt } from "react-icons/fa";
 import { BsChatDotsFill } from "react-icons/bs";
 import { Link } from "react-router-dom";
-import Modal from "../Modal/Modal";
 
 const isMobileDevice = () => {
   if (typeof navigator === "undefined") return false;
@@ -12,21 +11,12 @@ const isMobileDevice = () => {
 };
 
 const Navigation = () => {
-  const [showPhoneModal, setShowPhoneModal] = useState(false);
   const { partnerId } = useParams();
-
-  // 전화번호 목록
-  const phoneNumbers = [
-    { number: "070-8648-3327" },
-    { number: "070-8648-3326" },
-  ];
 
   const handlePhoneClick = (e) => {
     e.preventDefault();
-    setShowPhoneModal(true);
-  };
+    const phoneNumber = "02-4333-114";
 
-  const handlePhoneSelect = (phoneNumber) => {
     if (isMobileDevice()) {
       window.location.href = `tel:${phoneNumber}`;
     } else {
@@ -35,7 +25,6 @@ const Navigation = () => {
         alert(`전화번호 ${phoneNumber}가 클립보드에 복사되었습니다.`);
       });
     }
-    setShowPhoneModal(false);
   };
 
   return (
@@ -56,35 +45,10 @@ const Navigation = () => {
             톡톡 상담
           </Actionhref>
         </Hrefs>
-        <PrimaryLink to={`/partner/step0/${partnerId}`}>
-          온라인으로 서비스 신청하기
+        <PrimaryLink to={`/partner/step0/${partnerId}?source=price`}>
+          무료 견적 받아보기
         </PrimaryLink>
       </Actions>
-
-      {/* 전화번호 선택 모달 */}
-      <Modal
-        open={showPhoneModal}
-        onClose={() => setShowPhoneModal(false)}
-        title="전화 상담 번호 선택"
-        width={350}
-        containerId="rightbox-modal-root"
-      >
-        <PhoneModalContent>
-          <PhoneModalText>상담받으실 전화번호를 선택해주세요</PhoneModalText>
-          {phoneNumbers.map((phone, index) => (
-            <PhoneButton
-              key={index}
-              onClick={() => handlePhoneSelect(phone.number)}
-            >
-              <PhoneIcon>
-                <FaPhoneAlt size={18} />
-              </PhoneIcon>
-
-              <PhoneNumber>{phone.number}</PhoneNumber>
-            </PhoneButton>
-          ))}
-        </PhoneModalContent>
-      </Modal>
     </NavBar>
   );
 };
@@ -162,49 +126,4 @@ const PrimaryLink = styled(Link)`
     flex: 3;
     font-size: 17px;
   }
-`;
-
-// 전화번호 모달 스타일
-const PhoneModalContent = styled.div`
-  padding: 10px 0;
-`;
-
-const PhoneModalText = styled.p`
-  margin-bottom: 20px;
-  color: #666;
-  font-size: 14px;
-  text-align: center;
-`;
-
-const PhoneButton = styled.button`
-  width: 100%;
-  display: flex;
-  align-items: center;
-  padding: 15px;
-  margin-bottom: 10px;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-  background: white;
-  cursor: pointer;
-  transition: all 0.2s ease;
-
-  &:hover {
-    background: #f8f9fa;
-    border-color: #007bff;
-  }
-
-  &:last-child {
-    margin-bottom: 0;
-  }
-`;
-
-const PhoneIcon = styled.div`
-  color: #007bff;
-  margin-right: 12px;
-`;
-
-const PhoneNumber = styled.div`
-  font-size: 16px;
-  font-weight: 600;
-  color: #333;
 `;

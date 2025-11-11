@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Outlet } from "react-router-dom";
 import styled from "styled-components";
-import LeftbannerIcon from "../src/assets/images/leftbanner.jpg";
+import LeftbannerIcon from "../src/assets/images/leftbanner2.png";
 import Header from "./components/common/Header/Header";
 import Navigation from "./components/common/Navigation/Navigation";
 
@@ -158,7 +158,7 @@ const Container = styled.div`
 `;
 
 const LeftImage = styled.aside`
-  width: 380px;
+  width: 340px;
   img {
     width: 100%;
     display: block;

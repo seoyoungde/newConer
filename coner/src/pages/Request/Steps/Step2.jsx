@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import styled from "styled-components";
 import StepHeader from "../../../components/common/Header/StepHeader";
 import { useNavigate } from "react-router-dom";
-import Button from "../../../components/ui/Button";
 import { useRequest } from "../../../context/context";
 import { useFunnelStep } from "../../../analytics/useFunnelStep";
 
@@ -15,7 +14,6 @@ const Step2 = () => {
   const navigate = useNavigate();
   const { requestData, updateRequestData } = useRequest();
 
-  // 퍼널: 2단계
   const { onAdvance } = useFunnelStep({ step: 2 });
 
   const [selectedType, setSelectedType] = useState(
@@ -38,16 +36,12 @@ const Step2 = () => {
   const handleTypeSelect = (typeId) => {
     setSelectedType(typeId);
     updateRequestData("aircon_type", typeId);
-  };
 
-  const handleNext = () => {
-    if (!selectedType) {
-      alert("에어컨 종류를 선택해주세요.");
-      return;
-    }
-
-    onAdvance(3);
-    navigate("/request/step3");
+    // 0.5초 후 자동으로 다음 페이지로 이동
+    setTimeout(() => {
+      onAdvance(3);
+      navigate("/request/step3");
+    }, 400);
   };
 
   const handleHelpClick = () => {
@@ -56,15 +50,9 @@ const Step2 = () => {
 
   const title = "에어컨 종류를 선택해주세요.";
 
-  const currentStep = selectedType ? 3 : 2;
-
   return (
     <PageContainer>
-      <StepHeader
-        to="/request/step1"
-        currentStep={currentStep}
-        totalSteps={9}
-      />
+      <StepHeader to="/request/step1" currentStep={2} totalSteps={9} />
       <ContentSection>
         <PageTitle>{title}</PageTitle>
 
@@ -86,30 +74,23 @@ const Step2 = () => {
             ))}
           </TypeContainer>
         </FormGroup>
-      </ContentSection>
 
-      {/* 하단 고정 버튼 영역 - 조건부 렌더링 */}
-      {selectedType && (
-        <FixedButtonArea>
-          <Button fullWidth size="stepsize" onClick={handleNext}>
-            확인
-          </Button>
-          <CSButtonContainer>
-            <CSButton onClick={handleHelpClick}>
-              <CSButtonText>도움이 필요해요</CSButtonText>
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="8"
-                height="14"
-                viewBox="0 0 8 14"
-                fill="none"
-              >
-                <path d="M0.999999 13L7 7L1 1" stroke="#A0A0A0" />
-              </svg>
-            </CSButton>
-          </CSButtonContainer>
-        </FixedButtonArea>
-      )}
+        {/* 도움 버튼 */}
+        <CSButtonContainer>
+          <CSButton onClick={handleHelpClick}>
+            <CSButtonText>도움이 필요해요</CSButtonText>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="8"
+              height="14"
+              viewBox="0 0 8 14"
+              fill="none"
+            >
+              <path d="M0.999999 13L7 7L1 1" stroke="#A0A0A0" />
+            </svg>
+          </CSButton>
+        </CSButtonContainer>
+      </ContentSection>
     </PageContainer>
   );
 };
@@ -130,17 +111,6 @@ const ContentSection = styled.div`
     padding: 24px 15px 24px 15px;
   }
   margin-bottom: 32px;
-`;
-
-const FixedButtonArea = styled.div`
-  flex-shrink: 0;
-  margin-bottom: 87px;
-  padding: 16px 24px;
-
-  @media (max-width: ${({ theme }) => theme.font.breakpoints.mobile}) {
-    padding: 15px;
-    margin-bottom: 10px;
-  }
 `;
 
 const PageTitle = styled.h1`
@@ -229,7 +199,7 @@ const TypeImg = styled.img`
 const CSButtonContainer = styled.div`
   display: flex;
   justify-content: center;
-  margin-top: 20px;
+  margin-top: 40px;
 `;
 
 const CSButton = styled.button`

@@ -228,6 +228,10 @@ const PricingTable = () => {
         <Subtitle>
           전문적이고 신뢰할 수 있는 서비스를 합리적인 가격으로
         </Subtitle>
+        <Subtitle>
+          * 추가비용이 발생할 수 있으니 정확한 가격은 견적문의를 통해
+          신청해주시기 바랍니다
+        </Subtitle>
       </Header>
 
       <PricingContainer>
