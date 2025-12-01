@@ -8,6 +8,7 @@ import BlogSection from "./sections/BlogSection";
 import EnterpriseBanner from "./sections/EnterpriseBanner";
 
 const Home = () => {
+  sessionStorage.removeItem("entryFrom");
   return (
     <div style={{ width: "100%", background: "#F7F7F7" }}>
       <img

@@ -20,9 +20,17 @@ const STATUS_MESSAGES = {
   [STATUS.FEE_DONE]: "처리 완료",
 };
 
-function parseAmountToNumber(str) {
-  if (str == null) return 0;
-  const onlyDigits = String(str).replace(/[^\d]/g, "");
+function parseAmountToNumber(value) {
+  // null/undefined 체크
+  if (value == null) return 0;
+
+  // 이미 숫자면 그대로 반환
+  if (typeof value === "number") {
+    return Number.isFinite(value) ? value : 0;
+  }
+
+  // string인 경우 (기존 데이터 호환성)
+  const onlyDigits = String(value).replace(/[^\d]/g, "");
   const n = Number(onlyDigits);
   return Number.isFinite(n) ? n : 0;
 }
@@ -280,7 +288,7 @@ export default function PayPage() {
       goodsName: orderName,
       buyerName: paymentDoc.customer_name || "구매자",
       buyerTel: paymentDoc.customer_phone || "010-0000-0000",
-      buyerEmail: paymentDoc.customer_email || `${requestId}@coner.kr`,
+      buyerEmail: paymentDoc.customer_email,
       returnUrl: NICEPAY_CONFIG.returnUrl,
       mallReserved: JSON.stringify(mallReservedData),
       useCheckout: true,
@@ -408,7 +416,7 @@ export default function PayPage() {
   };
 
   const copyAccountNumber = async () => {
-    const accountInfo = "신한은행 100-038-137730 서진형";
+    const accountInfo = "100038137730";
     try {
       await navigator.clipboard.writeText(accountInfo);
       alert("계좌번호가 복사되었습니다!");
@@ -552,7 +560,7 @@ export default function PayPage() {
                 </div>
 
                 {/* 간편 결제 */}
-                {/* <div style={styles.paymentMethodSection}>
+                <div style={styles.paymentMethodSection}>
                   <div style={styles.sectionLabel}>간편 결제</div>
                   <div style={styles.paymentMethods}>
                     <button
@@ -615,7 +623,7 @@ export default function PayPage() {
                       SSGPAY
                     </button>
                   </div>
-                </div> */}
+                </div>
               </div>
             </>
           ) : (

@@ -15,6 +15,17 @@ import 이원공조 from "../../../assets/partnerimages/이원공조.jpeg";
 import 깔끔히홈케어 from "../../../assets/partnerimages/깔끔히홈케어.jpg";
 import 수공조시스템 from "../../../assets/partnerimages/수공조시스템.jpeg";
 
+import 윤스클린 from "../../../assets/partnerimages/윤스클린.jpeg";
+import 배가공조 from "../../../assets/partnerimages/배가공조.jpeg";
+
+import 더원공조시스템 from "../../../assets/partnerimages/더원공조시스템.jpeg";
+
+import 이공홈케어 from "../../../assets/partnerimages/이공홈케어.jpg";
+
+import 에어컨마트 from "../../../assets/partnerimages/에어컨마트.png";
+
+import 라이트홈케어 from "../../../assets/partnerimages/라이트홈케어.jpeg";
+
 const partnerImages = {
   partner_IRoQdhzbK6dqvxME2xLh: 청우냉열,
   partner_qCpXWRHg5BhzemDgZ59y: 에스디에어시스템,
@@ -25,6 +36,17 @@ const partnerImages = {
   partner_2t7WiRLVHXJdNYnxPSPy: 이원공조,
   partner_4jG7dd2lAoi7k0nOlckT: 깔끔히홈케어,
   partner_EuIvYioQRQYSGMyCosjk: 수공조시스템,
+
+  partner_2FEIdZelpWqhiNUO903i: 배가공조,
+  partner_hJvrg2kVztKRbSci5vGr: 윤스클린,
+
+  partner_K6VQGBB9AVsSp20mwDO7: 더원공조시스템,
+
+  partner_nIHj5ApFSz3OPlK5F5sY: 이공홈케어,
+
+  partner_pFIBZ3K2I3tJW66jbuWH: 에어컨마트,
+
+  partner_zTNGOBnrQrRxEzomFLdp: 라이트홈케어,
 };
 
 // 서울 전체 25개 구
@@ -135,7 +157,7 @@ const PartnerSection = () => {
             };
           })
           .filter(
-            (p) => p.partner_id !== OUR_STAFF_PARTNER_ID && p.status === 1
+            (p) => p.partner_id !== OUR_STAFF_PARTNER_ID && p.status === 2
           );
 
         const sortedByCount = partners.sort((a, b) => b.count - a.count);

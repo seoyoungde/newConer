@@ -538,9 +538,7 @@ export default function SuccessPage() {
             </PrimaryButton>
 
             <ButtonRow>
-              <SecondaryButton
-                onClick={() => alert("고객센터: 070-8648-3327, 070-8648-3326")}
-              >
+              <SecondaryButton onClick={() => alert("고객센터:02-433-3114")}>
                 고객센터
               </SecondaryButton>
             </ButtonRow>

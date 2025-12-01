@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
-import NavHeader from "../../components/common/Header/NavHeader";
 import Button from "../../components/ui/Button";
 import TextField from "../../components/ui/formControls/TextField";
 import InputGroup from "../../components/ui/formControls/InputGroup";
@@ -10,9 +9,9 @@ import axios from "axios";
 import { doc, setDoc, collection } from "firebase/firestore";
 import RequestHeader from "../../components/common/Header/RequestHeader";
 
-import AddressModal, {
+import EntireAddressModal, {
   SERVICE_AREAS,
-} from "../../components/common/Modal/AddressModal";
+} from "../../components/common/Modal/EntireAddressModal";
 import Modal from "../../components/common/Modal/Modal";
 import TermsAgreementModal from "../../components/common/Modal/TermsAgreementModal";
 
@@ -479,7 +478,7 @@ const PartnerApply = () => {
         address: companyAddress,
         address_detail: companyAddressDetail,
         career: companyCareer,
-        Area: [serviceAreas],
+        area: [serviceAreas],
         owner_name: ceoName,
         owner_phone: formattedPhone,
         logo_image_url:
@@ -519,13 +518,14 @@ const PartnerApply = () => {
       <FormBox>
         <NoticeBox>
           <p>신청 후 7일 영업일 이내에 담당자가 연락드릴 예정입니다.</p>
-          <NoticeLink
+          <p>현재 코너 서비스 지역은 서울 전지역으로 제한되어있습니다.</p>
+          {/* <NoticeLink
             href="https://www.notion.so/harvies/CONER-21d5c6005f1280d5a479ccd4bf9b6c4c"
             target="_blank"
             rel="noopener noreferrer"
           >
             코너 협력업체 서비스 안내 보러가기 →
-          </NoticeLink>
+          </NoticeLink> */}
         </NoticeBox>
         <FormGroup>
           <TextField
@@ -666,10 +666,10 @@ const PartnerApply = () => {
           containerId="rightbox-modal-root"
         >
           <div style={{ width: "100%", height: "70vh" }}>
-            <AddressModal
+            <EntireAddressModal
               onSelect={(addr) => setCompanyAddress(addr)}
               onClose={() => setIsAddressOpen(false)}
-              serviceAreas={SERVICE_AREAS}
+              serviceAreas={[]}
             />
           </div>
         </Modal>
@@ -695,7 +695,7 @@ export default PartnerApply;
 const Container = styled.div``;
 
 const NoticeBox = styled.div`
-  padding: 14px 12px;
+  padding: 12px 12px;
   background: #f9fbff;
   border: 1px solid #e0e6f5;
   border-radius: 8px;

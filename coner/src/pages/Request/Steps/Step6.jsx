@@ -135,7 +135,7 @@ const Step6 = () => {
           customer_type: requestData.customer_type,
         });
       } catch (err) {
-        console.error("❌ 알림 전송 실패:", err.response?.data || err.message);
+        console.error("알림 전송 실패:", err.response?.data || err.message);
       }
 
       // 퍼널 완료 처리

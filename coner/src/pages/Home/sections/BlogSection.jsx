@@ -40,12 +40,12 @@ const BlogSection = () => {
   useEffect(() => {
     const fetchBlogs = async () => {
       try {
-        const blogQuery = query(collection(db, "Blog"), limit(6));
+        // limit 제거 - 모든 블로그 가져오기
+        const blogQuery = query(collection(db, "Blog"));
         const blogSnapshot = await getDocs(blogQuery);
 
         const blogList = blogSnapshot.docs.map((doc) => {
           const blog = doc.data();
-
           return {
             blog_id: doc.id,
             title: blog.title || "",
@@ -56,8 +56,8 @@ const BlogSection = () => {
           };
         });
 
-        // 랜덤으로 섞기
-        const shuffledBlogs = shuffleArray(blogList);
+        // 전체 블로그를 랜덤으로 섞은 후 6개만 선택
+        const shuffledBlogs = shuffleArray(blogList).slice(0, 6);
         setBlogs(shuffledBlogs);
 
         //3개만 초고속 로딩
@@ -116,11 +116,6 @@ const BlogSection = () => {
     } else {
       navigate(`/blog/${blog.id}`);
     }
-  };
-
-  const handleViewMoreClick = () => {
-    if (hasMoved) return;
-    navigate("/blog");
   };
 
   const formatDate = (dateString) => {
@@ -209,13 +204,10 @@ const BlogSection = () => {
 
         {/* 블로그 더 둘러보기 카드 */}
         <ViewMoreCard
-          onClick={(e) => {
-            if (hasMoved) {
-              e.preventDefault();
-              return;
-            }
-            handleViewMoreClick();
-          }}
+          as="a"
+          href="https://blog.naver.com/story_coner"
+          target="_blank"
+          rel="noopener noreferrer"
           $isDragging={isDragging}
         >
           <ViewMoreContent>

@@ -20,7 +20,7 @@ const isMobileDevice = () => {
   return /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 };
 
-const phoneNumbers = "070-8648-3327";
+const phoneNumbers = "010-8079-0636";
 
 const handlePhoneSelect = (phoneNumber) => {
   if (isMobileDevice()) {
@@ -534,7 +534,7 @@ const RequestReceived = ({
                         isMobileDevice() && handlePhoneSelect(phoneNumbers)
                       }
                     >
-                      {"070-8648-3327"}
+                      {"010-8079-0636"}
                     </PhoneNumber>
                   </ContactInfo>
 

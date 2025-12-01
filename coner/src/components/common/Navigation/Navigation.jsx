@@ -45,7 +45,7 @@ const Navigation = () => {
             톡톡 상담
           </Actionhref>
         </Hrefs>
-        <PrimaryLink to={`/partner/step0/${partnerId}?source=price`}>
+        <PrimaryLink to={`/partner/step0/${partnerId}`}>
           무료 견적 받아보기
         </PrimaryLink>
       </Actions>
