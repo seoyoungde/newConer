@@ -346,20 +346,35 @@ const MessageIcon = () => (
   </svg>
 );
 
+const ReceiptIcon = () => (
+  <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20">
+    <path
+      fillRule="evenodd"
+      d="M4 4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z"
+      clipRule="evenodd"
+    />
+  </svg>
+);
+
 export default function SuccessPage() {
   const { requestId } = useParams();
+  const [searchParams] = useSearchParams();
 
   const [state, setState] = useState({
     loading: true,
     paymentData: null,
+    tid: null,
   });
 
   useEffect(() => {
     const loadPaymentInfo = async () => {
       if (!requestId) {
-        setState({ loading: false, paymentData: null });
+        setState({ loading: false, paymentData: null, tid: null });
         return;
       }
+
+      const urlTid = searchParams.get("tid");
+      console.log("URL에서 가져온 TID", urlTid);
 
       try {
         const paymentDocRef = doc(db, "Payment", requestId);
@@ -368,9 +383,13 @@ export default function SuccessPage() {
         if (docSnapshot.exists()) {
           const data = docSnapshot.data();
 
+          const finalTid = data.tid || urlTid;
+          console.log("finalTid", finalTid);
+
           setState({
             loading: false,
             paymentData: data,
+            tid: finalTid,
           });
 
           // status를 숫자로 명확하게 비교
@@ -378,9 +397,18 @@ export default function SuccessPage() {
 
           if (currentStatus === 1) {
             try {
-              // Payment status를 3으로 변경
+              const now = new Date();
+              const year = now.getFullYear();
+              const month = String(now.getMonth() + 1).padStart(2, "0");
+              const day = String(now.getDate()).padStart(2, "0");
+              const paidAtFormatted = `${year}년 ${month}월 ${day}일`;
+
+              // Payment status를 2으로 변경
               await updateDoc(paymentDocRef, {
                 status: 2,
+                method: "온라인 결제",
+                paid_at: paidAtFormatted,
+                tid: finalTid,
                 updated_at: new Date().toISOString(),
               });
 
@@ -394,10 +422,14 @@ export default function SuccessPage() {
           } else {
           }
         } else {
-          setState({ loading: false, paymentData: null });
+          setState({ loading: false, paymentData: null, tid: urlTid });
         }
       } catch (error) {
-        setState({ loading: false, paymentData: null });
+        setState({
+          loading: false,
+          paymentData: null,
+          tid: searchParams.get("tid"),
+        });
       }
     };
 
@@ -410,6 +442,26 @@ export default function SuccessPage() {
     const onlyDigits = String(amountStr).replace(/[^\d]/g, "");
     const amount = Number(onlyDigits);
     return Number.isFinite(amount) ? amount : 0;
+  };
+
+  const getReceiptUrl = (tid) => {
+    if (!tid) return null;
+    return `https://npg.nicepay.co.kr/issue/IssueLoader.do?type=0&TID=${tid}`;
+  };
+
+  const handleOpenReceipt = () => {
+    const receiptUrl = getReceiptUrl(state.tid);
+    if (receiptUrl) {
+      window.open(
+        receiptUrl,
+        "receipt",
+        "width=420,height=700,scrollbars=yes,resizeable=yes"
+      );
+    } else {
+      alert(
+        "거래번호를 찾을 수 없습니다. 고객센터(02-433-3114)로 문의해주세요."
+      );
+    }
   };
 
   // 로딩 중
@@ -500,6 +552,16 @@ export default function SuccessPage() {
               </InfoValue>
             </InfoRow>
 
+            {/* 영수증 추가 (tid가 있을때만 표시하기) */}
+            {state.tid && (
+              <InfoRow>
+                <InfoLabel>거래번호</InfoLabel>
+                <InfoValue $mono $small>
+                  {state.paymentData.tid}
+                </InfoValue>
+              </InfoRow>
+            )}
+
             {state.paymentData.service_date && (
               <InfoRow>
                 <InfoLabel>서비스 날짜</InfoLabel>
@@ -536,6 +598,20 @@ export default function SuccessPage() {
             <PrimaryButton onClick={() => (window.location.href = "/")}>
               홈으로 돌아가기
             </PrimaryButton>
+
+            <ButtonRow>
+              <SecondaryButton
+                $accent
+                onClick={handleOpenReceipt}
+                disabled={!state.tid}
+                style={{
+                  opacity: state.tid ? 1 : 0.5,
+                  cursor: state.tid ? "pointer" : "not-allowed",
+                }}
+              >
+                영수증 보기
+              </SecondaryButton>
+            </ButtonRow>
 
             <ButtonRow>
               <SecondaryButton onClick={() => alert("고객센터:02-433-3114")}>
