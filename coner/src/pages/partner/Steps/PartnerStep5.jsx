@@ -26,8 +26,13 @@ const PartnerStep5 = () => {
   useEffect(() => {
     if (requestData.detailInfo) {
       const lines = requestData.detailInfo.split("\n");
+      // 아파트 관련 정보와 중고/신규 정보는 제외하고 표시
       const additionalLines = lines.filter(
-        (line) => !line.includes("중고") && !line.includes("신규")
+        (line) =>
+          !line.includes("중고") &&
+          !line.includes("신규") &&
+          !line.includes("아파트 유형") &&
+          !line.includes("주소지: 아파트")
       );
       setAdditionalRequest(additionalLines.join("\n"));
     }
@@ -36,16 +41,25 @@ const PartnerStep5 = () => {
   const handleNext = () => {
     const existingDetail = requestData.detailInfo || "";
 
-    const purchaseTypeLines = existingDetail
+    // 아파트 정보와 구매 유형 정보 추출
+    const systemLines = existingDetail
       .split("\n")
-      .filter((line) => line.includes("중고") || line.includes("신규"));
+      .filter(
+        (line) =>
+          line.includes("중고") ||
+          line.includes("신규") ||
+          line.includes("아파트 유형") ||
+          line.includes("주소지: 아파트")
+      );
 
     const additionalText = additionalRequest.trim();
+
+    // 시스템 정보 + 사용자 추가 요청사항 순으로 병합
     const newDetail =
-      purchaseTypeLines.length > 0
+      systemLines.length > 0
         ? additionalText
-          ? `${purchaseTypeLines.join("\n")}\n${additionalText}`
-          : purchaseTypeLines.join("\n")
+          ? `${systemLines.join("\n")}\n${additionalText}`
+          : systemLines.join("\n")
         : additionalText;
 
     updateRequestData("detailInfo", newDetail);
