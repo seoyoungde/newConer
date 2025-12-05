@@ -83,12 +83,13 @@ const PartnerStep6 = () => {
       address: `${requestData.customer_address || ""} ${
         requestData.customer_address_detail || ""
       }`.trim(),
-      customerType: requestData.customer_type || "",
+      customer_type: requestData.customer_type || "",
+      is_apartment: requestData.is_apartment || "",
+      apartment_age: requestData.apartment_age || "",
       date: requestData.service_date || "",
       datetime: requestData.service_time || "",
       airconType: requestData.aircon_type || "",
       brand: requestData.brand || "",
-
       additionalRequest: requestData.detailInfo || "없음",
     };
   }, [requestData, partnerInfo]);
@@ -149,12 +150,15 @@ const PartnerStep6 = () => {
         customer_uid: clientId,
         sprint: updatedSprint,
         customer_phone: digitsPhone,
-
         service_type: requestData.service_type,
+        customer_type: requestData.customer_type,
       };
 
       const requestId = await submitRequest(payload);
       sessionStorage.removeItem("userSource");
+      sessionStorage.removeItem("n_keyword");
+      sessionStorage.removeItem("n_ad");
+      sessionStorage.removeItem("n_rank");
 
       // SMS 알림 전송 시도
       // 파트너 선택되어 있으면 해당 업체 알림, 아니면 일반 알림
@@ -262,10 +266,24 @@ const PartnerStep6 = () => {
               <ValueBox>{confirmationData.serviceType || "없음"}</ValueBox>
             </Section>
           </ThreeColumnGrid>
+
           <SectionTitle>주소</SectionTitle>
           <Section>
             <ValueBox>{confirmationData.address || "없음"}</ValueBox>
           </Section>
+
+          {confirmationData.is_apartment && (
+            <>
+              <SectionTitle>주소지 유형</SectionTitle>
+              <Section>
+                <ValueBox>
+                  {confirmationData.is_apartment === "아파트"
+                    ? `아파트 (${confirmationData.apartment_age})`
+                    : "아파트 아님"}
+                </ValueBox>
+              </Section>
+            </>
+          )}
 
           {/* 연락처와 의뢰인 유형 */}
           <TwoColumnGrid>
@@ -279,7 +297,7 @@ const PartnerStep6 = () => {
             <div>
               <SectionTitle>의뢰인 유형</SectionTitle>
               <Section>
-                <ValueBox>{confirmationData.customerType}</ValueBox>
+                <ValueBox>{confirmationData.customer_type}</ValueBox>
               </Section>
             </div>
           </TwoColumnGrid>
@@ -373,7 +391,7 @@ const PageTitle = styled.h1`
   font-size: ${({ theme }) => theme.font.size.h1};
   font-weight: ${({ theme }) => theme.font.weight.bold};
   color: ${({ theme }) => theme.colors.text};
-  margin-bottom: 12px;
+  margin-bottom: 41px;
 
   @media (max-width: ${({ theme }) => theme.font.breakpoints.smobile}) {
     font-size: ${({ theme }) => theme.font.size.h2};
@@ -383,6 +401,7 @@ const PageTitle = styled.h1`
 const InfoList = styled.div`
   display: flex;
   flex-direction: column;
+  margin-bottom: 32px;
 `;
 
 const SectionTitle = styled.span`

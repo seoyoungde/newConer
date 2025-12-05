@@ -31,6 +31,12 @@ const Step4 = () => {
   const [detailaddress, setDetailaddress] = useState(
     requestData.customer_address_detail || ""
   );
+  const [isApartment, setIsApartment] = useState(
+    requestData.is_apartment || ""
+  );
+  const [apartmentAge, setApartmentAge] = useState(
+    requestData.apartment_age || ""
+  );
   const [customerType, setCustomerType] = useState(
     requestData.customer_type || ""
   );
@@ -77,17 +83,41 @@ const Step4 = () => {
       return;
     }
 
+    // 아파트인 경우 구축/신축 선택 확인
+    if (isApartment === "아파트" && !apartmentAge) {
+      alert("아파트 유형(구축/신축)을 선택해주세요.");
+      return;
+    }
+
     const phoneNumbers = phone.replace(/[^\d]/g, "");
     if (phoneNumbers.length !== 11) {
       alert("올바른 휴대폰 번호를 입력해주세요.");
       return;
     }
 
+    let apartmentInfo = "";
+    if (isApartment === "아파트") {
+      apartmentInfo = `아파트 유형: ${apartmentAge}`;
+    } else if (isApartment === "아파트 아님") {
+      apartmentInfo = `주소지: 아파트 아님`;
+    }
+
+    // 기존 detailInfo와 병합
+    const existingDetail = requestData.detailInfo || "";
+    const newDetail = apartmentInfo
+      ? existingDetail
+        ? `${apartmentInfo}\n${existingDetail}`
+        : apartmentInfo
+      : existingDetail;
+
     updateRequestDataMany({
       customer_phone: phoneNumbers,
       customer_address: address,
       customer_address_detail: detailaddress,
+      is_apartment: isApartment,
+      apartment_age: isApartment === "아파트" ? apartmentAge : "",
       customer_type: customerType,
+      detailInfo: newDetail,
     });
 
     onAdvance(5);
@@ -200,26 +230,101 @@ const Step4 = () => {
 
         {/* 2단계: 주소 */}
         {currentStep >= 5 && (
-          <FormGroup>
-            <ClickableTextField
-              label="주소"
-              size="stepsize"
-              value={address}
-              placeholder="주소를 입력해주세요"
-              onClick={handleAddressClick}
-              readOnly
-            />
-            <p style={{ marginBottom: "5px" }}></p>
-            <TextField
-              size="stepsize"
-              value={detailaddress}
-              onChange={handleDetailAddressChange}
-              placeholder="상세주소를 입력해주세요"
-              readOnly={isReadOnly}
-            />
-            {/* 서울 지역 제한 안내 */}
-            <HelperText>서울 지역으로만 제한되어 있습니다.</HelperText>
-          </FormGroup>
+          <>
+            <FormGroup>
+              <ClickableTextField
+                label="주소(서울 지역으로만 제한되어 있습니다)"
+                size="stepsize"
+                value={address}
+                placeholder="주소를 입력해주세요"
+                onClick={handleAddressClick}
+                readOnly
+              />
+              <p style={{ marginBottom: "5px" }}></p>
+              <TextField
+                size="stepsize"
+                value={detailaddress}
+                onChange={handleDetailAddressChange}
+                placeholder="상세주소를 입력해주세요"
+                readOnly={isReadOnly}
+              />
+
+              {/* 아파트 유형 선택 - 체크박스 형태 */}
+              <ApartmentCheckboxContainer>
+                <ApartmentCheckboxLabel>
+                  주소지가 아파트라면?
+                </ApartmentCheckboxLabel>
+                <CheckboxGroup>
+                  <CheckboxWrapper>
+                    <Checkbox
+                      type="checkbox"
+                      id="guchuk"
+                      checked={
+                        isApartment === "아파트" && apartmentAge === "구축"
+                      }
+                      onChange={() => {
+                        if (!isReadOnly) {
+                          if (
+                            isApartment === "아파트" &&
+                            apartmentAge === "구축"
+                          ) {
+                            setIsApartment("");
+                            setApartmentAge("");
+                            updateRequestDataMany({
+                              is_apartment: "",
+                              apartment_age: "",
+                            });
+                          } else {
+                            setIsApartment("아파트");
+                            setApartmentAge("구축");
+                            updateRequestDataMany({
+                              is_apartment: "아파트",
+                              apartment_age: "구축",
+                            });
+                          }
+                        }
+                      }}
+                      disabled={isReadOnly}
+                    />
+                    <CheckboxLabel htmlFor="guchuk">구축</CheckboxLabel>
+                  </CheckboxWrapper>
+                  <CheckboxWrapper>
+                    <Checkbox
+                      type="checkbox"
+                      id="sinchuk"
+                      checked={
+                        isApartment === "아파트" && apartmentAge === "신축"
+                      }
+                      onChange={() => {
+                        if (!isReadOnly) {
+                          if (
+                            isApartment === "아파트" &&
+                            apartmentAge === "신축"
+                          ) {
+                            setIsApartment("");
+                            setApartmentAge("");
+                            updateRequestDataMany({
+                              is_apartment: "",
+                              apartment_age: "",
+                            });
+                          } else {
+                            setIsApartment("아파트");
+                            setApartmentAge("신축");
+                            updateRequestDataMany({
+                              is_apartment: "아파트",
+                              apartment_age: "신축",
+                            });
+                          }
+                        }
+                      }}
+                      disabled={isReadOnly}
+                    />
+                    <CheckboxLabel htmlFor="sinchuk">신축</CheckboxLabel>
+                  </CheckboxWrapper>
+                </CheckboxGroup>
+              </ApartmentCheckboxContainer>
+            </FormGroup>
+          </>
         )}
 
         {/* 1단계: 휴대폰 번호 (항상 표시) */}
@@ -378,4 +483,90 @@ const CSButtonText = styled.p`
   margin: 0;
   font-size: ${({ theme }) => theme.font.size.bodyLarge};
   color: #a0a0a0;
+`;
+
+// 아파트 체크박스 스타일
+const ApartmentCheckboxContainer = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+  margin-top: 13px;
+  margin-left: 5px;
+
+  @media (max-width: ${({ theme }) => theme.font.breakpoints.mobile}) {
+    gap: 10px;
+  }
+`;
+
+const ApartmentCheckboxLabel = styled.span`
+  font-size: ${({ theme }) => theme.font.size.body};
+  color: ${({ theme }) => theme.colors.subtext};
+  font-weight: ${({ theme }) => theme.font.weight.regular};
+  white-space: nowrap;
+
+  @media (max-width: ${({ theme }) => theme.font.breakpoints.mobile}) {
+    font-size: ${({ theme }) => theme.font.size.bodyExtraSmall};
+  }
+`;
+
+const CheckboxGroup = styled.div`
+  display: flex;
+  gap: 8px;
+  align-items: center;
+
+  @media (max-width: ${({ theme }) => theme.font.breakpoints.mobile}) {
+    gap: 12px;
+  }
+`;
+
+const CheckboxWrapper = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 3px;
+`;
+
+const Checkbox = styled.input`
+  appearance: none;
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  background-color: white;
+  border: 1.5px solid ${({ theme }) => theme.colors.border || "#ddd"};
+  border-radius: 3px;
+  position: relative;
+
+  &:checked {
+    background-color: ${({ theme }) => theme.colors.primary};
+    border-color: ${({ theme }) => theme.colors.primary};
+  }
+
+  &:checked::after {
+    content: "";
+    position: absolute;
+    left: 4px;
+    top: 1px;
+    width: 4px;
+    height: 8px;
+    border: solid white;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+`;
+
+const CheckboxLabel = styled.label`
+  font-size: ${({ theme }) => theme.font.size.body};
+  color: ${({ theme }) => theme.colors.text};
+  cursor: pointer;
+  user-select: none;
+
+  @media (max-width: ${({ theme }) => theme.font.breakpoints.mobile}) {
+    font-size: ${({ theme }) => theme.font.size.bodyExtraSmall};
+  }
 `;

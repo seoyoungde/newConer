@@ -96,6 +96,8 @@ const Step1 = () => {
   }, []);
 
   const timeOptions = [
+    "퇴근후 시간대를 희망해요(8시이후)",
+    "시간대는 상관없어요",
     "오전9시 ~ 오전12시",
     "오전12시 ~ 오후3시",
     "오후3시 ~ 오후6시",
@@ -115,6 +117,7 @@ const Step1 = () => {
     if (timeOption === "오전12시 ~ 오후3시") return 12;
     if (timeOption === "오후3시 ~ 오후6시") return 15;
     if (timeOption === "오후6시 ~ 오후8시") return 18;
+    if (timeOption === "퇴근후 시간대를 희망해요(8시이후)") return 22;
     return 0;
   };
 

@@ -43,11 +43,12 @@ const Step6 = () => {
         requestData.customer_address_detail || ""
       }`.trim(),
       customer_type: requestData.customer_type || "",
+      is_apartment: requestData.is_apartment || "",
+      apartment_age: requestData.apartment_age || "",
       date: requestData.service_date || "",
       datetime: requestData.service_time || "",
       airconType: requestData.aircon_type || "",
       brand: requestData.brand || "",
-
       additionalRequest: requestData.detailInfo || "없음",
     };
   }, [requestData]);
@@ -199,6 +200,19 @@ const Step6 = () => {
           <Section>
             <ValueBox>{confirmationData.address || "없음"}</ValueBox>
           </Section>
+
+          {confirmationData.is_apartment && (
+            <>
+              <SectionTitle>주소지 유형</SectionTitle>
+              <Section>
+                <ValueBox>
+                  {confirmationData.is_apartment === "아파트"
+                    ? `아파트 (${confirmationData.apartment_age})`
+                    : "아파트 아님"}
+                </ValueBox>
+              </Section>
+            </>
+          )}
           {/* 연락처와 의뢰인 유형 */}
           <TwoColumnGrid>
             <div>
