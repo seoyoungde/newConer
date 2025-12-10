@@ -1,10 +1,10 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import styled from "styled-components";
 import {
   collection,
   getDocs,
   query,
-  limit,
+  where,
   doc,
   getDoc,
 } from "firebase/firestore";
@@ -12,11 +12,19 @@ import { db } from "../../../lib/firebase";
 
 const ReviewSection = () => {
   const [reviews, setReviews] = useState([]);
+  const scrollRef = useRef(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [startX, setStartX] = useState(0);
+  const [scrollLeft, setScrollLeft] = useState(0);
 
   useEffect(() => {
     const fetchReviews = async () => {
       try {
-        const reviewQuery = query(collection(db, "Review"), limit(10));
+        // status가 1인 리뷰만 가져오기
+        const reviewQuery = query(
+          collection(db, "Review"),
+          where("status", "==", 2)
+        );
         const reviewSnapshot = await getDocs(reviewQuery);
 
         const reviewList = await Promise.all(
@@ -26,28 +34,35 @@ const ReviewSection = () => {
             let partnerName = "";
             let serviceType = "";
             let requestAddress = "";
+            let airconBrand = "";
+            let airconType = "";
 
             try {
+              // 리뷰 ID와 동일한 Request ID로 의뢰서 데이터 가져오기
               const requestRef = doc(db, "Request", reviewDoc.id);
               const requestSnap = await getDoc(requestRef);
 
               if (requestSnap.exists()) {
                 const requestData = requestSnap.data();
-                partnerName = requestData.partnerName || "";
-                serviceType = requestData.serviceType || requestData.type || "";
+                partnerName = requestData.partner_name || "";
+                serviceType =
+                  requestData.service_type || requestData.service_type || "";
                 requestAddress =
-                  requestData.address || requestData.location || "";
+                  requestData.customer_address ||
+                  requestData.customer_address ||
+                  "";
+                airconBrand = requestData.brand || requestData.brand || "";
+                airconType =
+                  requestData.aircon_type || requestData.aircon_type || "";
               }
-            } catch (err) {
-              console.error("Request 데이터 가져오기 실패:", err);
-            }
+            } catch (err) {}
 
             let createdAt = "";
-            if (review.createdAt) {
-              if (typeof review.createdAt === "string") {
-                createdAt = review.createdAt;
-              } else if (typeof review.createdAt.toDate === "function") {
-                const date = review.createdAt.toDate();
+            if (review.created_at) {
+              if (typeof review.created_at === "string") {
+                createdAt = review.created_at;
+              } else if (typeof review.created_at.toDate === "function") {
+                const date = review.created_at.toDate();
                 const year = date.getFullYear();
                 const month = String(date.getMonth() + 1).padStart(2, "0");
                 const day = String(date.getDate()).padStart(2, "0");
@@ -57,31 +72,61 @@ const ReviewSection = () => {
 
             return {
               id: reviewDoc.id,
-              userName: review.userName || "익명",
               rating:
                 parseInt(review.partner_rating) ||
                 parseInt(review.service_rating) ||
                 5,
-              serviceOpinion: review.serviceOpinion || "",
-              complaints: review.complaints || "",
+              serviceOpinion: review.service_opinion || "",
               address:
                 requestAddress || review.address || review.location || "서울시",
               createdAt: createdAt,
               photos: review.photo || [],
               partnerName: partnerName,
               serviceType: serviceType,
+              airconBrand: airconBrand,
+              airconType: airconType,
             };
           })
         );
 
-        setReviews(reviewList);
-      } catch (err) {
-        console.error("리뷰 데이터를 불러오는 데 실패했습니다:", err);
-      }
+        // 랜덤으로 섞기
+        const shuffledReviews = reviewList.sort(() => Math.random() - 0.5);
+        setReviews(shuffledReviews);
+      } catch (err) {}
     };
 
     fetchReviews();
   }, []);
+
+  // 마우스 드래그 이벤트 핸들러
+  const handleMouseDown = (e) => {
+    setIsDragging(true);
+    setStartX(e.pageX - scrollRef.current.offsetLeft);
+    setScrollLeft(scrollRef.current.scrollLeft);
+    scrollRef.current.style.cursor = "grabbing";
+  };
+
+  const handleMouseLeave = () => {
+    setIsDragging(false);
+    if (scrollRef.current) {
+      scrollRef.current.style.cursor = "grab";
+    }
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+    if (scrollRef.current) {
+      scrollRef.current.style.cursor = "grab";
+    }
+  };
+
+  const handleMouseMove = (e) => {
+    if (!isDragging) return;
+    e.preventDefault();
+    const x = e.pageX - scrollRef.current.offsetLeft;
+    const walk = (x - startX) * 2; // 스크롤 속도 조절
+    scrollRef.current.scrollLeft = scrollLeft - walk;
+  };
 
   const formatDate = (dateString) => {
     if (!dateString) return "";
@@ -101,6 +146,19 @@ const ReviewSection = () => {
     return dateString;
   };
 
+  // 주소에서 "구"만 추출하는 함수
+  const extractDistrict = (address) => {
+    if (!address) return "";
+
+    // "00구" 패턴 찾기
+    const districtMatch = address.match(/([가-힣]+구)/);
+    if (districtMatch) {
+      return districtMatch[1];
+    }
+
+    return address;
+  };
+
   const renderStars = (rating) => {
     return Array.from({ length: 5 }, (_, index) => (
       <Star key={index} $filled={index < rating}>
@@ -111,9 +169,15 @@ const ReviewSection = () => {
 
   return (
     <ReviewContainer>
-      <Title>후기</Title>
+      <Title>고객님 후기</Title>
 
-      <ScrollContainer>
+      <ScrollContainer
+        ref={scrollRef}
+        onMouseDown={handleMouseDown}
+        onMouseLeave={handleMouseLeave}
+        onMouseUp={handleMouseUp}
+        onMouseMove={handleMouseMove}
+      >
         {reviews.map((review) => (
           <ReviewCard key={review.id}>
             <CardHeader>
@@ -121,30 +185,11 @@ const ReviewSection = () => {
               <ReviewDate>{formatDate(review.createdAt)}</ReviewDate>
             </CardHeader>
 
-            <UserName>{review.userName}</UserName>
+            <UserName>{review.partnerName || "업체이름"}</UserName>
 
             {review.serviceOpinion && (
               <ReviewContent>{review.serviceOpinion}</ReviewContent>
             )}
-
-            {review.complaints && (
-              <ComplaintsContent>{review.complaints}</ComplaintsContent>
-            )}
-
-            <ServiceInfo>
-              {review.partnerName && (
-                <InfoItem>
-                  <InfoLabel>업체:</InfoLabel>
-                  <InfoText>{review.partnerName}</InfoText>
-                </InfoItem>
-              )}
-              {review.serviceType && (
-                <InfoItem>
-                  <InfoLabel>서비스:</InfoLabel>
-                  <InfoText>{review.serviceType}</InfoText>
-                </InfoItem>
-              )}
-            </ServiceInfo>
 
             <LocationInfo>
               <LocationIcon>
@@ -161,7 +206,16 @@ const ReviewSection = () => {
                   />
                 </svg>
               </LocationIcon>
-              <LocationText>{review.address}</LocationText>
+              <LocationText>{extractDistrict(review.address)}</LocationText>
+              {review.airconBrand && (
+                <ServiceTypeText>{review.airconBrand}</ServiceTypeText>
+              )}
+              {review.airconType && (
+                <ServiceTypeText>{review.airconType}</ServiceTypeText>
+              )}
+              {review.serviceType && (
+                <ServiceTypeText>{review.serviceType}</ServiceTypeText>
+              )}
             </LocationInfo>
           </ReviewCard>
         ))}
@@ -195,11 +249,17 @@ const ScrollContainer = styled.div`
   overflow-x: auto;
   overflow-y: hidden;
   padding: 4px 0;
+  cursor: grab;
+  user-select: none;
 
   -ms-overflow-style: none;
   scrollbar-width: none;
   &::-webkit-scrollbar {
     display: none;
+  }
+
+  &:active {
+    cursor: grabbing;
   }
 
   @media (max-width: ${({ theme }) => theme.font.breakpoints.mobile}) {
@@ -208,17 +268,22 @@ const ScrollContainer = styled.div`
 `;
 
 const ReviewCard = styled.div`
-  min-width: 320px;
-  background: #f8f9fa;
+  min-width: 310px;
+  max-width: 400px;
+  background: white;
   border-radius: 12px;
   padding: 20px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  pointer-events: none;
 
   @media (max-width: ${({ theme }) => theme.font.breakpoints.mobile}) {
-    min-width: 280px;
-    padding: 16px;
+    min-width: 300px;
+    max-width: 300px;
+    padding: 20px;
+    height: 250px;
   }
 `;
 
@@ -226,6 +291,7 @@ const CardHeader = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
+  margin-bottom: 4px;
 `;
 
 const StarRating = styled.div`
@@ -234,75 +300,41 @@ const StarRating = styled.div`
 `;
 
 const Star = styled.span`
-  color: ${({ $filled }) => ($filled ? "#004FFF" : "#E0E0E0")};
-  font-size: 16px;
+  color: ${({ $filled }) => ($filled ? "#407BFF" : "#E0E0E0")};
+  font-size: 20px;
 `;
 
 const ReviewDate = styled.span`
-  color: #8b8b8b;
-  font-size: 13px;
+  color: #999;
+  font-size: 14px;
 `;
 
 const UserName = styled.h3`
   font-size: 16px;
   font-weight: bold;
-  color: ${({ theme }) => theme.colors.text || "#000"};
-  margin: 0;
+  color: #000;
+  margin-bottom: 4px;
 `;
 
 const ReviewContent = styled.p`
-  font-size: 14px;
-  line-height: 1.5;
+  font-size: 15px;
+  line-height: 1.6;
   color: #333;
-  margin: 0;
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-`;
-
-const ComplaintsContent = styled.p`
-  font-size: 13px;
-  line-height: 1.5;
-  color: #666;
-  margin: 0;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  font-style: italic;
-`;
-
-const ServiceInfo = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  padding: 8px 0;
-  border-top: 1px solid #e0e0e0;
-  border-bottom: 1px solid #e0e0e0;
-`;
-
-const InfoItem = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 6px;
-`;
-
-const InfoLabel = styled.span`
-  color: #666;
-  font-size: 12px;
-  font-weight: 600;
-`;
-
-const InfoText = styled.span`
-  color: #333;
-  font-size: 12px;
+  margin: 0px;
+  flex: 1;
+  word-break: break-word;
+  white-space: pre-wrap;
 `;
 
 const LocationInfo = styled.div`
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 20px;
+  background: #f5f5f5;
+  align-self: flex-start;
+  margin-top: auto;
 `;
 
 const LocationIcon = styled.div`
@@ -312,6 +344,11 @@ const LocationIcon = styled.div`
 `;
 
 const LocationText = styled.span`
+  color: #8b8b8b;
+  font-size: 13px;
+`;
+
+const ServiceTypeText = styled.span`
   color: #8b8b8b;
   font-size: 13px;
 `;

@@ -99,6 +99,7 @@ const PartnerStep1 = () => {
   const timeOptions = [
     "퇴근후 시간대를 희망해요(8시이후)",
     "시간대는 상관없어요",
+    "최대한 빨리해주세요",
     "오전9시 ~ 오전12시",
     "오전12시 ~ 오후3시",
     "오후3시 ~ 오후6시",
@@ -141,6 +142,7 @@ const PartnerStep1 = () => {
 
     return timeOptions.filter((timeOption) => {
       const startHour = getTimeOptionStartHour(timeOption);
+      if (startHour === 0) return true;
       return currentHour < startHour;
     });
   };
@@ -459,7 +461,7 @@ const DropdownMenu = styled.div`
   border-radius: 0 0 8px 8px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   z-index: 1000;
-  max-height: 200px;
+  max-height: 300px;
   overflow-y: auto;
 
   @media (max-width: ${({ theme }) => theme.font.breakpoints.mobile}) {
