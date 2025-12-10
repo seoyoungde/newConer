@@ -22,7 +22,7 @@ const Home = () => {
       <EnterpriseBanner />
       <MainContent>
         <PartnerSection />
-        {/* <ReviewSection /> */}
+        <ReviewSection />
         <BlogSection />
         <Footer />
       </MainContent>

@@ -51,7 +51,6 @@ const AgreementForm = ({
     agreements.privacy &&
     agreements.privacy2;
 
-  // 추가: 필수 동의 여부 변경 시 부모에게 알림
   useEffect(() => {
     if (typeof onRequiredChange === "function") {
       onRequiredChange(isRequiredChecked);

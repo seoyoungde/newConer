@@ -88,6 +88,7 @@ const ReviewPage = () => {
         service_opinion: service_opinion,
         service_rating: ratings.service.toString(),
         created_at: formatDate(new Date()),
+        status: 1, // status를 1로 설정
       };
 
       // Firestore의 Review 컬렉션에 저장 (문서 ID는 requestId)
